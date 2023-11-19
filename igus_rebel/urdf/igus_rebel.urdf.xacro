@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="igus_rebel" >
+
+  <!-- igus_rebel -->
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.description.xacro"/>
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.control.xacro"/>
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.gazebo.xacro"/>
+
+  <xacro:igus_rebel_control arm_id="igus_rebel"/>
+  
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link = "base_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+
+
+</robot>

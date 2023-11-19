@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="custom_terrain">
+    <static>true</static>
+
+
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://custom_terrain/meshes/terrain.stl</uri>
+            <!-- <scale>0.683166466464586 0.683166466464586 0.683166466464586</scale> -->
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://custom_terrain/meshes/terrain.stl</uri>
+            <!-- <scale>0.683166466464586 0.683166466464586 0.683166466464586</scale> -->
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://custom_terrain/materials/scripts</uri>
+            <uri>model://custom_terrain/materials/textures</uri>
+            <name>custom_terrain/terrain</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+
+    
+  </model>
+</sdf>

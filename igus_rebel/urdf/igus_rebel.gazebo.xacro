@@ -3,7 +3,9 @@
 
 
     <!-- Gazebo requires the use of plugins to interact with other systems such as ROS. -->
-
+    <gazebo reference="camera_mount">
+        <material>Gazebo/Green</material>
+    </gazebo>
 
     <!-- This plugin will publish the joint_states for the selected joints 
             (which robot_state_publisher can then use to broadcast the approprate tf). -->

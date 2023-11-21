@@ -40,6 +40,7 @@ def generate_launch_description():
     
     # Launch configuration variables specific to simulation
     urdf = LaunchConfiguration('urdf')
+    gripper = LaunchConfiguration('gripper')
     gui = LaunchConfiguration('gui')
     headless = LaunchConfiguration('headless')
     namespace = LaunchConfiguration('namespace')
@@ -59,6 +60,13 @@ def generate_launch_description():
         default_value="mod",
         description="Robot Description file to use",
         choices=["mod", "upg"],
+    )
+
+    declare_gripper = DeclareLaunchArgument(
+        name="gripper",
+        default_value="none",
+        choices=["none", "camera"],
+        description="Which gripper mount to attach to the flange",
     )
 
     declare_use_joint_state_publisher_cmd = DeclareLaunchArgument(
@@ -142,14 +150,15 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{'use_sim_time': use_sim_time, 
-        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_mod_model_path]))}])
+        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_mod_model_path, " gripper:=" ,LaunchConfiguration("gripper"),]))}])
+        #'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_mod_model_path]))}])
 
     start_robot_state_publisher_upg_cmd = Node(
         condition=LaunchConfigurationEquals('urdf', 'upg'),
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{'use_sim_time': use_sim_time, 
-        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_upg_model_path]))}])
+        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_upg_model_path, " gripper:=" ,LaunchConfiguration("gripper"),]))}])
     
     # Launch RViz
     start_rviz_cmd = Node(
@@ -187,6 +196,7 @@ def generate_launch_description():
     
     # Declare the launch options
     ld.add_action(declare_urdf_type)
+    ld.add_action(declare_gripper)
     ld.add_action(declare_use_joint_state_publisher_cmd)
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_namespace_cmd)

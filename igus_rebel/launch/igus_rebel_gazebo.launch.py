@@ -1,11 +1,12 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition, LaunchConfigurationEquals
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PythonExpression, FindExecutable
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import launch_ros.descriptions
  
  
 def generate_launch_description():
@@ -15,7 +16,8 @@ def generate_launch_description():
     package_name = 'igus_rebel'
     robot_name_in_model = 'igus_rebel'
     rviz_config_file_path = 'rviz/igus_rebel.rviz'
-    urdf_file_path = 'urdf/igus_rebel.urdf.xacro'
+    urdf_mod_file_path = 'urdf/igus_rebel.urdf.xacro'
+    urdf_upg_file_path = 'urdf/igus_rebel_ros2.urdf.xacro'
     world_file_path = 'worlds/tomato_field.world'
         
     # Pose where we want to spawn the robot
@@ -29,13 +31,15 @@ def generate_launch_description():
     # Set the path to different files and folders.  
     pkg_gazebo_ros = FindPackageShare(package='gazebo_ros').find('gazebo_ros')   
     pkg_share = FindPackageShare(package=package_name).find(package_name)
-    default_urdf_model_path = os.path.join(pkg_share, urdf_file_path)
+    default_urdf_mod_model_path = os.path.join(pkg_share, urdf_mod_file_path)
+    default_urdf_upg_model_path = os.path.join(pkg_share, urdf_upg_file_path)
     default_rviz_config_path = os.path.join(pkg_share, rviz_config_file_path)
     world_path = os.path.join(pkg_share, world_file_path)
     gazebo_models_path = os.path.join(pkg_share, gazebo_models_path)
     os.environ["GAZEBO_MODEL_PATH"] = gazebo_models_path
     
     # Launch configuration variables specific to simulation
+    urdf = LaunchConfiguration('urdf')
     gui = LaunchConfiguration('gui')
     headless = LaunchConfiguration('headless')
     namespace = LaunchConfiguration('namespace')
@@ -48,7 +52,14 @@ def generate_launch_description():
     use_simulator = LaunchConfiguration('use_simulator')
     world = LaunchConfiguration('world')
     
-    # Declare the launch arguments  
+    # Declare the launch arguments 
+
+    declare_urdf_type = DeclareLaunchArgument(
+        name="urdf",
+        default_value="mod",
+        description="Robot Description file to use",
+        choices=["mod", "upg"],
+    )
 
     declare_use_joint_state_publisher_cmd = DeclareLaunchArgument(
         name='gui',
@@ -75,9 +86,14 @@ def generate_launch_description():
         default_value='False',
         description='Whether to execute gzclient')
     
-    declare_urdf_model_path_cmd = DeclareLaunchArgument(
-        name='urdf_model', 
-        default_value=default_urdf_model_path, 
+    declare_urdf_mod_model_path_cmd = DeclareLaunchArgument(
+        name='urdf_mod_model', 
+        default_value=default_urdf_mod_model_path, 
+        description='Absolute path to robot urdf file')
+    
+    declare_urdf_upg_model_path_cmd = DeclareLaunchArgument(
+        name='urdf_upg_model', 
+        default_value=default_urdf_upg_model_path, 
         description='Absolute path to robot urdf file')
         
     declare_use_robot_state_pub_cmd = DeclareLaunchArgument(
@@ -121,11 +137,19 @@ def generate_launch_description():
         name='joint_state_publisher')
     
     # Subscribe to the joint states of the robot, and publish the 3D pose of each link.
-    start_robot_state_publisher_cmd = Node(
+    start_robot_state_publisher_mod_cmd = Node(
+        condition=LaunchConfigurationEquals('urdf', 'mod'),
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{'use_sim_time': use_sim_time, 
-        'robot_description': Command([ FindExecutable(name="xacro"), " ", default_urdf_model_path])}])
+        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_mod_model_path]))}])
+
+    start_robot_state_publisher_upg_cmd = Node(
+        condition=LaunchConfigurationEquals('urdf', 'upg'),
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        parameters=[{'use_sim_time': use_sim_time, 
+        'robot_description': launch_ros.descriptions.ParameterValue(Command([ FindExecutable(name="xacro"), " ", default_urdf_upg_model_path]))}])
     
     # Launch RViz
     start_rviz_cmd = Node(
@@ -162,12 +186,14 @@ def generate_launch_description():
     ld = LaunchDescription()
     
     # Declare the launch options
+    ld.add_action(declare_urdf_type)
     ld.add_action(declare_use_joint_state_publisher_cmd)
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_namespace_cmd)
     ld.add_action(declare_rviz_config_file_cmd)
     ld.add_action(declare_simulator_cmd)
-    ld.add_action(declare_urdf_model_path_cmd)
+    ld.add_action(declare_urdf_mod_model_path_cmd)
+    ld.add_action(declare_urdf_upg_model_path_cmd)
     ld.add_action(declare_use_robot_state_pub_cmd)  
     ld.add_action(declare_use_rviz_cmd) 
     ld.add_action(declare_use_sim_time_cmd)
@@ -178,7 +204,8 @@ def generate_launch_description():
     ld.add_action(start_gazebo_server_cmd)
     ld.add_action(start_gazebo_client_cmd)
     ld.add_action(spawn_entity_cmd)
-    ld.add_action(start_robot_state_publisher_cmd)
+    ld.add_action(start_robot_state_publisher_mod_cmd)
+    ld.add_action(start_robot_state_publisher_upg_cmd)
     ld.add_action(start_joint_state_publisher_cmd)
     ld.add_action(start_joint_state_publisher_gui_node)
     ld.add_action(start_rviz_cmd)

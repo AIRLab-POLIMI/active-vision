@@ -53,17 +53,6 @@
 
             <link name="camera_insert" />
 
-            <!-- includes the realsense D435 ros2 description file and its collision box-->
-            <xacro:arg name="use_nominal_extrinsics" default="false" />
-            <xacro:arg name="add_plug" default="true" />
-            <xacro:arg name="use_mesh" default="true" />
-            <xacro:include filename="$(find igus_rebel)/urdf/camera/_d435.urdf.xacro" />
-
-            <xacro:sensor_d435 parent="camera_insert" use_nominal_extrinsics="$(arg use_nominal_extrinsics)"
-                add_plug="$(arg add_plug)" use_mesh="$(arg use_mesh)">
-                <origin xyz="0.0 0 0" rpy="0 0 0" />
-            </xacro:sensor_d435>
-
 
         </xacro:if>
     </xacro:macro>

@@ -53,6 +53,12 @@
 
             <link name="camera_insert" />
 
+            <joint name="camera_insert_to_oakd" type="fixed">
+                <parent link="camera_insert"/>
+                <child link="oakd"/>
+                <origin xyz="0.03 0.005 0.0155" rpy="0 0 0"/>
+            </joint>
+
 
         </xacro:if>
     </xacro:macro>

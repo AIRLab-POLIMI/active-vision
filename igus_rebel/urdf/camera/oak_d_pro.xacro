@@ -1,0 +1,150 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for oakd mount -->
+<robot name="oak_d_pro" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="inertial_box" params="mass x y z *origin">
+        <inertial>
+            <xacro:insert_block name="origin"/>
+            <mass value="${mass}" />
+            <inertia ixx="${(1/12) * mass * (y*y+z*z)}" ixy="0.0" ixz="0.0"
+                    iyy="${(1/12) * mass * (x*x+z*z)}" iyz="0.0"
+                    izz="${(1/12) * mass * (x*x+y*y)}" />
+        </inertial>
+    </xacro:macro>
+
+    <xacro:macro name="oakd_link">
+        <xacro:property name="oakd_length" value="0.0803" />
+        <xacro:property name="oakd_width" value="0.0957" />
+        <xacro:property name="oakd_depth" value="0.1267" />
+        <xacro:property name="oakd_mass" value="0.15" />
+
+        <link name="oakd">
+            <visual>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel)/meshes/camera/OAK-D_pro.dae"/>
+                </geometry>
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <geometry>
+                    <box size="${oakd_length} ${oakd_width} ${oakd_depth}"/>
+                </geometry>
+            </collision>
+            <xacro:inertial_box mass="${oakd_mass}" x="${oakd_length}" y="${oakd_width}" z="${oakd_depth}">
+                <origin xyz="0.0 0 0.0" rpy="0 0 0"/>
+            </xacro:inertial_box>
+        </link>
+
+        <joint name="camera_optical_joint" type="fixed">
+            <!-- Point cloud frustrum is 90 degrees off from visual frame --> 
+            <origin rpy="-1.57079632769 0 -1.570796332769" xyz="0 0 0" />
+            <parent link="oakd" />
+            <child link="camera_optical_frame" />
+        </joint> 
+  
+        <!-- Add dummy link for camera_optical_frame to link back to base_link -->
+        <link name="camera_optical_frame">
+            <inertial>
+                <mass value="0.001" />
+                <origin xyz="0 0 0" />
+                <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001" />
+            </inertial>
+        </link>
+      
+
+        <!-- Gazebo plugin for depth camera (ficticious, used instead of stereo ) -->
+        <gazebo reference="oakd">
+            <sensor type="depth" name="oakd_depth">
+        
+                <!-- Set always_on only sensor, not on plugin -->
+                <always_on>1</always_on>
+        
+                <!-- Set update_rate only sensor, not on plugin -->
+                <update_rate>15</update_rate>
+        
+                <camera name="oakd_d_camera">
+                    <horizontal_fov>2.21</horizontal_fov>
+                    <image>
+                        <width>1280</width>
+                        <height>800</height>
+                        <format>B8G8R8</format> 
+                    </image>
+                    <clip>
+                        <near>0.05</near>
+                        <far>8.0</far>
+                    </clip>
+                    
+                </camera>
+        
+                <plugin name="depth_driver_plugin" filename="libgazebo_ros_camera.so">
+                    <ros>
+                        <namespace></namespace>
+                    </ros>
+                    <camera_name>oakd_depth</camera_name>
+                    <frame_name>camera_optical_frame</frame_name>
+                    <hack_baseline>0.07</hack_baseline>
+                    <min_depth>0.01</min_depth>
+                    <max_depth>9.0</max_depth>
+                </plugin>
+            </sensor>
+        </gazebo>
+
+        <!-- Gazebo plugin for center RGB camera -->
+
+        <gazebo reference="oakd">
+            <material>Gazebo/Black</material>
+            <sensor type="camera" name="oakd_rgb">
+            <update_rate>30.0</update_rate>
+            <camera name="oakd_rgb_camera">
+                <horizontal_fov>2.21</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>800</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.03</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+                       That pixel's noise value is added to each of its color
+                       channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+                <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                    <camera_name>oakd_rgb</camera_name>
+                    <frame_name>camera_optical_frame</frame_name>
+                    <ros>
+                        <namespace>oakd_rgb</namespace>
+                    </ros>
+                </plugin>
+            </sensor>
+        </gazebo>
+    
+        <gazebo reference="oakd_joint">
+            <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+            <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+        </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="oakd_joint" params="x y z roll pitch yaw mount_point" >
+        <joint name="oakd_joint" type="fixed">
+            <origin rpy="${roll} ${pitch} ${yaw}" xyz="${x}+0.1 ${y}-0.01 ${z}"/>
+            <parent link="camera_insert" />
+            <child link="oakd" />
+        </joint>
+
+        <gazebo reference="oakd_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

@@ -21,7 +21,7 @@ def generate_launch_description():
     world_file_path = 'worlds/tomato_field.world'
         
     # Pose where we want to spawn the robot
-    spawn_x_val = '2.0'
+    spawn_x_val = '-1.0'
     spawn_y_val = '0.0'
     spawn_z_val = '0.0'
     spawn_yaw_val = '0.00'

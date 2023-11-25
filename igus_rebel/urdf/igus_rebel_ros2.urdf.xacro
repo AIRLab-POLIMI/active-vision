@@ -4,14 +4,18 @@
   <xacro:arg name="gripper" default="none" />
 
   <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel_ros2.description.xacro"/>
-  <xacro:igus_rebel_ros2_description  />
-  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.control.xacro"/>
-  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.gazebo.xacro"/>
+  <xacro:igus_rebel_ros2_description/>
 
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.control.xacro"/>
   <xacro:igus_rebel_control arm_id="igus_rebel_ros2"/>
 
   <xacro:include filename="$(find igus_rebel)/urdf/grippers.xacro"/>
-  <xacro:gripper gripper_type="$(arg gripper)" />
+  <xacro:gripper gripper_type="$(arg gripper)"/>
+  
+  <xacro:include filename="$(find igus_rebel)/urdf/camera/oak_d_pro.xacro"/>
+  <xacro:oakd_link/> 
+
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.gazebo.xacro"/>
 
 
   <link name="world" />

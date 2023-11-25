@@ -5,14 +5,19 @@
 
   <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.description.xacro"/>
   <xacro:igus_rebel_description  />
-  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.control.xacro"/>
-  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.gazebo.xacro"/>
 
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.control.xacro"/>
   <xacro:igus_rebel_control arm_id="igus_rebel"/>
 
   <xacro:include filename="$(find igus_rebel)/urdf/grippers.xacro"/>
-  <xacro:gripper gripper_type="$(arg gripper)" />
+  <xacro:gripper gripper_type="$(arg gripper)"/>
   
+  <xacro:include filename="$(find igus_rebel)/urdf/camera/oak_d_pro.xacro"/>
+  <xacro:oakd_link/> 
+
+  <xacro:include filename="$(find igus_rebel)/urdf/igus_rebel.gazebo.xacro"/>
+
+
   <link name="world" />
 
   <joint name="world_joint" type="fixed">
@@ -20,6 +25,8 @@
     <child link = "base_link" />
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
+
+
 
 
 </robot>

@@ -99,27 +99,28 @@
         <gazebo reference="oakd">
             <material>Gazebo/Black</material>
             <sensor type="camera" name="oakd_rgb">
-            <update_rate>30.0</update_rate>
-            <camera name="oakd_rgb_camera">
-                <horizontal_fov>2.21</horizontal_fov>
-                <image>
-                    <width>1280</width>
-                    <height>800</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.03</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <!-- Noise is sampled independently per pixel on each frame.
-                       That pixel's noise value is added to each of its color
-                       channels, which at that point lie in the range [0,1]. -->
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-            </camera>
+                <visualize>true</visualize>
+                <update_rate>30.0</update_rate>
+                <camera name="oakd_rgb_camera">
+                    <horizontal_fov>2.21</horizontal_fov>
+                    <image>
+                        <width>1280</width>
+                        <height>800</height>
+                        <format>R8G8B8</format>
+                    </image>
+                    <clip>
+                        <near>0.03</near>
+                        <far>300</far>
+                    </clip>
+                    <noise>
+                        <type>gaussian</type>
+                        <!-- Noise is sampled independently per pixel on each frame.
+                           That pixel's noise value is added to each of its color
+                           channels, which at that point lie in the range [0,1]. -->
+                        <mean>0.0</mean>
+                        <stddev>0.007</stddev>
+                    </noise>
+                </camera>
                 <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
                     <camera_name>oakd_rgb</camera_name>
                     <frame_name>camera_optical_frame</frame_name>

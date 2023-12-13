@@ -1,0 +1,78 @@
+<sdf version='1.7'>
+    <world name='tomato_field'>
+        <physics name='1ms' type='ignored'>
+            <max_step_size>0.001</max_step_size>
+            <real_time_factor>1</real_time_factor>
+            <real_time_update_rate>1000</real_time_update_rate>
+        </physics>
+        <plugin name='ignition::gazebo::systems::Physics' filename='ignition-gazebo-physics-system'/>
+        <plugin name='ignition::gazebo::systems::UserCommands' filename='ignition-gazebo-user-commands-system'/>
+        <plugin name='ignition::gazebo::systems::SceneBroadcaster' filename='ignition-gazebo-scene-broadcaster-system'/>
+        
+        <scene>
+            <ambient>1 1 1 1</ambient>
+            <background>0.8 0.8 0.8 1</background>
+            <shadows>1</shadows>
+        </scene>
+        <light name='sun' type='directional'>
+            <cast_shadows>1</cast_shadows>
+            <pose>0 0 10 0 -0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <attenuation>
+                <range>1000</range>
+                <constant>0.9</constant>
+                <linear>0.01</linear>
+                <quadratic>0.001</quadratic>
+            </attenuation>
+            <direction>-0.5 0.1 -0.9</direction>
+            <spot>
+                <inner_angle>0</inner_angle>
+                <outer_angle>0</outer_angle>
+                <falloff>0</falloff>
+            </spot>
+        </light>
+        <gravity>0 0 -9.8</gravity>
+        <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+        <atmosphere type='adiabatic'/>
+        
+        <include>
+            <uri>ground</uri>
+            <name>ground</name>
+            <pose>5.0 5.0 0 0 0 0</pose>
+        </include>
+
+        
+        <include>
+            <uri>tomato_0</uri>
+            <name>tomato_0</name>
+            <pose>0.0 0.0 0 0 0 0</pose>
+        </include>
+        
+        <include>
+            <uri>tomato_1</uri>
+            <name>tomato_1</name>
+            <pose>0.0 0.9 0 0 0 0</pose>
+        </include>
+        
+        <include>
+            <uri>tomato_2</uri>
+            <name>tomato_2</name>
+            <pose>0.0 1.8 0 0 0 0</pose>
+        </include>
+        
+        <include>
+            <uri>tomato_3</uri>
+            <name>tomato_3</name>
+            <pose>0.0 2.7 0 0 0 0</pose>
+        </include>
+        
+        <include>
+            <uri>tomato_4</uri>
+            <name>tomato_4</name>
+            <pose>0.0 3.6 0 0 0 0</pose>
+        </include>
+        
+        
+    </world>
+</sdf>

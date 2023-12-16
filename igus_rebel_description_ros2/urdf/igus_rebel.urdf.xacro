@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel">
+
+	<!-- Controller settings, only enable a single one in the launch file -->
+	<xacro:arg name="hardware_protocol" default="cri" />
+
+	<!-- Gripper selection -->
+	<xacro:arg name="gripper" default="none" />
+	<xacro:property name="gripper" value="$(arg gripper)" />
+
+	<!-- Scout base selection -->
+	<xacro:arg name="load_base" default="true" />
+
+	<!-- Camera type selection -->
+	<xacro:arg name="camera_type" default="realsense" />
+	<xacro:property name="camera_type" value="$(arg camera_type)" />
+
+	<!-- Include and call description macro -->
+	<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel.description.xacro" />
+	<xacro:igus_rebel_description />
+
+	<!-- Controller macro -->
+	<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel.control.xacro" />
+	<xacro:igus_rebel_control hardware_protocol="$(arg hardware_protocol)" />
+
+	<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel.gazebo.xacro" />
+
+
+	<!-- Add world link -->
+	<link name="world" />
+	<joint name="world_to_base" type="fixed">
+		<parent link="world" />
+		<child link="base_link" />
+		<origin xyz="0.0 0.0 0.32" rpy="0.0 0.0 0.0" />
+	</joint>
+
+	<!-- Mounts, camera, effectors -->
+	<xacro:if value="${gripper == 'camera'}">
+
+		<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/grippers/grippers.xacro"/>
+		<xacro:gripper camera_type="$(arg camera_type)"/>
+
+    	<xacro:if value="${camera_type == 'oakd'}">
+			<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/oak_d_pro.xacro"/>
+			<xacro:oakd_link/>
+    	</xacro:if>
+
+  	</xacro:if>
+
+	<!-- Load base -->
+	<xacro:if value="$(arg load_base)">
+
+		<!-- Mobile Robot base -->
+		<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/mobile_robot/scout_v2.xacro" />
+
+		<joint name="base_link_to_rebel_support" type="fixed">
+			<parent link="base_link" />
+			<child link="rebel_support" />
+			<origin xyz="0.0 0.0 0.0" rpy="0 0 ${pi/3}" />
+		</joint>
+
+		<link name="rebel_support" />
+
+		<!-- virtual joint acting as a link between base_link and mobile_robot_base_link -->
+		<joint name="base_link_to_mobile_robot_base_link" type="fixed">
+			<parent link="rebel_support" />
+			<child link="mobile_robot_base_link" />
+			<origin xyz="-0.26 0.0 -0.1" rpy="0 0 ${pi}" />
+		</joint>
+
+		<!-- castle with tower mounting sensors, batteries, computer and everyhting else-->
+		<xacro:include filename="$(find igus_rebel_description_ros2)/urdf/mobile_robot/castle.xacro" />
+
+	</xacro:if>
+
+</robot>

@@ -3,7 +3,7 @@
 <!--  xacro macros for oakd mount -->
 <robot name="oak_d_pro" xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:include filename="$(find igus_rebel_description)/urdf/common_properties.urdf.xacro"/>
+    <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/common_properties.urdf.xacro"/>
 
     <xacro:macro name="inertial_box" params="mass x y z *origin">
         <inertial>
@@ -32,7 +32,7 @@
         <link name="oakd_link">
             <visual>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description)/meshes/camera/OAK-D_pro.dae"/>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/camera/OAK-D_pro.dae"/>
                 </geometry>
             </visual>
             <collision>
@@ -237,78 +237,6 @@
         <gazebo reference="oakd_imu_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
-
-
-
-        <!-- FOR GZ CLASSIC -->
-        <!-- <gazebo reference="oakd">
-            <sensor type="depth" name="oakd_depth">
-        
-                <always_on>1</always_on>
-        
-                <update_rate>15</update_rate>
-        
-                <camera name="oakd_d_camera">
-                    <horizontal_fov>2.21</horizontal_fov>
-                    <image>
-                        <width>1280</width>
-                        <height>800</height>
-                        <format>B8G8R8</format> 
-                    </image>
-                    <clip>
-                        <near>0.05</near>
-                        <far>8.0</far>
-                    </clip>
-                    
-                </camera>
-        
-                <plugin name="depth_driver_plugin" filename="libgazebo_ros_camera.so">
-                    <ros>
-                        <namespace></namespace>
-                    </ros>
-                    <camera_name>oakd_depth</camera_name>
-                    <frame_name>camera_optical_frame</frame_name>
-                    <hack_baseline>0.07</hack_baseline>
-                    <min_depth>0.01</min_depth>
-                    <max_depth>9.0</max_depth>
-                </plugin>
-            </sensor>
-        </gazebo>
-
-
-        <gazebo reference="oakd">
-            <material>Gazebo/Black</material>
-            <sensor type="camera" name="oakd_rgb">
-                <visualize>true</visualize>
-                <update_rate>30.0</update_rate>
-                <camera name="oakd_rgb_camera">
-                    <horizontal_fov>2.21</horizontal_fov>
-                    <image>
-                        <width>1280</width>
-                        <height>800</height>
-                        <format>R8G8B8</format>
-                    </image>
-                    <clip>
-                        <near>0.03</near>
-                        <far>300</far>
-                    </clip>
-                    <noise>
-                        <type>gaussian</type>
-        
-                        <mean>0.0</mean>
-                        <stddev>0.007</stddev>
-                    </noise>
-                </camera>
-                <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-                    <camera_name>oakd_rgb</camera_name>
-                    <frame_name>camera_optical_frame</frame_name>
-                    <ros>
-                        <namespace>oakd_rgb</namespace>
-                    </ros>
-                </plugin>
-            </sensor>
-        </gazebo> -->
-
 
 
     </xacro:macro>

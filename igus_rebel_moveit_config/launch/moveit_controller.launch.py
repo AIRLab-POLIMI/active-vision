@@ -32,67 +32,32 @@ def load_yaml(package_name, file_path):
         return None
 
 
-# use this script for launching everything in a single terminal window
-# launches the moveit config and the commander node together with rviz2
 
-# use demo.launch.py instead to launch the moveit config and the commander node in separate terminal windows
-
-
-# launches only the URDF version 2 robot description
 def generate_launch_description():
-    gripper_arg = DeclareLaunchArgument(
-        name="gripper",
-        default_value="none",
-        choices=["none", "camera"],
-        description="Gripper mount to attach to the last joint",
-    )
-
-    hardware_protocol_arg = DeclareLaunchArgument(
-        name="hardware_protocol",
-        default_value="simulation",
-        choices=["mock_hardware", "cri", "simulation"],
-        description="Which hardware protocol or mock hardware should be used",
-    )
-
-    rviz_file_arg = DeclareLaunchArgument(
-        name="rviz_file",
-        default_value="none",
-        description="Path to the RViz configuration file",
-    )
-
-    load_octomap_arg = DeclareLaunchArgument(
-        name="load_octomap",
-        default_value="false",
-        description="Load the octomap server inside the planning scene",
-        choices=["true", "false"],
-    )
-
-    load_base_arg = DeclareLaunchArgument(
-        name="load_base",
-        default_value="false",
-        description="Load the mobile robot model and tower",
-        choices=["true", "false"],
-    )
-
+    
     return LaunchDescription(
         [
-            gripper_arg,
-            hardware_protocol_arg,
-            rviz_file_arg,
-            load_octomap_arg,
-            load_base_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
 
 
 def launch_setup(context, *args, **kwargs):
+    
+    
+    # URDF
     robot_description_file = PathJoinSubstitution(
         [
             FindPackageShare("igus_rebel_description_ros2"),
             "urdf",
-            "igus_rebel.urdf.xacro",  # baseline version of the robot
+            "igus_rebel.urdf.xacro",
         ]
+    )
+
+
+    # RViz
+    rviz_file = PathJoinSubstitution(
+        [FindPackageShare("igus_rebel_moveit_config"), "rviz", "moveit.rviz"]
     )
 
     robot_description_content = Command(
@@ -100,12 +65,16 @@ def launch_setup(context, *args, **kwargs):
             FindExecutable(name="xacro"),
             " ",
             robot_description_file,
-            " hardware_protocol:=",
-            LaunchConfiguration("hardware_protocol"),
-            " gripper:=",
-            LaunchConfiguration("gripper"),
             " load_base:=",
             LaunchConfiguration("load_base"),
+            " gripper:=",
+            LaunchConfiguration("gripper"),
+            " camera_type:=",
+            LaunchConfiguration("camera_type"),
+            " hardware_protocol:=",
+            LaunchConfiguration("hardware_protocol"),
+            " gazebo:=",
+            LaunchConfiguration("gazebo"),
         ]
     )
 
@@ -239,16 +208,13 @@ def launch_setup(context, *args, **kwargs):
         package="rviz2",
         executable="rviz2",
         name="rviz2",
-        arguments=["-d", LaunchConfiguration("rviz_file")],
+        arguments=["-d", rviz_file],
         parameters=[
             robot_description,
             robot_description_semantic,
             kinematics,
             joint_limits,
         ],
-        condition=IfCondition(
-            PythonExpression(["'", LaunchConfiguration("rviz_file"), "' != 'none' "])
-        ),
     )
 
     return [

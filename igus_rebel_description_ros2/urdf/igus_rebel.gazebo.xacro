@@ -59,42 +59,11 @@
                 <i_max>-1.0</i_max>
                 <i_min>1.0</i_min>
         </plugin>
-        <!-- <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
+        <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
             <render_engine>ogre2</render_engine>
-        </plugin> -->
-    </gazebo>
-
-    <!-- <gazebo>
-        <plugin name="gazebo_ros_joint_state_publisher"
-            filename="libgazebo_ros_joint_state_publisher.so">
-            <update_rate>20</update_rate>
-            <joint_name>joint1</joint_name>
-            <joint_name>joint2</joint_name>
-            <joint_name>joint3</joint_name>
-            <joint_name>joint4</joint_name>
-            <joint_name>joint5</joint_name>
-            <joint_name>joint6</joint_name>
-
         </plugin>
     </gazebo>
-
-    <gazebo>
-        <plugin name="gazebo_ros_joint_pose_trajectory"
-            filename="libgazebo_ros_joint_pose_trajectory.so">
-            <update_rate>2</update_rate>
-        </plugin>
-    </gazebo> -->
 
 </robot>
 
-
-    <!-- This plugin will read a JointTrajectory message from the /set_joint_trajectory topic 
-            and move the machine accordingly. It's a bit clunky but it works. -->
-    <!-- You'll probably want to add damping to the joints to stop them it flopping around. 
-            e.g. <dynamics damping="10.0" friction="10.0"/> -->
-    <!-- Here's an example message to publish to test it:
-            ros2 topic pub -1 /set_joint_trajectory trajectory_msgs/msg/JointTrajectory  '{header: {frame_id: world}, joint_names: [slider_joint, arm_joint], points: [  {positions: {0.8,0.6}} ]}' -->
-    
-
-    
     

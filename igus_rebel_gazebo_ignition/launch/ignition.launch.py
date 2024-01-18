@@ -112,7 +112,7 @@ def launch_setup(context, *args, **kwargs):
             "-z", '0.0',
             "-x", '-2.0',
             "-y", '0.0',
-            "-Y", '0.0'
+            "-Y", '-3.14'
         ],
         parameters=[{'use_sim_time': use_sim_time},],
         output="screen",

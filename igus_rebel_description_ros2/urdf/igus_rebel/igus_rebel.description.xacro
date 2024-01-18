@@ -12,12 +12,12 @@
         <xacro:property name="friction" value="10.0"/>
         
 
-        <link name="base_link">
+        <link name="igus_rebel_base_link">
             <visual>
                 <geometry>
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint0.dae" />
                 </geometry>
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -30,7 +30,7 @@
             </inertial>
         </link>
         <joint name="joint1" type="revolute">
-            <parent link="base_link" />
+            <parent link="igus_rebel_base_link" />
             <child link="link_1" />
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0 0.100" />
             <axis xyz="0 0 1" />
@@ -43,7 +43,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint1.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -71,7 +71,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint2.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -99,7 +99,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint3.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -127,7 +127,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint4.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -155,7 +155,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint5.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
@@ -185,7 +185,7 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint6.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0.0 0 0" />
-				<material name="dark_grey"/>
+                <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>

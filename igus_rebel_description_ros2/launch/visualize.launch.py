@@ -37,10 +37,10 @@ def generate_launch_description():
 		description="Which gripper mount to attach to the flange",
 	)
 
-	camera_type_arg = DeclareLaunchArgument(
-		name="camera_type",
+	camera_arg = DeclareLaunchArgument(
+		name="camera",
 		default_value="realsense",
-		choices=["realsense", "oakd"],
+		choices=["realsense", "oakd", "none"],
 		description="Which camera to attach to the mount",
 	)
 
@@ -51,10 +51,10 @@ def generate_launch_description():
 		description="Which hardware protocol or mock hardware should be used",
 	)	
 
-	gazebo_arg = DeclareLaunchArgument(
-		name="gazebo",
-		default_value="none",
-		choices=["ignition", "classic", "none"],
+	load_gazebo_arg = DeclareLaunchArgument(
+		name="load_gazebo",
+		default_value="false",
+		choices=["true", "false"],
 		description="Which Gazebo version to launch",
 	)
 
@@ -84,9 +84,9 @@ def generate_launch_description():
 		[
 			load_base_arg,
 			gripper_arg,
-			camera_type_arg,
+			camera_arg,
 			hardware_protocol_arg,
-			gazebo_arg,
+			load_gazebo_arg,
 			use_sim_time_arg,
 			jsp_gui_arg,
 			moveit_arg,
@@ -105,7 +105,7 @@ def launch_setup(context, *args, **kwargs):
 		[
 			FindPackageShare("igus_rebel_description_ros2"),
 			"urdf",
-			"igus_rebel.urdf.xacro",
+			"robot.urdf.xacro",
 		]
 	)
 
@@ -126,12 +126,12 @@ def launch_setup(context, *args, **kwargs):
 			LaunchConfiguration("load_base"),
 			" gripper:=",
 			LaunchConfiguration("gripper"),
-			" camera_type:=",
-			LaunchConfiguration("camera_type"),
+			" camera:=",
+			LaunchConfiguration("camera"),
 			" hardware_protocol:=",
 			LaunchConfiguration("hardware_protocol"),
-			" gazebo:=",
-			LaunchConfiguration("gazebo"),
+			" load_gazebo:=",
+			LaunchConfiguration("load_gazebo"),
 		]
 	)
 
@@ -146,7 +146,7 @@ def launch_setup(context, *args, **kwargs):
 		],
 	)
 
-	if LaunchConfiguration("jsp_gui").perform(context) == 'true' or LaunchConfiguration("gazebo").perform(context) == 'none':
+	if LaunchConfiguration("jsp_gui").perform(context) == 'true' or LaunchConfiguration("load_gazebo").perform(context) == 'false':
 		joint_state_publisher_gui_node = Node(
 			package="joint_state_publisher_gui",
 			executable="joint_state_publisher_gui",
@@ -164,7 +164,7 @@ def launch_setup(context, *args, **kwargs):
 
 
 	# Ignition node
-	if LaunchConfiguration("gazebo").perform(context) == "ignition":
+	if LaunchConfiguration("load_gazebo").perform(context) == "true":
 
 		ignition_launch_file = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([

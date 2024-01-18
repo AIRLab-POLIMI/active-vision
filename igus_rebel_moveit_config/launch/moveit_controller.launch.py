@@ -50,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
         [
             FindPackageShare("igus_rebel_description_ros2"),
             "urdf",
-            "igus_rebel.urdf.xacro",
+            "robot.urdf.xacro",
         ]
     )
 
@@ -69,12 +69,12 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("load_base"),
             " gripper:=",
             LaunchConfiguration("gripper"),
-            " camera_type:=",
-            LaunchConfiguration("camera_type"),
+            " camera:=",
+            LaunchConfiguration("camera"),
             " hardware_protocol:=",
             LaunchConfiguration("hardware_protocol"),
-            " gazebo:=",
-            LaunchConfiguration("gazebo"),
+            " load_gazebo:=",
+            LaunchConfiguration("load_gazebo"),
         ]
     )
 
@@ -95,10 +95,14 @@ def launch_setup(context, *args, **kwargs):
             FindExecutable(name="xacro"),
             " ",
             robot_description_semantic_file,
-            " gripper:=",
-            LaunchConfiguration("gripper"),
             " load_base:=",
             LaunchConfiguration("load_base"),
+            " gripper:=",
+            LaunchConfiguration("gripper"),
+            " camera:=",
+            LaunchConfiguration("camera"),
+            " load_gazebo:=",
+            LaunchConfiguration("load_gazebo"),
         ]
     )
 

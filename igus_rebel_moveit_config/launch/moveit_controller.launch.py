@@ -44,6 +44,13 @@ def generate_launch_description():
 
 def launch_setup(context, *args, **kwargs):
     
+    # Sim time
+    if LaunchConfiguration("use_sim_time").perform(context) == 'true':
+        use_sim_time = True
+    else:
+        use_sim_time = False
+
+
     
     # URDF
     robot_description_file = PathJoinSubstitution(
@@ -161,6 +168,7 @@ def launch_setup(context, *args, **kwargs):
         executable="move_group",
         output="screen",
         parameters=[
+            {'use_sim_time': use_sim_time},
             robot_description,
             robot_description_semantic,
             kinematics,
@@ -176,7 +184,9 @@ def launch_setup(context, *args, **kwargs):
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, ros2_controllers_file],
+        parameters=[robot_description, ros2_controllers_file,
+                    {'use_sim_time': use_sim_time},
+                    ],
         output="screen",
     )
 
@@ -184,7 +194,9 @@ def launch_setup(context, *args, **kwargs):
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
-        parameters=[robot_description],
+        parameters=[robot_description,
+                    {'use_sim_time': use_sim_time},
+                    ],
         output="screen",
     )
 
@@ -196,6 +208,7 @@ def launch_setup(context, *args, **kwargs):
             "--controller-manager",
             "/controller_manager",
         ],
+        parameters=[{'use_sim_time': use_sim_time},]
     )
 
     rebel_arm_controller_node = Node(
@@ -206,6 +219,7 @@ def launch_setup(context, *args, **kwargs):
             "--controller-manager",
             "/controller_manager",
         ],
+        parameters=[{'use_sim_time': use_sim_time},]
     )
 
     rviz2_node = Node(
@@ -214,6 +228,7 @@ def launch_setup(context, *args, **kwargs):
         name="rviz2",
         arguments=["-d", rviz_file],
         parameters=[
+            {'use_sim_time': use_sim_time},
             robot_description,
             robot_description_semantic,
             kinematics,

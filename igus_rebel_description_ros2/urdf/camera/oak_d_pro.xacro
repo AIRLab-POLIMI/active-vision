@@ -25,11 +25,11 @@
 
         <joint name="camera_insert_to_oakd" type="fixed">
             <parent link="camera_insert"/>
-            <child link="oakd_link"/>
+            <child link="camera_link"/>
             <origin xyz="0.03 0.005 0.0155" rpy="0 0 0"/>
         </joint>
         
-        <link name="oakd_link">
+        <link name="camera_link">
             <visual>
                 <geometry>
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/camera/OAK-D_pro.dae"/>
@@ -53,7 +53,7 @@
         </link>
 
         <joint name="oakd_depth_camera_joint" type="fixed">
-            <parent link="oakd_link"/>
+            <parent link="camera_link"/>
             <child link="oakd_depth_camera_frame"/>
             <origin xyz="0 0 0" rpy="0 0 0" />
         </joint>
@@ -73,7 +73,7 @@
         </link>
 
         <joint name="oakd_rgb_camera_joint" type="fixed">
-            <parent link="oakd_link"/>
+            <parent link="camera_link"/>
             <child link="oakd_rgb_camera_frame"/>
             <origin xyz="0 0 0" rpy="0 0 0" />
         </joint>
@@ -93,7 +93,7 @@
         </link>
             
         <joint name="oakd_left_camera_joint" type="fixed">
-            <parent link="oakd_link"/>
+            <parent link="camera_link"/>
             <child link="oakd_left_camera_frame"/>
             <origin xyz="0 0.0375 0" rpy="0 0 0" />
         </joint>
@@ -114,7 +114,7 @@
         </link>
         
         <joint name="oakd_right_camera_joint" type="fixed">
-            <parent link="oakd_link"/>
+            <parent link="camera_link"/>
             <child link="oakd_right_camera_frame"/>
             <origin xyz="0 -0.0375 0" rpy="0 0 0" />
         </joint>
@@ -134,7 +134,7 @@
         </link>
 
         <joint name="oakd_imu_joint" type="fixed">
-            <parent link="oakd_link"/>
+            <parent link="camera_link"/>
             <child link="oakd_imu_frame"/>
             <origin xyz="0 0 0" rpy="-1.5707963267948966 0 -1.5707963267948966" />
         </joint>
@@ -193,8 +193,8 @@
                 <camera>
                     <horizontal_fov>1.05</horizontal_fov>
                     <image>
-                        <width>1280</width>
-                        <height>720</height>
+                        <width>320</width>
+                        <height>240</height>
                         <format>R8G8B8</format>
                     </image>
                     <clip>

@@ -1,4 +1,10 @@
 ---
+# clock sync between gazebo and ros
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "ignition.msgs.Clock"
+  direction: GZ_TO_ROS
 - ros_topic_name: "/oakd_link/rgbd_camera/camera_info"
   gz_topic_name: "/world/tomato_field/model/igus_rebel/link/link_8/sensor/depth_camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"

@@ -21,10 +21,15 @@
 					<!--<param
 					name="port">3920</param>-->
 				</xacro:if>
+
+				<xacro:if value="${hardware_protocol == 'ignition'}">
+					<plugin>ign_ros2_control/IgnitionSystem</plugin>
+				</xacro:if>
 			</hardware>
 
 			<xacro:macro name="rebel_joint" params="name position_min=0 position_max=0 cri_joint_offset=0">
 				<joint name="${name}">
+					<param name="initial_position">0.0</param>
 
 					<!--<command_interface name="position">
 						<param name="min">${position_min}</param>

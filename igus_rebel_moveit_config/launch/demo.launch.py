@@ -32,7 +32,7 @@ def generate_launch_description():
     hardware_protocol_arg = DeclareLaunchArgument(
         name="hardware_protocol",
         default_value="simulation",
-        choices=["mock_hardware", "cri", "simulation"],
+        choices=["mock_hardware", "cri", "simulation", "ignition"],
         description="Which hardware protocol or mock hardware should be used",
     )
 

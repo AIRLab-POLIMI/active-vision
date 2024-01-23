@@ -21,7 +21,8 @@
         </xacro:if>
 
         <!-- Gazebo macro -->
-        <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel.gazebo.xacro" />
+        <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.gazebo.xacro" />
+        <xacro:ign_ros2_control controller_parameters="$(find igus_rebel_moveit_config)/config/ros2_controllers.yaml"/>
 
     </xacro:macro>
 

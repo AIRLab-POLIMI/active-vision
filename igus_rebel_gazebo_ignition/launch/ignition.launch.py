@@ -129,34 +129,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
-
-    # Control plugin
-    if LaunchConfiguration("moveit").perform(context) == 'true':
-
-        # Parameters for controller
-        joint_names_list=["joint1","joint2","joint3",
-                        "joint4","joint5","joint6"]
-        ign_joint_topics_list=[]
-        for joint_name in joint_names_list:
-            ign_joint_topics_list.append("/model/igus_rebel/joint/%s/0/cmd_pos"%joint_name)
-        
-        joint_controller=Node(
-            package='igus_rebel_gazebo_ignition', 
-            executable='joint_controller',
-            name="joint_controller",
-            parameters=[{'use_sim_time': use_sim_time},
-                {"joint_names": joint_names_list},
-                {"ign_joint_topics": ign_joint_topics_list},
-                {"rate":200},
-            ],
-            output='screen'
-        )    
-        
-        return_actions.append(joint_controller)
- 
-
-
-
     # Static TFs to solve depth sensor bug
     depth_stf = Node(package='tf2_ros', executable='static_transform_publisher',
         namespace = 'igus_rebel_gazebo_ignition',
@@ -191,3 +163,4 @@ def launch_setup(context, *args, **kwargs):
 
 
     return return_actions
+

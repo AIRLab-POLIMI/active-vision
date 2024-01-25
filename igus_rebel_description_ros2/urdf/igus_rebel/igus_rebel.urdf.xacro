@@ -37,6 +37,10 @@
                 <xacro:ign_joint_state_publisher/>
             </xacro:unless>
 
+            <xacro:unless value="${camera == 'none' or gripper == 'none'}">
+                <xacro:virtual_sensors/>
+            </xacro:unless>
+
         </xacro:if>
 
         

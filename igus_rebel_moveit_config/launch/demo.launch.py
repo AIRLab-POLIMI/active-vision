@@ -1,5 +1,5 @@
 
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import LaunchConfiguration
 from launch import LaunchDescription
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction
@@ -82,39 +82,33 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
     
 
+    # Array of action that will be returned at the end for execution
     return_actions = []
 
 
 
-    # Paths
-    moveit_launch_file = PathJoinSubstitution(
-        [
-            FindPackageShare("igus_rebel_moveit_config"),
-            "launch",
-            "moveit_controller.launch.py",
-        ]
-    )
-
-
-    # Ignition node
+    # Ignition launch file
     if LaunchConfiguration("load_gazebo").perform(context) == "true":
 
         ignition_launch_file = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([
-                    FindPackageShare("igus_rebel_gazebo_ignition"), '/launch', '/ignition.launch.py'])
-            )
+            PythonLaunchDescriptionSource([
+                FindPackageShare("igus_rebel_gazebo_ignition"), '/launch', '/ignition.launch.py']
+            ),
+        )
 
         return_actions.append(ignition_launch_file)
 
 
-
     # Moveit launch file
     moveit_config_launch_file = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(moveit_launch_file),
+        PythonLaunchDescriptionSource([
+            FindPackageShare("igus_rebel_moveit_config"), '/launch', '/moveit_controller.launch.py']
+        ),
     )
 
+
+
+    # Returns
     return_actions.append(moveit_config_launch_file)
-
-
 
     return return_actions

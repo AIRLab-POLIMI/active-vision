@@ -44,6 +44,7 @@
 					<state_interface name="position">
 						<param name="initial_value">0.0</param>
 					</state_interface>
+					
 					<!-- Velocity is required for moveit+mock_components -->
 					<state_interface name="velocity">
 						<param name="initial_value">0.0</param>

@@ -10,14 +10,11 @@ from launch.substitutions import (
     PathJoinSubstitution,
     Command,
     FindExecutable,
-    LaunchConfiguration,
-    PythonExpression,
+    LaunchConfiguration
 )
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import DeclareLaunchArgument
 from launch_ros.descriptions import ParameterValue
 from launch.actions import OpaqueFunction
-from launch.conditions import IfCondition
 
 
 def load_yaml(package_name, file_path):
@@ -44,11 +41,17 @@ def generate_launch_description():
 
 def launch_setup(context, *args, **kwargs):
     
+    
+    
     # Sim time
-    if LaunchConfiguration("use_sim_time").perform(context) == 'true':
+    if LaunchConfiguration("use_sim_time").perform(context) == 'true' or LaunchConfiguration("load_gazebo").perform(context) == 'true':
         use_sim_time = True
     else:
         use_sim_time = False
+    
+    if LaunchConfiguration("hardware_protocol").perform(context) == 'cri':
+        use_sim_time = False
+
 
 
     
@@ -60,6 +63,7 @@ def launch_setup(context, *args, **kwargs):
             "robot.urdf.xacro",
         ]
     )
+
 
 
     # RViz

@@ -27,7 +27,7 @@
             <visual>
                 <origin xyz="0.008 0 0" rpy="0 0 ${pi}" />
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/camera_mount.stl"
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/mounts/camera_mount.stl"
                         scale="0.001 0.001 0.001" />
                 </geometry>
                 <material name="dark_green" />
@@ -35,7 +35,7 @@
             <collision>
                 <origin xyz="0.008 0 0" rpy="0 0 ${pi}" />
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/camera_mount.stl"
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/mounts/camera_mount.stl"
                         scale="0.001 0.001 0.001" />
                 </geometry>
             </collision>

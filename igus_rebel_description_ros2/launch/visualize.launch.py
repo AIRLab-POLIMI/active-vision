@@ -1,9 +1,6 @@
 # Based on the visualize_franka script licensed under the Apache license which can be found here:
 # https://github.com/frankaemika/franka_ros2/blob/develop/franka_description/launch/visualize_franka.launch.py
 
-import os
-from os import environ
-from random import choice
 from launch import LaunchDescription
 from launch.substitutions import (
     Command,
@@ -12,13 +9,11 @@ from launch.substitutions import (
     LaunchConfiguration,
 )
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.actions import OpaqueFunction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ament_index_python.packages import get_package_share_directory
-
 
 
 def generate_launch_description():
@@ -34,7 +29,7 @@ def generate_launch_description():
         name="gripper",
         default_value="none",
         choices=["none", "camera"],
-        description="Which gripper mount to attach to the flange",
+        description="Which mount to attach to the flange",
     )
 
     camera_arg = DeclareLaunchArgument(
@@ -55,7 +50,7 @@ def generate_launch_description():
         name="load_gazebo",
         default_value="false",
         choices=["true", "false"],
-        description="Which Gazebo version to launch",
+        description="Whether or not Gazebo Ingition is used",
     )
 
     use_sim_time_arg = DeclareLaunchArgument(
@@ -69,7 +64,7 @@ def generate_launch_description():
         name="jsp_gui",
         default_value="false",
         choices=["true", "false"],
-        description="Argument for choose to load joint state publisher gui to send joint states in RViz",
+        description="Argument for choose to load joint state publisher gui to send joint states in ROS",
     )
 
     moveit_arg = DeclareLaunchArgument(
@@ -97,13 +92,22 @@ def generate_launch_description():
 
 def launch_setup(context, *args, **kwargs):
 
+
+
+    # Array of action that will be returned at the end for execution
     return_actions = []
     
+
+
     # Sim time
-    if LaunchConfiguration("use_sim_time").perform(context) == 'true':
+    if LaunchConfiguration("use_sim_time").perform(context) == 'true' or LaunchConfiguration("load_gazebo").perform(context) == 'true':
         use_sim_time = True
     else:
         use_sim_time = False
+
+    if LaunchConfiguration("hardware_protocol").perform(context) == 'cri':
+        use_sim_time = False
+
 
 
     # URDF
@@ -116,10 +120,12 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
+
     # RViz
     rviz_file = PathJoinSubstitution(
         [FindPackageShare("igus_rebel_description_ros2"), "rviz", "visualize.rviz"]
     )
+
 
 
     # Robot description
@@ -144,6 +150,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
+
     # Nodes
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
@@ -154,6 +161,7 @@ def launch_setup(context, *args, **kwargs):
             {'use_sim_time': use_sim_time},
         ],
     )
+
 
     if LaunchConfiguration("jsp_gui").perform(context) == 'true' or LaunchConfiguration("load_gazebo").perform(context) == 'false':
         joint_state_publisher_gui_node = Node(
@@ -174,6 +182,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
+
     # Ignition node
     if LaunchConfiguration("load_gazebo").perform(context) == "true":
 
@@ -185,10 +194,10 @@ def launch_setup(context, *args, **kwargs):
         return_actions.append(ignition_launch_file)
 
 
+
     # Returns
     return_actions.append(robot_state_publisher_node)
     return_actions.append(rviz_node)
 
     
     return return_actions
-    

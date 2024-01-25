@@ -3,18 +3,11 @@
 
 import os
 from os import environ
-import yaml
 from launch import LaunchDescription
 
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
+from launch.actions import ExecuteProcess, OpaqueFunction
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    PathJoinSubstitution,
-    LaunchConfiguration,
-)
+from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -31,7 +24,7 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
 
 
-    # Array that at the end will containall the node to run
+    # Array of action that will be returned at the end for execution
     return_actions = []
      
      
@@ -132,7 +125,7 @@ def launch_setup(context, *args, **kwargs):
 
 
     # Static TFs to solve depth sensor bug (only used when virtual camera is used on Ignition)
-    if LaunchConfiguration("camera").perform(context) != 'none':
+    if LaunchConfiguration("camera").perform(context) != 'none' and LaunchConfiguration("gripper").perform(context) != 'none':
 
         depth_stf = Node(package='tf2_ros', executable='static_transform_publisher',
             namespace = 'igus_rebel_gazebo_ignition',

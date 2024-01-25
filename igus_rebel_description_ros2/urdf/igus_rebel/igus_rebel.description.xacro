@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel">
 
     <material name="dark_grey">
-        <color rgba="${2/255} ${2/255} ${2/255} 1.0" />
+        <color rgba="${5/255} ${5/255} ${5/255} 1.0" />
     </material>
 
     <xacro:macro name="igus_rebel_description">
@@ -15,13 +15,13 @@
         <link name="igus_rebel_base_link">
             <visual>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint0.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint0.dae" />
                 </geometry>
                 <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint0.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint0.dae" />
                 </geometry>
             </collision>
             <inertial>
@@ -29,6 +29,7 @@
                 <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
             </inertial>
         </link>
+
         <joint name="joint1" type="revolute">
             <parent link="igus_rebel_base_link" />
             <child link="link_1" />
@@ -37,129 +38,18 @@
             <limit effort="330.0" lower="${-pi*179/180}" upper="${pi*179/180}" velocity="${pi*45/180}" />
             <dynamics damping="${damping}" friction="${friction}"/>
         </joint>
+
         <link name="link_1">
             <visual>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint1.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint1.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
                 <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint1.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-            </collision>
-            <inertial>
-                <mass value="0.1" />
-                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
-            </inertial>
-        </link>
-        <joint name="joint2" type="revolute">
-            <parent link="link_1" />
-            <child link="link_2" />
-            <origin rpy="0.0 ${pi/6} 0.0" xyz="0.0 0 0.149" />
-            <axis xyz="0 1 0" />
-            <!-- pi*2/3 are the physical limits, but to avoid any collisions we set the actual limits lower -->
-            <limit effort="330.0" lower="${-pi*11/18}" upper="${pi*11/18}" velocity="${pi*45/180}" />
-            <dynamics damping="${damping}" friction="${friction}"/>
-        </joint>
-        <link name="link_2">
-            <visual>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint2.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-                <material name="dark_grey"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint2.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-            </collision>
-            <inertial>
-                <mass value="0.1" />
-                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
-            </inertial>
-        </link>
-        <joint name="joint3" type="revolute">
-            <parent link="link_2" />
-            <child link="link_5" />
-            <origin rpy="0.0 ${pi/6} 0.0" xyz="0.0 0.0 0.2384" />
-            <axis xyz="0 1 0" />
-            <!-- pi*2/3 are the physical limits, but to avoid any collisions we set the actual limits lower -->
-            <limit effort="330.0" lower="${-pi*11/18}" upper="${pi*11/18}" velocity="${pi*45/180}" />
-            <dynamics damping="${damping}" friction="${friction}"/>
-        </joint>
-        <link name="link_5">
-            <visual>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint3.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-                <material name="dark_grey"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint3.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-            </collision>
-            <inertial>
-                <mass value="0.1" />
-                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
-            </inertial>
-        </link>
-        <joint name="joint4" type="revolute">
-            <parent link="link_5" />
-            <child link="link_6" />
-            <!-- TODO The 0.03m offset are most likely caused by the mesh file (Issue 15)-->
-            <origin rpy="0.0 0.0 0.0" xyz="0.0 0 ${0.149 - 0.03}" />
-            <axis xyz="0 0 1" />
-            <limit effort="330.0" lower="${-pi*179/180}" upper="${pi*179/180}" velocity="${pi*45/180}" />
-            <dynamics damping="${damping}" friction="${friction}"/>
-        </joint>
-        <link name="link_6">
-            <visual>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint4.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-                <material name="dark_grey"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint4.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-            </collision>
-            <inertial>
-                <mass value="0.1" />
-                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
-            </inertial>
-        </link>
-        <joint name="joint5" type="revolute">
-            <parent link="link_6" />
-            <child link="link_7" />
-            <!-- TODO The 0.03m offset are most likely caused by the mesh file (Issue 15) -->
-            <origin rpy="0.0 ${-pi/24} 0.0" xyz="0.0 0 ${0.14 + 0.03}" />
-            <axis xyz="0 1 0" />
-            <limit effort="330.0" lower="${-pi*19/36 + pi/24}" upper="${pi*19/36 + pi/24}" velocity="${pi*45/180}" />
-            <dynamics damping="${damping}" friction="${friction}"/>
-        </joint>
-        <link name="link_7">
-            <visual>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint5.dae" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-                <material name="dark_grey"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint5.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint1.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
             </collision>
@@ -169,6 +59,125 @@
             </inertial>
         </link>
 
+        <joint name="joint2" type="revolute">
+            <parent link="link_1" />
+            <child link="link_2" />
+            <origin rpy="0.0 ${pi/6} 0.0" xyz="0.0 0 0.149" />
+            <axis xyz="0 1 0" />
+            <!-- pi*2/3 are the physical limits, but to avoid any collisions we set the actual limits lower -->
+            <limit effort="330.0" lower="${-pi*11/18}" upper="${pi*11/18}" velocity="${pi*45/180}" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+        </joint>
+
+        <link name="link_2">
+            <visual>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint2.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <material name="dark_grey"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint2.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
+            </inertial>
+        </link>
+
+        <joint name="joint3" type="revolute">
+            <parent link="link_2" />
+            <child link="link_5" />
+            <origin rpy="0.0 ${pi/6} 0.0" xyz="0.0 0.0 0.2384" />
+            <axis xyz="0 1 0" />
+            <!-- pi*2/3 are the physical limits, but to avoid any collisions we set the actual limits lower -->
+            <limit effort="330.0" lower="${-pi*11/18}" upper="${pi*11/18}" velocity="${pi*45/180}" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+        </joint>
+
+        <link name="link_5">
+            <visual>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint3.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <material name="dark_grey"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint3.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
+            </inertial>
+        </link>
+
+        <joint name="joint4" type="revolute">
+            <parent link="link_5" />
+            <child link="link_6" />
+            <!-- TODO The 0.03m offset are most likely caused by the mesh file (Issue 15)-->
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0 ${0.149 - 0.03}" />
+            <axis xyz="0 0 1" />
+            <limit effort="330.0" lower="${-pi*179/180}" upper="${pi*179/180}" velocity="${pi*45/180}" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+        </joint>
+
+        <link name="link_6">
+            <visual>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint4.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <material name="dark_grey"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint4.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
+            </inertial>
+        </link>
+
+        <joint name="joint5" type="revolute">
+            <parent link="link_6" />
+            <child link="link_7" />
+            <!-- TODO The 0.03m offset are most likely caused by the mesh file (Issue 15) -->
+            <origin rpy="0.0 ${-pi/24} 0.0" xyz="0.0 0 ${0.14 + 0.03}" />
+            <axis xyz="0 1 0" />
+            <limit effort="330.0" lower="${-pi*19/36 + pi/24}" upper="${pi*19/36 + pi/24}" velocity="${pi*45/180}" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+        </joint>
+
+        <link name="link_7">
+            <visual>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint5.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <material name="dark_grey"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint5.dae" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
+            </inertial>
+        </link>
 
         <joint name="joint6" type="revolute">
             <parent link="link_7" />
@@ -182,14 +191,14 @@
         <link name="link_8">
             <visual>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint6.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint6.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0.0 0 0" />
                 <material name="dark_grey"/>
             </visual>
             <collision>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/new/Joint6.dae" />
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/igus_rebel/Joint6.dae" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0.0 0 0" />
             </collision>
@@ -198,6 +207,7 @@
                 <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.03" />
             </inertial>
         </link>
+
         <joint name="joint7" type="fixed">
             <parent link="link_8" />
             <child link="flange" />
@@ -205,8 +215,8 @@
             <axis xyz="0 0 0" />
             <dynamics damping="${damping}" friction="${friction}"/>
         </joint>
-        <link name="flange">
-        </link>
+
+        <link name="flange"></link>
 
     </xacro:macro>
 </robot>

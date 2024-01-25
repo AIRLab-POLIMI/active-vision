@@ -31,7 +31,7 @@
         <link name="camera_link">
             <visual>
                 <geometry>
-                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/camera/oak_d_pro_camera.dae"/>
+                    <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/cameras/oak_d_pro_camera.dae"/>
                 </geometry>
             </visual>
             <collision>

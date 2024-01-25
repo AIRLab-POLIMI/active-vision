@@ -10,7 +10,7 @@
     <xacro:arg name="gripper" default="none" />
 
     <!-- Camera type selection -->
-    <xacro:arg name="camera" default="realsense" />
+    <xacro:arg name="camera" default="none" />
 
     <!-- End effector type selection -->
     <xacro:arg name="end_effector" default="none" />
@@ -22,10 +22,11 @@
     <xacro:arg name="hardware_protocol" default="simulation" />
 
     <!-- Argument that tells if Moveit2 is used or not -->
-    <xacro:arg name="moveit" default="true" />
+    <xacro:arg name="moveit" default="false" />
 
     <!-- odometry source: world ground truth or wheels encoders -->
     <xacro:arg name="odometry_source" default="ground_truth" />
+
 
 
     <!-- Set both at 0.0 if collapsing is not interesting in gazebo -->

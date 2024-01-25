@@ -31,6 +31,7 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
 
 
+    # Array that at the end will containall the node to run
     return_actions = []
      
      
@@ -75,7 +76,7 @@ def launch_setup(context, *args, **kwargs):
 
 
 
-    # Additional bridge for joint state if Moveit is not used
+    # Additional bridge for joint state if Moveit is not used (only for visualization of the description)
     if LaunchConfiguration("moveit").perform(context) == 'false':
         bridge_config_path = os.path.join(
             get_package_share_directory("igus_rebel_gazebo_ignition"), 
@@ -112,7 +113,7 @@ def launch_setup(context, *args, **kwargs):
             "-z", '0.0',
             "-x", '-2.0',
             "-y", '0.0',
-            "-Y", '-3.14'
+            "-Y", '-1.0'
         ],
         parameters=[{'use_sim_time': use_sim_time},],
         output="screen",
@@ -129,28 +130,35 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
-    # Static TFs to solve depth sensor bug
-    depth_stf = Node(package='tf2_ros', executable='static_transform_publisher',
-        namespace = 'igus_rebel_gazebo_ignition',
-        name = 'depth_stf',
-        arguments = [
-            '0', '0', '0', '-1.5707963267948966', '0', '-1.5707963267948966',
-            'camera_link',
-            'igus_rebel/link_8/depth_camera'
-        ],
-        parameters=[{'use_sim_time': use_sim_time},],
-    )
-    
-    point_stf = Node(package='tf2_ros', executable='static_transform_publisher',
-        namespace = 'igus_rebel_gazebo_ignition',
-        name = 'point_stf',
+
+    # Static TFs to solve depth sensor bug (only used when virtual camera is used on Ignition)
+    if LaunchConfiguration("camera").perform(context) != 'none':
+
+        depth_stf = Node(package='tf2_ros', executable='static_transform_publisher',
+            namespace = 'igus_rebel_gazebo_ignition',
+            name = 'depth_stf',
             arguments = [
-                '0', '0', '0', '0', '0', '0',
+                '0', '0', '0', '-1.5707963267948966', '0', '-1.5707963267948966',
                 'camera_link',
-                'igus_rebel/link_8/pointcloud'
-        ],
-        parameters=[{'use_sim_time': use_sim_time},],
-    )
+                'igus_rebel/link_8/depth_camera'
+            ],
+            parameters=[{'use_sim_time': use_sim_time},],
+        )
+        
+        point_stf = Node(package='tf2_ros', executable='static_transform_publisher',
+            namespace = 'igus_rebel_gazebo_ignition',
+            name = 'point_stf',
+                arguments = [
+                    '0', '0', '0', '0', '0', '0',
+                    'camera_link',
+                    'igus_rebel/link_8/pointcloud'
+            ],
+            parameters=[{'use_sim_time': use_sim_time},],
+        )
+
+        return_actions.append(depth_stf)
+        return_actions.append(point_stf)
+
 
 
 
@@ -158,8 +166,7 @@ def launch_setup(context, *args, **kwargs):
     return_actions.append(ign_sim)
     return_actions.append(ign_spawn_entity)
     return_actions.append(ign_bridge)
-    return_actions.append(depth_stf)
-    return_actions.append(point_stf)
+    
 
 
     return return_actions

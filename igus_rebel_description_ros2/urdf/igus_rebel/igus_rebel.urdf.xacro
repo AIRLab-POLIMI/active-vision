@@ -2,27 +2,44 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel">
 
     <!-- macro definition for the robot -->
-    <xacro:macro name="igus_rebel" params="gripper camera end_effector hardware_protocol load_gazebo">
+    <xacro:macro name="igus_rebel" params="gripper camera end_effector hardware_protocol load_gazebo moveit">
     
+
         <!-- Include and call rebel macro -->
         <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.description.xacro" />
         <xacro:igus_rebel_description />
+
 
         <!-- Controller macro -->
         <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.control.xacro" />
         <xacro:igus_rebel_control hardware_protocol="${hardware_protocol}" />
 
+
         <!-- Gripper macro -->
         <xacro:if value="${gripper == 'camera'}">
 
             <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/grippers/grippers.xacro"/>
-            <xacro:gripper camera="$(arg camera)"/>
+            <xacro:gripper camera="$(arg camera)" load_gazebo="$(arg load_gazebo)"/>
 
         </xacro:if>
 
+
         <!-- Gazebo macro -->
-        <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.gazebo.xacro" />
-        <xacro:ign_ros2_control controller_parameters="$(find igus_rebel_moveit_config)/config/ros2_controllers.yaml"/>
+        <xacro:if value="${load_gazebo}">
+
+            <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.gazebo.xacro" />
+
+            <xacro:if value="${moveit}">
+                <xacro:ign_ros2_control controller_parameters="$(find igus_rebel_moveit_config)/config/ros2_controllers.yaml"/>
+            </xacro:if>
+
+            <xacro:unless value="${moveit}">
+                <xacro:ign_joint_state_publisher/>
+            </xacro:unless>
+
+        </xacro:if>
+
+        
 
     </xacro:macro>
 

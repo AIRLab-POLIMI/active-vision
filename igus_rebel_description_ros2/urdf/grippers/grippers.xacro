@@ -7,7 +7,7 @@
         <color rgba="${5/255.0} ${15/255.0} ${5/255.0} 1.000" />
     </material>
 
-    <xacro:macro name="gripper" params="camera">
+    <xacro:macro name="gripper" params="camera load_gazebo">
 
         <!-- links the flange on the last joint to the gripper mount -->
         <joint name="flange_to_mount" type="fixed">
@@ -59,8 +59,17 @@
         </joint>
 
         <link name="camera_insert" />
-        
+
+
+        <!-- Cameras -->
         <xacro:if value="${camera == 'realsense'}">
+
+            <xacro:if value="${load_gazebo}">
+        
+                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/virtual_camera_frames.xacro"/>
+                <xacro:virtual_camera_frames/>
+
+            </xacro:if>    
 
             <!-- includes the realsense D435 ros2 description file and its collision box-->
             <xacro:arg name="use_nominal_extrinsics" default="false" />
@@ -76,8 +85,16 @@
 
 
         <xacro:if value="${camera == 'oakd'}">
-                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/oak_d_pro.xacro"/>
-                <xacro:oakd_link/>
+
+                <xacro:if value="${load_gazebo}">
+        
+                    <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/virtual_camera_frames.xacro"/>
+                    <xacro:virtual_camera_frames/>
+
+                </xacro:if>    
+
+                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/oak_d_pro_camera.xacro"/>
+                <xacro:oak_d_pro_camera/>
 
         </xacro:if>           
 

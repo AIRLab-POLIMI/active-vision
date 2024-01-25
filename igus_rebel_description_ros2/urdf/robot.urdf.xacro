@@ -21,6 +21,9 @@
     <!-- Controller settings, only enable a single one in the launch file -->
     <xacro:arg name="hardware_protocol" default="simulation" />
 
+    <!-- Argument that tells if Moveit2 is used or not -->
+    <xacro:arg name="moveit" default="true" />
+
     <!-- odometry source: world ground truth or wheels encoders -->
     <xacro:arg name="odometry_source" default="ground_truth" />
 
@@ -102,6 +105,6 @@
         filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.urdf.xacro" />
     <xacro:igus_rebel
             gripper="$(arg gripper)" camera="$(arg camera)" end_effector="$(arg end_effector)" 
-        hardware_protocol="$(arg hardware_protocol)" load_gazebo="$(arg load_gazebo)" />
+        hardware_protocol="$(arg hardware_protocol)" load_gazebo="$(arg load_gazebo)" moveit="$(arg moveit)" />
 
 </robot>

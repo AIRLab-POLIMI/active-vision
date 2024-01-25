@@ -82,6 +82,8 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("hardware_protocol"),
             " load_gazebo:=",
             LaunchConfiguration("load_gazebo"),
+            " moveit:=",
+            LaunchConfiguration("moveit"),
         ]
     )
 

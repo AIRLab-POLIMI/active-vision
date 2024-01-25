@@ -24,7 +24,7 @@ def generate_launch_description():
 
     camera_arg = DeclareLaunchArgument(
         name="camera",
-        default_value="realsense",
+        default_value="none",
         choices=["realsense", "oakd", "none"],
         description="Which camera to attach to the mount",
     )
@@ -52,7 +52,7 @@ def generate_launch_description():
 
     use_sim_time_arg = DeclareLaunchArgument(
         name="use_sim_time",
-        default_value="true",
+        default_value="false",
         choices=["true", "false"],
         description="Argument for choose to use simulation time or not",
     )

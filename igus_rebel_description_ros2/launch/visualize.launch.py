@@ -39,7 +39,7 @@ def generate_launch_description():
 
     camera_arg = DeclareLaunchArgument(
         name="camera",
-        default_value="realsense",
+        default_value="none",
         choices=["realsense", "oakd", "none"],
         description="Which camera to attach to the mount",
     )
@@ -47,7 +47,7 @@ def generate_launch_description():
     hardware_protocol_arg = DeclareLaunchArgument(
         name="hardware_protocol",
         default_value="simulation",
-        choices=["mock_hardware", "cri", "simulation"],
+        choices=["mock_hardware", "cri", "simulation", "ignition"],
         description="Which hardware protocol or mock hardware should be used",
     )    
 
@@ -60,7 +60,7 @@ def generate_launch_description():
 
     use_sim_time_arg = DeclareLaunchArgument(
         name="use_sim_time",
-        default_value="true",
+        default_value="false",
         choices=["true", "false"],
         description="Argument for choose to use simulation time or not",
     )
@@ -138,6 +138,8 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("hardware_protocol"),
             " load_gazebo:=",
             LaunchConfiguration("load_gazebo"),
+            " moveit:=",
+            LaunchConfiguration("moveit"),
         ]
     )
 

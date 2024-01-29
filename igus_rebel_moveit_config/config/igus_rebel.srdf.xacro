@@ -2,76 +2,175 @@
 
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="igus_rebel">
 
-	<!-- disable collisions between a link and the robot scout and tower -->
-	<xacro:macro name="no_collision_scout" params="link">
-		<disable_collisions link1="${link}" link2="mobile_robot_base_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="tower_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="front_right_wheel_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="front_left_wheel_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="rear_right_wheel_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="rear_left_wheel_link" reason="Never" />
 
-	</xacro:macro>
 
-	<!-- disable collision between a link and the camera links-->
-	<xacro:macro name="no_collision_camera" params="link">
-		<disable_collisions link1="${link}" link2="camera_link" reason="Never" />
-		<disable_collisions link1="${link}" link2="camera_mount" reason="Never" />
-		<disable_collisions link1="${link}" link2="toucher" reason="Never" />
-		<disable_collisions link1="${link}" link2="camera_usb_plug_link" reason="Never" />
-	</xacro:macro>
+	<!-- Arguments -->
+	<xacro:arg name="load_base" default="false" />
 
 	<xacro:arg name="gripper" default="none" />
 
-	<xacro:arg name="load_base" default="false" />
+	<xacro:arg name="camera" default="none" />
+
+	<xacro:arg name="end_effector" default="none" />
+
+
 
 	<!-- macro xacro definition to load gripper and mobile robot base -->
-	<xacro:macro name="srdf" params="gripper load_base">
+	<xacro:macro name="srdf" params="gripper camera end_effector load_base">
 
-		<!-- common definitions -->
-		<group name="rebel_arm">
-			<link name="igus_rebel_base_link" />
-			<link name="link_1" />
-			<link name="link_2" />
-			<link name="link_5" />
-			<link name="link_6" />
-			<link name="link_7" />
-			<link name="link_8" />
-		</group>
 
-		<!-- no grippers installed => end effector placed on link_8 -->
+
+		<!-- Groups -->
+		
+		
+		<!-- If gripper is not placed -->
 		<xacro:if value="${gripper == 'none'}">
 
-			<group name="chain_arm">
+			<group name="rebel_arm">
 				<chain base_link="igus_rebel_base_link" tip_link="link_8" />
 			</group>
 
-			<end_effector name="manipulator" parent_link="link_8" group="rebel_arm" parent_group="chain_arm" />
-		</xacro:if>
-
-		<!-- if camera is placed => end effector on toucher link -->
-		<xacro:if value="${gripper == 'camera'}">
-			<group name="camera">
+			<group name="flange_group">
 				<link name="flange" />
-				<joint name="flange_to_mount" />
-				<link name="camera_mount" />
-				<joint name="mount_to_cam" />
-				<link name="camera_insert" />
-
-				<link name="toucher" />
-				<joint name="flange_to_toucher" />
 			</group>
 
-			<group name="chain_arm_manipulator">
-				<chain base_link="igus_rebel_base_link" tip_link="toucher" />
-			</group>
-
-			<end_effector name="manipulator" parent_link="toucher" group="chain_arm_manipulator"
-				parent_group="camera" />
+			<end_effector name="flange_EEF" parent_link="link_8" group="flange_group" parent_group="rebel_arm"/> 
 
 		</xacro:if>
 
-		<!-- default positions common for every configuration -->
+
+
+
+		<!-- If gripper is placed -->
+		<xacro:if value="${gripper == 'camera'}">
+
+
+			<!-- If camera is none and no end effector -->
+			<xacro:if value="${camera == 'none' and end_effector == 'none'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="flange" />
+				</group>
+
+				<group name="camera_mount_group">
+					<link name="camera_mount" />
+				</group>
+
+				<end_effector name="camera_mount_EEF" parent_link="flange" group="camera_mount_group" parent_group="rebel_arm"/> 
+
+			</xacro:if>
+
+
+
+			<!-- If camera is realsense and no end effector-->
+			<xacro:if value="${camera == 'realsense' and end_effector == 'none'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="camera_mount" />
+				</group>
+
+				<group name="camera_link_group">
+					<link name="camera_insert" />
+					<link name="camera_bottom_screw_frame" />
+					<link name="camera_link" />
+					<link name="camera_usb_plug_link" />
+				</group>
+
+				<end_effector name="camera_link_EEF" parent_link="camera_mount" group="camera_link_group" parent_group="rebel_arm"/>
+
+			</xacro:if>
+
+
+
+			<!-- If camera is oakd and no end effector-->
+			<xacro:if value="${camera == 'oakd' and end_effector == 'none'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="camera_mount" />
+				</group>
+
+				<group name="camera_link_group">
+					<link name="camera_insert" />
+					<link name="camera_link" />
+				</group>
+
+				<end_effector name="camera_link_EEF" parent_link="camera_mount" group="camera_link_group" parent_group="rebel_arm"/>
+
+			</xacro:if>
+
+
+
+
+			<!-- If camera is none and toucher cylinder is placed -->
+			<xacro:if value="${camera == 'none' and end_effector == 'toucher_cylinder'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="camera_mount" />
+				</group>
+
+				<group name="toucher_cylinder_group">
+					<link name="toucher_cylinder" />
+				</group>
+
+				<end_effector name="toucher_cylinder_EEF" parent_link="camera_mount" group="toucher_cylinder_group" parent_group="rebel_arm"/> 
+
+			</xacro:if>
+
+
+
+			<!-- If camera is realsense and toucher cylinder is placed -->
+			<xacro:if value="${camera == 'realsense' and end_effector == 'toucher_cylinder'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="camera_mount" />
+				</group>
+
+				<group name="camera_link_group">
+					<link name="camera_insert" />
+					<link name="camera_bottom_screw_frame" />
+					<link name="camera_link" />
+					<link name="camera_usb_plug_link" />
+				</group>
+
+				<group name="toucher_cylinder_group">
+					<link name="toucher_cylinder" />
+				</group>
+
+				<end_effector name="toucher_cylinder_EEF" parent_link="camera_mount" group="toucher_cylinder_group" parent_group="rebel_arm"/> 
+
+			</xacro:if>
+
+
+
+			<!-- If camera is oakd and toucher cylinder is placed -->
+			<xacro:if value="${camera == 'oakd' and end_effector == 'toucher_cylinder'}">
+
+				<group name="rebel_arm">
+					<chain base_link="igus_rebel_base_link" tip_link="camera_mount" />
+				</group>
+
+				<group name="camera_link_group">
+					<link name="camera_insert" />
+					<link name="camera_link" />
+				</group>
+
+				<group name="toucher_cylinder_group">
+					<link name="toucher_cylinder" />
+				</group>
+
+				<end_effector name="toucher_cylinder_EEF" parent_link="camera_mount" group="toucher_cylinder_group" parent_group="rebel_arm"/> 
+
+			</xacro:if>
+
+
+		</xacro:if>
+
+
+
+
+
+
+		<!-- Positions common for every configuration -->
 		<group_state name="zero" group="rebel_arm">
 			<joint name="joint1" value="0" />
 			<joint name="joint2" value="0" />
@@ -90,31 +189,16 @@
 			<joint name="joint6" value="0" />
 		</group_state>
 
-		<group_state name="zero" group="chain_arm_manipulator">
-			<joint name="joint1" value="0" />
-			<joint name="joint2" value="0" />
-			<joint name="joint3" value="0" />
-			<joint name="joint4" value="0" />
-			<joint name="joint5" value="0" />
-			<joint name="joint6" value="0" />
-		</group_state>
-
-		<group_state name="home" group="chain_arm_manipulator">
-			<joint name="joint1" value="0" />
-			<joint name="joint2" value="${-pi/6.0}" />
-			<joint name="joint3" value="${-pi/6.0}" />
-			<joint name="joint4" value="0" />
-			<joint name="joint5" value="${pi/24.0}" />
-			<joint name="joint6" value="0" />
-		</group_state>
-
 		<!--TODO:
 		add parking position -->
 
-		<virtual_joint name="world_to_base" type="fixed" parent_frame="world" child_link="base_link" />
 
-		<!-- default collision checks for base robot -->
-		<disable_collisions link1="base_link" link2="igus_rebel_base_link" reason="Adjacent" />
+
+
+
+		<!-- Collisions -->
+
+		<!-- Default collision checks for base robot. This is the simplest configuration, that is always present. -->
 		<disable_collisions link1="igus_rebel_base_link" link2="link_1" reason="Adjacent" />
 		<disable_collisions link1="igus_rebel_base_link" link2="link_2" reason="Never" />
 		<disable_collisions link1="link_1" link2="link_2" reason="Adjacent" />
@@ -127,28 +211,11 @@
 		<disable_collisions link1="link_5" link2="link_8" reason="Never" />
 		<disable_collisions link1="link_6" link2="link_7" reason="Adjacent" />
 		<disable_collisions link1="link_6" link2="link_8" reason="Never" />
-		<disable_collisions link1="link_7" link2="link_8" reason="Adjacent" />
+		<disable_collisions link1="link_7" link2="link_8" reason="Adjacent" /> <!-- 13 -->
 
-		<!-- additional collision checks due to the presence of the camera mount -->
-		<xacro:if value="${gripper == 'camera'}">
 
-			<disable_collisions link1="camera_link" link2="camera_mount" reason="Adjacent" />
-			<disable_collisions link1="camera_link" link2="camera_usb_plug_link" reason="Adjacent" />
-			<disable_collisions link1="camera_mount" link2="camera_usb_plug_link" reason="Never" />
-			<disable_collisions link1="camera_link" link2="toucher" reason="Never" />
-			<disable_collisions link1="camera_mount" link2="toucher" reason="Never" />
 
-			<xacro:no_collision_camera link="igus_rebel_base_link" />
-			<xacro:no_collision_camera link="link_1" />
-			<xacro:no_collision_camera link="link_2" />
-			<xacro:no_collision_camera link="link_5" />
-			<xacro:no_collision_camera link="link_6" />
-			<xacro:no_collision_camera link="link_7" />
-			<xacro:no_collision_camera link="link_8" />
-
-		</xacro:if>
-
-		<!-- when the robot scout is loaded define the collision checks -->
+		<!-- Collisions checks due to the presence of the scout base -->
 		<xacro:if value="${load_base}">
 
 			<group name="mobile_robot">
@@ -164,52 +231,172 @@
 				<link name="tower_link" />
 			</group>
 
-			<disable_collisions link1="igus_rebel_base_link" link2="front_left_wheel_link" reason="Never" />
-			<disable_collisions link1="igus_rebel_base_link" link2="front_right_wheel_link" reason="Never" />
-			<disable_collisions link1="igus_rebel_base_link" link2="mobile_robot_base_link" reason="Adjacent" />
-			<disable_collisions link1="igus_rebel_base_link" link2="rear_left_wheel_link" reason="Never" />
-			<disable_collisions link1="igus_rebel_base_link" link2="rear_right_wheel_link" reason="Never" />
-			<disable_collisions link1="igus_rebel_base_link" link2="tower_link" reason="Never" />
 
-			<disable_collisions link1="front_left_wheel_link" link2="front_right_wheel_link" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="link_1" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="link_2" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="link_5" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="mobile_robot_base_link" reason="Adjacent" />
-			<disable_collisions link1="front_left_wheel_link" link2="rear_left_wheel_link" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="rear_right_wheel_link" reason="Never" />
-			<disable_collisions link1="front_left_wheel_link" link2="tower_link" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="link_1" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="link_2" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="link_5" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="mobile_robot_base_link" reason="Adjacent" />
-			<disable_collisions link1="front_right_wheel_link" link2="rear_left_wheel_link" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="rear_right_wheel_link" reason="Never" />
-			<disable_collisions link1="front_right_wheel_link" link2="tower_link" reason="Never" />
 
-			<disable_collisions link1="link_1" link2="mobile_robot_base_link" reason="Never" />
-			<disable_collisions link1="link_1" link2="rear_left_wheel_link" reason="Never" />
-			<disable_collisions link1="link_1" link2="rear_right_wheel_link" reason="Never" />
-			<disable_collisions link1="link_1" link2="tower_link" reason="Never" />
+			<!-- Default collision checks for base robot and scout. The collision between the scout and the mount are all enabled-->
+			<disable_collisions link1="front_left_wheel_link" link2="front_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="igus_rebel_base_link" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="link_1" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="link_2" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="link_5" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="mobile_robot_base_link" reason="Adjacent"/>
+			<disable_collisions link1="front_left_wheel_link" link2="rear_left_wheel_link" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="front_left_wheel_link" link2="tower_link" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="igus_rebel_base_link" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="link_1" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="link_2" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="link_5" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="mobile_robot_base_link" reason="Adjacent"/>
+			<disable_collisions link1="front_right_wheel_link" link2="rear_left_wheel_link" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="front_right_wheel_link" link2="tower_link" reason="Never"/>
+			<disable_collisions link1="igus_rebel_base_link" link2="mobile_robot_base_link" reason="Adjacent"/>
+			<disable_collisions link1="igus_rebel_base_link" link2="rear_left_wheel_link" reason="Never"/>
+			<disable_collisions link1="igus_rebel_base_link" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="igus_rebel_base_link" link2="tower_link" reason="Never"/>
+			<disable_collisions link1="link_1" link2="mobile_robot_base_link" reason="Never"/>
+			<disable_collisions link1="link_1" link2="rear_left_wheel_link" reason="Never"/>
+			<disable_collisions link1="link_1" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="link_1" link2="tower_link" reason="Never"/>
+			<disable_collisions link1="link_2" link2="mobile_robot_base_link" reason="Never"/>
+			<disable_collisions link1="link_2" link2="rear_left_wheel_link" reason="Never"/>
+			<disable_collisions link1="link_2" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="mobile_robot_base_link" link2="rear_left_wheel_link" reason="Adjacent"/>
+			<disable_collisions link1="mobile_robot_base_link" link2="rear_right_wheel_link" reason="Adjacent"/>
+			<disable_collisions link1="mobile_robot_base_link" link2="tower_link" reason="Adjacent"/>
+			<disable_collisions link1="rear_left_wheel_link" link2="rear_right_wheel_link" reason="Never"/>
+			<disable_collisions link1="rear_left_wheel_link" link2="tower_link" reason="Never"/>
+			<disable_collisions link1="rear_right_wheel_link" link2="tower_link" reason="Never"/>
 
-			<disable_collisions link1="link_2" link2="mobile_robot_base_link" reason="Never" />
-			<disable_collisions link1="link_2" link2="rear_left_wheel_link" reason="Never" />
-			<disable_collisions link1="link_2" link2="rear_right_wheel_link" reason="Never" />
+		</xacro:if>
 
-			<disable_collisions link1="mobile_robot_base_link" link2="rear_left_wheel_link" reason="Adjacent" />
-			<disable_collisions link1="mobile_robot_base_link" link2="rear_right_wheel_link" reason="Adjacent" />
-			<disable_collisions link1="mobile_robot_base_link" link2="tower_link" reason="Adjacent" />
-			<disable_collisions link1="rear_left_wheel_link" link2="rear_right_wheel_link" reason="Never" />
-			<disable_collisions link1="rear_left_wheel_link" link2="tower_link" reason="Never" />
-			<disable_collisions link1="rear_right_wheel_link" link2="tower_link" reason="Never" />
 
+
+		<!-- Collision checks due to the presence of the gripper -->
+		<xacro:if value="${gripper == 'camera'}">
+
+			
+			<disable_collisions link1="link_5" link2="camera_mount" reason="Never" />
+			<disable_collisions link1="link_6" link2="camera_mount" reason="Never" />
+			<disable_collisions link1="link_7" link2="camera_mount" reason="Never" />
+			<disable_collisions link1="link_8" link2="camera_mount" reason="Adjacent" />
+
+
+			<!-- <xacro:if value="${camera == 'none' and end_effector == 'none}">
+
+				nothing
+
+			</xacro:if> -->
+
+			<xacro:if value="${camera == 'oakd' and end_effector == 'none'}">
+
+				<disable_collisions link1="camera_mount" link2="camera_link" reason="Adjacent" />
+				<disable_collisions link1="link_5" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_link" reason="Never" />
+
+			</xacro:if>
+
+			<xacro:if value="${camera == 'realsense' and end_effector == 'none'}">
+
+				<disable_collisions link1="camera_mount" link2="camera_link" reason="Adjacent" />
+				<disable_collisions link1="camera_link" link2="camera_usb_plug_link" reason="Adjacent" />
+				<disable_collisions link1="camera_mount" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_5" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_5" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_usb_plug_link" reason="Never" />
+
+
+	
+			</xacro:if>
+
+			<xacro:if value="${camera == 'none' and end_effector == 'toucher_cylinder'}">
+
+				<disable_collisions link1="camera_mount" link2="toucher_cylinder" reason="Adjacent" />
+				<disable_collisions link1="link_2" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_5" link2="toucher_cylinder" reason="Never" />	
+				<disable_collisions link1="link_6" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_7" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_8" link2="toucher_cylinder" reason="Default" />
+	
+			</xacro:if>
+
+			<xacro:if value="${camera == 'oakd' and end_effector == 'toucher_cylinder'}">
+
+				<disable_collisions link1="camera_mount" link2="camera_link" reason="Adjacent" />
+				<disable_collisions link1="link_5" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_link" reason="Never" />
+				<disable_collisions link1="camera_mount" link2="toucher_cylinder" reason="Adjacent" />
+				<disable_collisions link1="link_2" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_5" link2="toucher_cylinder" reason="Never" />	
+				<disable_collisions link1="link_6" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_7" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_8" link2="toucher_cylinder" reason="Default" />
+				<disable_collisions link1="camera_link" link2="toucher_cylinder" reason="Never" />
+	
+			</xacro:if>
+
+			<xacro:if value="${camera == 'realsense' and end_effector == 'toucher_cylinder'}">
+
+				<disable_collisions link1="camera_mount" link2="camera_link" reason="Adjacent" />
+				<disable_collisions link1="link_5" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_link" reason="Never" />
+				<disable_collisions link1="camera_mount" link2="toucher_cylinder" reason="Adjacent" />
+				<disable_collisions link1="link_2" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_5" link2="toucher_cylinder" reason="Never" />	
+				<disable_collisions link1="link_6" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_7" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="link_8" link2="toucher_cylinder" reason="Default" />
+				<disable_collisions link1="camera_link" link2="toucher_cylinder" reason="Never" />
+				<disable_collisions link1="camera_link" link2="camera_usb_plug_link" reason="Adjacent" />
+				<disable_collisions link1="camera_mount" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_5" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_6" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_7" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="link_8" link2="camera_usb_plug_link" reason="Never" />
+				<disable_collisions link1="toucher_cylinder" link2="camera_usb_plug_link" reason="Never" />
+
+			</xacro:if>
 
 		</xacro:if>
 
 	</xacro:macro>
 
-	<!-- call the macro and define everything -->
-	<xacro:srdf gripper="$(arg gripper)" load_base="$(arg load_base)" />
+
+
+	<!-- Call the macro and define the arguments -->
+	<xacro:srdf gripper="$(arg gripper)" camera="$(arg camera)" end_effector="$(arg end_effector)" load_base="$(arg load_base)" />
 
 
 </robot>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

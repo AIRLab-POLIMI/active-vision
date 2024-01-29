@@ -19,7 +19,7 @@
         <xacro:if value="${gripper == 'camera'}">
 
             <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/grippers/grippers.xacro"/>
-            <xacro:gripper camera="$(arg camera)" load_gazebo="$(arg load_gazebo)"/>
+            <xacro:gripper camera="$(arg camera)" end_effector="$(arg end_effector)" load_gazebo="$(arg load_gazebo)"/>
 
         </xacro:if>
 

@@ -82,6 +82,8 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("gripper"),
             " camera:=",
             LaunchConfiguration("camera"),
+            " end_effector:=",
+            LaunchConfiguration("end_effector"),
             " hardware_protocol:=",
             LaunchConfiguration("hardware_protocol"),
             " load_gazebo:=",
@@ -114,6 +116,8 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("gripper"),
             " camera:=",
             LaunchConfiguration("camera"),
+            " end_effector:=",
+            LaunchConfiguration("end_effector"),
             " load_gazebo:=",
             LaunchConfiguration("load_gazebo"),
         ]

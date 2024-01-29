@@ -7,7 +7,9 @@
         <color rgba="${5/255.0} ${15/255.0} ${5/255.0} 1.000" />
     </material>
 
-    <xacro:macro name="gripper" params="camera load_gazebo">
+    <xacro:macro name="gripper" params="camera end_effector load_gazebo">
+
+
 
         <!-- links the flange on the last joint to the gripper mount -->
         <joint name="flange_to_mount" type="fixed">
@@ -16,6 +18,8 @@
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
             <axis xyz="0 0 0" />
         </joint>
+
+
 
         <!-- camera mount urdf produced with fusion 360 urdf converter plugin-->
         <link name="camera_mount">
@@ -40,14 +44,7 @@
                 </geometry>
             </collision>
         </link>
-
-        <joint name="flange_to_toucher" type="fixed">
-            <parent link="flange" />
-            <child link="toucher" />
-            <origin rpy="0.0 0.0 0.0" xyz="0.1 0.0 0.0" /> <!-- 10 cm in front of the flange origin -->
-            <axis xyz="0 0 0" />
-        </joint>
-        <link name="toucher" />
+        
 
 
         <!-- positions the camera inside the structure -->
@@ -61,12 +58,23 @@
         <link name="camera_insert" />
 
 
+
+        <!-- End effectors -->
+        <xacro:if value="${end_effector == 'toucher_cylinder'}">
+
+            <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/end_effectors/toucher_cylinder.xacro"/>
+            <xacro:toucher_cylinder parent="camera_mount"/>
+
+        </xacro:if>
+
+
+
         <!-- Cameras -->
         <xacro:if value="${camera == 'realsense'}">
 
             <xacro:if value="${load_gazebo}">
         
-                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/virtual_camera_frames.xacro"/>
+                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/cameras/virtual_camera_frames.xacro"/>
                 <xacro:virtual_camera_frames/>
 
             </xacro:if>    
@@ -86,15 +94,15 @@
 
         <xacro:if value="${camera == 'oakd'}">
 
-                <xacro:if value="${load_gazebo}">
-        
-                    <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/virtual_camera_frames.xacro"/>
-                    <xacro:virtual_camera_frames/>
+            <xacro:if value="${load_gazebo}">
+    
+                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/cameras/virtual_camera_frames.xacro"/>
+                <xacro:virtual_camera_frames/>
 
-                </xacro:if>    
+            </xacro:if>    
 
-                <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/camera/oak_d_pro_camera.xacro"/>
-                <xacro:oak_d_pro_camera/>
+            <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/cameras/oak_d_pro_camera.xacro"/>
+            <xacro:oak_d_pro_camera/>
 
         </xacro:if>           
 

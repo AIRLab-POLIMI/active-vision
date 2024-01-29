@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: DepthCloud
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -73,29 +73,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_insert:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_mount:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_usb_plug_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           flange:
             Alpha: 1
             Show Axes: false
@@ -135,26 +112,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          toucher:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -198,29 +155,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_insert:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_mount:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_usb_plug_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           flange:
             Alpha: 1
             Show Axes: false
@@ -260,26 +194,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          toucher:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -307,7 +221,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
-        Planning Group: chain_arm_manipulator
+        Planning Group: rebel_arm
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -334,29 +248,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_insert:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_mount:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          camera_usb_plug_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           flange:
             Alpha: 1
             Show Axes: false
@@ -396,26 +287,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          toucher:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_depth_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -439,29 +310,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_insert:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_usb_plug_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         flange:
           Alpha: 1
           Show Axes: false
@@ -501,26 +349,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        toucher:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_depth_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_depth_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
@@ -569,29 +397,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_insert:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_usb_plug_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         flange:
           Alpha: 1
           Show Axes: false
@@ -631,26 +436,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        toucher:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_depth_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_depth_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
@@ -835,10 +620,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2253987342119217
+      Pitch: 0.38039860129356384
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.8485894203186035
+      Yaw: 5.593596458435059
     Saved:
       - Class: rviz_default_plugins/Orbit
         Distance: 1.8170918226242065

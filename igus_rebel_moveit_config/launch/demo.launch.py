@@ -29,6 +29,13 @@ def generate_launch_description():
         description="Which camera to attach to the mount",
     )
 
+    end_effector_arg = DeclareLaunchArgument(
+        name="end_effector",
+        default_value="none",
+        choices=["toucher_cylinder", "none"],
+        description="Which end_effector to attach to the mount",
+    )
+
     hardware_protocol_arg = DeclareLaunchArgument(
         name="hardware_protocol",
         default_value="simulation",
@@ -69,6 +76,7 @@ def generate_launch_description():
             load_base_arg,
             gripper_arg,
             camera_arg,
+            end_effector_arg,
             hardware_protocol_arg,
             load_gazebo_arg,
             load_octomap_arg,

@@ -168,7 +168,3 @@ rebel_arm:
     - SPARSkConfigDefault
     - SPARStwokConfigDefault
     - TrajOptDefault
-
-chain_arm_manipulator:
-  planner_configs:
-    - RRTConnectkConfigDefault

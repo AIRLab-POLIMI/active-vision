@@ -5,9 +5,8 @@
     <!-- Scout base selection -->
     <xacro:arg name="load_base" default="true" />
 
-    <!-- Gripper selection -->
-    <!-- CHANGE IN MOUNT and the options are V1, V2, .. -->
-    <xacro:arg name="gripper" default="none" />
+    <!-- Mount selection -->
+    <xacro:arg name="mount" default="none" />
 
     <!-- Camera type selection -->
     <xacro:arg name="camera" default="none" />
@@ -101,11 +100,11 @@
 
 
 
-    <!-- load igus rebel with camera gripper and castle -->
+    <!-- load igus rebel -->
     <xacro:include
         filename="$(find igus_rebel_description_ros2)/urdf/igus_rebel/igus_rebel.urdf.xacro" />
     <xacro:igus_rebel
-            gripper="$(arg gripper)" camera="$(arg camera)" end_effector="$(arg end_effector)" 
+            load_base="$(arg load_base)" mount="$(arg mount)" camera="$(arg camera)" end_effector="$(arg end_effector)" 
         hardware_protocol="$(arg hardware_protocol)" load_gazebo="$(arg load_gazebo)" moveit="$(arg moveit)" />
 
 </robot>

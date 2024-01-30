@@ -30,12 +30,41 @@
 
 
     <!-- Sensor plugin -->
-    <xacro:macro name="virtual_sensors">
+     <xacro:macro name="ign_sensor_plugin">
+        
         <gazebo>
             <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
                 <render_engine>ogre2</render_engine>
             </plugin>
         </gazebo>
+
+    </xacro:macro>
+
+
+    
+    <!-- Ignition sensors -->
+    <xacro:macro name="virtual_sensors">
+
+
+        <!-- Optical frame id for depth image sensor -->
+        <joint name="camera_link_to_depth_image" type="fixed">
+            <parent link="camera_link" />
+            <child link="igus_rebel/link_8/depth_camera" />
+            <origin rpy="${-pi/2} 0.0 ${-pi/2}" xyz="0.0 0.0 0.0" />
+            <axis xyz="0 0 0" />
+        </joint>
+        <link name="igus_rebel/link_8/depth_camera" />
+
+        <!-- Optical frame id for pointcloud sensor -->
+        <joint name="camera_link_to_pointcloud" type="fixed">
+            <parent link="camera_link" />
+            <child link="igus_rebel/link_8/pointcloud" />
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <axis xyz="0 0 0" />
+        </joint>
+        <link name="igus_rebel/link_8/pointcloud" />
+
+
 
         <!-- Sensor for RGB, depth and pointcloud data -->
         <gazebo reference="virtual_rgb_camera_frame">

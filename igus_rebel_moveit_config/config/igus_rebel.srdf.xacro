@@ -7,7 +7,7 @@
 	<!-- Arguments -->
 	<xacro:arg name="load_base" default="false" />
 
-	<xacro:arg name="gripper" default="none" />
+	<xacro:arg name="mount" default="none" />
 
 	<xacro:arg name="camera" default="none" />
 
@@ -15,16 +15,16 @@
 
 
 
-	<!-- macro xacro definition to load gripper and mobile robot base -->
-	<xacro:macro name="srdf" params="gripper camera end_effector load_base">
+	<!-- macro xacro definition to load mount and mobile robot base -->
+	<xacro:macro name="srdf" params="mount camera end_effector load_base">
 
 
 
 		<!-- Groups -->
 		
 		
-		<!-- If gripper is not placed -->
-		<xacro:if value="${gripper == 'none'}">
+		<!-- If mount is not placed -->
+		<xacro:if value="${mount == 'none'}">
 
 			<group name="rebel_arm">
 				<chain base_link="igus_rebel_base_link" tip_link="link_8" />
@@ -41,8 +41,8 @@
 
 
 
-		<!-- If gripper is placed -->
-		<xacro:if value="${gripper == 'camera'}">
+		<!-- If mount is placed -->
+		<xacro:if value="${mount == 'mount_v1'}">
 
 
 			<!-- If camera is none and no end effector -->
@@ -273,8 +273,8 @@
 
 
 
-		<!-- Collision checks due to the presence of the gripper -->
-		<xacro:if value="${gripper == 'camera'}">
+		<!-- Collision checks due to the presence of the mount -->
+		<xacro:if value="${mount == 'mount_v1'}">
 
 			
 			<disable_collisions link1="link_5" link2="camera_mount" reason="Never" />
@@ -376,7 +376,7 @@
 
 
 	<!-- Call the macro and define the arguments -->
-	<xacro:srdf gripper="$(arg gripper)" camera="$(arg camera)" end_effector="$(arg end_effector)" load_base="$(arg load_base)" />
+	<xacro:srdf mount="$(arg mount)" camera="$(arg camera)" end_effector="$(arg end_effector)" load_base="$(arg load_base)" />
 
 
 </robot>

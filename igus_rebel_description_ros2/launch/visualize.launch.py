@@ -25,10 +25,10 @@ def generate_launch_description():
         choices=["true", "false"],
     )
 
-    gripper_arg = DeclareLaunchArgument(
-        name="gripper",
+    mount_arg = DeclareLaunchArgument(
+        name="mount",
         default_value="none",
-        choices=["none", "camera"],
+        choices=["none", "mount_v1"],
         description="Which mount to attach to the flange",
     )
 
@@ -85,7 +85,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             load_base_arg,
-            gripper_arg,
+            mount_arg,
             camera_arg,
             end_effector_arg,
             hardware_protocol_arg,
@@ -144,8 +144,8 @@ def launch_setup(context, *args, **kwargs):
             robot_description_file,
             " load_base:=",
             LaunchConfiguration("load_base"),
-            " gripper:=",
-            LaunchConfiguration("gripper"),
+            " mount:=",
+            LaunchConfiguration("mount"),
             " camera:=",
             LaunchConfiguration("camera"),
             " end_effector:=",

@@ -123,38 +123,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
-
-    # Static TFs to solve depth sensor bug (only used when virtual camera is used on Ignition)
-    if LaunchConfiguration("camera").perform(context) != 'none' and LaunchConfiguration("gripper").perform(context) != 'none':
-
-        depth_stf = Node(package='tf2_ros', executable='static_transform_publisher',
-            namespace = 'igus_rebel_gazebo_ignition',
-            name = 'depth_stf',
-            arguments = [
-                '0', '0', '0', '-1.5707963267948966', '0', '-1.5707963267948966',
-                'camera_link',
-                'igus_rebel/link_8/depth_camera'
-            ],
-            parameters=[{'use_sim_time': use_sim_time},],
-        )
-        
-        point_stf = Node(package='tf2_ros', executable='static_transform_publisher',
-            namespace = 'igus_rebel_gazebo_ignition',
-            name = 'point_stf',
-                arguments = [
-                    '0', '0', '0', '0', '0', '0',
-                    'camera_link',
-                    'igus_rebel/link_8/pointcloud'
-            ],
-            parameters=[{'use_sim_time': use_sim_time},],
-        )
-
-        return_actions.append(depth_stf)
-        return_actions.append(point_stf)
-
-
-
-
     # Returns
     return_actions.append(ign_sim)
     return_actions.append(ign_spawn_entity)

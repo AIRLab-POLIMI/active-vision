@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel">
 
     <!-- macro definition for the robot -->
-    <xacro:macro name="igus_rebel" params="gripper camera end_effector hardware_protocol load_gazebo moveit">
+    <xacro:macro name="igus_rebel" params="load_base mount camera end_effector hardware_protocol load_gazebo moveit">
     
 
         <!-- Include and call rebel macro -->
@@ -15,11 +15,11 @@
         <xacro:igus_rebel_control hardware_protocol="${hardware_protocol}" />
 
 
-        <!-- Gripper macro -->
-        <xacro:if value="${gripper == 'camera'}">
+        <!-- Mount macro -->
+        <xacro:if value="${mount == 'mount_v1'}">
 
-            <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/grippers/grippers.xacro"/>
-            <xacro:gripper camera="$(arg camera)" end_effector="$(arg end_effector)" load_gazebo="$(arg load_gazebo)"/>
+            <xacro:include filename="$(find igus_rebel_description_ros2)/urdf/mounts/mount_v1.xacro"/>
+            <xacro:mount_v1 camera="$(arg camera)" end_effector="$(arg end_effector)" load_gazebo="$(arg load_gazebo)"/>
 
         </xacro:if>
 
@@ -37,8 +37,15 @@
                 <xacro:ign_joint_state_publisher/>
             </xacro:unless>
 
-            <xacro:unless value="${camera == 'none' or gripper == 'none'}">
+            <xacro:unless value="${camera == 'none' or mount == 'none'}">
                 <xacro:virtual_sensors/>
+
+                <xacro:unless value="${load_base}">
+
+                    <xacro:ign_sensor_plugin/>
+
+                </xacro:unless>
+                
             </xacro:unless>
 
         </xacro:if>

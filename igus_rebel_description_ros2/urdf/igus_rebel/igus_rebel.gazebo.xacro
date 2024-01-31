@@ -1,6 +1,27 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel_gazebo">
 
+    <!-- Colors -->
+    <gazebo reference="camera_mount">
+        <visual>
+            <material>
+                <ambient>0.03 0.03 0.03 1</ambient>
+                <diffuse>0.03 0.03 0.03 1</diffuse>
+                <specular>0.03 0.03 0.03 1</specular>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="toucher_cylinder">
+        <visual>
+            <material>
+                <ambient>0.03 0.03 0.03 1</ambient>
+                <diffuse>0.03 0.03 0.03 1</diffuse>
+                <specular>0.03 0.03 0.03 1</specular>
+            </material>
+        </visual>
+    </gazebo>
+
 
 
     <!-- Ignition control plugin -->
@@ -24,6 +45,61 @@
                 <joint_name>joint4</joint_name>
                 <joint_name>joint5</joint_name>
                 <joint_name>joint6</joint_name>
+            </plugin>
+        </gazebo>
+    </xacro:macro>
+
+
+    <!-- Joint position controller plugin -->
+    <xacro:macro name="ign_joint_position_controller">
+        <gazebo>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint1</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
+            </plugin>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint2</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
+            </plugin>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint3</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
+            </plugin>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint4</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
+            </plugin>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint5</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
+            </plugin>
+            <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
+                    <joint_name>joint6</joint_name>
+                    <p_gain>1000.0</p_gain>
+                    <i_gain>0.0</i_gain>
+                    <d_gain>50.0</d_gain>
+                    <i_max>-1.0</i_max>
+                    <i_min>1.0</i_min>
             </plugin>
         </gazebo>
     </xacro:macro>

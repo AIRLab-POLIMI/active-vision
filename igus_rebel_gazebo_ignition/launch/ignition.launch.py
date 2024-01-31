@@ -7,6 +7,7 @@ from launch import LaunchDescription
 
 from launch.actions import ExecuteProcess, OpaqueFunction
 from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
@@ -14,8 +15,36 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
+    spawn_x_arg = DeclareLaunchArgument(
+        name="spawn_x",
+        default_value="-2.0",
+        description="x position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_y_arg = DeclareLaunchArgument(
+        name="spawn_y",
+        default_value="0.0",
+        description="y position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_z_arg = DeclareLaunchArgument(
+        name="spawn_z",
+        default_value="0.0",
+        description="z position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_yaw_arg = DeclareLaunchArgument(
+        name="spawn_yaw",
+        default_value="-1.0",
+        description="Y position for the robot spawned in Gazebo Ignition",
+    )
+
     return LaunchDescription(
         [
+            spawn_x_arg,
+            spawn_y_arg,
+            spawn_z_arg,
+            spawn_yaw_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -103,10 +132,10 @@ def launch_setup(context, *args, **kwargs):
         arguments=[
             "-topic", "/robot_description",
             "-name", "igus_rebel",
-            "-z", '0.0',
-            "-x", '-2.0',
-            "-y", '0.0',
-            "-Y", '-1.0'
+            "-x", LaunchConfiguration("spawn_x"),
+            "-y", LaunchConfiguration("spawn_y"),
+            "-z", LaunchConfiguration("spawn_z"),
+            "-Y", LaunchConfiguration("spawn_yaw")
         ],
         parameters=[{'use_sim_time': use_sim_time},],
         output="screen",

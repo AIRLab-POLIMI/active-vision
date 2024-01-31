@@ -23,7 +23,9 @@
                 <geometry>
                     <cylinder length="0.225" radius="0.015" />
                 </geometry>
-                <material name="dark_green" />
+                <material name="toucher_cylinder_color">
+                    <color rgba="${5/255.0} ${5/255.0} ${5/255.0} 1.000" />
+                </material>
             </visual>
             <collision>
                 <origin xyz="0.1125 0.0 0.0" rpy="0.0 ${pi/2.0} 0.0" />

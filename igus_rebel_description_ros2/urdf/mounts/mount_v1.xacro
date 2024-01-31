@@ -2,8 +2,8 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mount_v1">
 
 
-    <material name="dark_green">
-        <color rgba="${5/255.0} ${15/255.0} ${5/255.0} 1.000" />
+    <material name="mount_dark_grey">
+        <color rgba="${5/255.0} ${5/255.0} ${5/255.0} 1.000" />
     </material>
 
     <xacro:macro name="mount_v1" params="camera end_effector load_gazebo">
@@ -33,7 +33,9 @@
                     <mesh filename="file://$(find igus_rebel_description_ros2)/meshes/mounts/mount_v1.stl"
                         scale="0.001 0.001 0.001" />
                 </geometry>
-                <material name="dark_green" />
+                <material name="camera_mount_color">
+                    <color rgba="${5/255.0} ${5/255.0} ${5/255.0} 1.000" />
+                </material>
             </visual>
             <collision>
                 <origin xyz="0.008 0 0" rpy="0 0 ${pi}" />

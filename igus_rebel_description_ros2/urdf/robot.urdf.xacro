@@ -29,8 +29,8 @@
 
 
     <!-- Set both at 0.0 if collapsing is not interesting in gazebo -->
-    <xacro:property name="damping" value="0.1"/> 
-    <xacro:property name="friction" value="10.0"/>
+    <xacro:property name="damping" value="0.0"/> 
+    <xacro:property name="friction" value="0.0"/>
 
 
 

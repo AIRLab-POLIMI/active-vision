@@ -2,14 +2,15 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igus_rebel">
 
     <material name="dark_grey">
-        <color rgba="${5/255} ${5/255} ${5/255} 1.0" />
+        <color rgba="${5/255.0} ${5/255.0} ${5/255.0} 1.000" />
     </material>
+
 
     <xacro:macro name="igus_rebel_description">
 
         <!-- Set both at 0.0 if collapsing is not interesting in gazebo -->
-        <xacro:property name="damping" value="0.1"/> 
-        <xacro:property name="friction" value="10.0"/>
+        <xacro:property name="damping" value="0.0"/> 
+        <xacro:property name="friction" value="0.0"/>
         
 
         <link name="igus_rebel_base_link">

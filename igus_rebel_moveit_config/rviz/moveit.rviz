@@ -73,7 +73,38 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_insert:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_mount:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_usb_plug_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/depth_camera:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/pointcloud:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -112,6 +143,27 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          toucher_cylinder:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          virtual_depth_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_depth_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -155,7 +207,38 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_insert:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_mount:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_usb_plug_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/depth_camera:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/pointcloud:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -194,6 +277,27 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          toucher_cylinder:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          virtual_depth_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_depth_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -248,7 +352,38 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_insert:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_mount:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_usb_plug_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/depth_camera:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          igus_rebel/link_8/pointcloud:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -287,6 +422,27 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          toucher_cylinder:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          virtual_depth_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_depth_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          virtual_rgb_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -295,7 +451,7 @@ Visualization Manager:
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
-      Velocity_Scaling_Factor: 0.1
+      Velocity_Scaling_Factor: 0.5
     - Class: moveit_rviz_plugin/Trajectory
       Color Enabled: false
       Enabled: true
@@ -310,7 +466,38 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        camera_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_insert:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_usb_plug_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         flange:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        igus_rebel/link_8/depth_camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        igus_rebel/link_8/pointcloud:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -349,6 +536,27 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        toucher_cylinder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        virtual_depth_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_depth_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_rgb_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_rgb_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
@@ -397,7 +605,38 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        camera_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_insert:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_usb_plug_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         flange:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        igus_rebel/link_8/depth_camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        igus_rebel/link_8/pointcloud:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -436,6 +675,27 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        toucher_cylinder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        virtual_depth_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_depth_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_rgb_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        virtual_rgb_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
@@ -605,7 +865,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.9983718395233154
+      Distance: 2.6637771129608154
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

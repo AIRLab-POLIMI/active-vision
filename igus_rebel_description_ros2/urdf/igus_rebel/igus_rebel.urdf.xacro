@@ -35,6 +35,7 @@
 
             <xacro:unless value="${moveit}">
                 <xacro:ign_joint_state_publisher/>
+                <xacro:ign_joint_position_controller/>
             </xacro:unless>
 
             <xacro:unless value="${camera == 'none' or mount == 'none'}">

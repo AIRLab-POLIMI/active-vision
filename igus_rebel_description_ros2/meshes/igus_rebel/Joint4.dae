@@ -2,12 +2,39 @@
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
     <asset>
         <contributor>
-            <authoring_tool>ctmconv</authoring_tool>
-            <comments></comments>
+            <author>Blender User</author>
+            <authoring_tool>Blender 4.0.2 commit date:2023-12-05, commit time:07:41, hash:9be62e85b727</authoring_tool>
         </contributor>
-        <created>2023-01-02T17:11:41</created>
-        <modified>2023-01-02T17:11:41</modified>
+        <created>2024-01-31T10:55:59</created>
+        <modified>2024-01-31T10:55:59</modified>
+        <unit name="meter" meter="1"/>
+        <up_axis>Z_UP</up_axis>
     </asset>
+    <library_effects>
+        <effect id="Material_001-effect">
+        <profile_COMMON>
+            <technique sid="common">
+            <lambert>
+                <emission>
+                <color sid="emission">0.06 0.06 0.06 1</color>
+                </emission>
+                <diffuse>
+                <color sid="diffuse">0.06 0.06 0.06 1</color>
+                </diffuse>
+                <index_of_refraction>
+                <float sid="ior">1.45</float>
+                </index_of_refraction>
+            </lambert>
+            </technique>
+        </profile_COMMON>
+        </effect>
+    </library_effects>
+    <library_images/>
+    <library_materials>
+        <material id="Material_001-material" name="Material.001">
+        <instance_effect url="#Material_001-effect"/>
+        </material>
+    </library_materials>
     <library_geometries>
         <geometry id="Mesh-1" name="Mesh-1">
             <mesh>

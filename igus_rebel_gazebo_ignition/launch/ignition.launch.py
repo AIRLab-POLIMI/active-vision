@@ -90,27 +90,35 @@ def launch_setup(context, *args, **kwargs):
         "tomato_field.sdf",
     )
 
-    gazebo_config_gui_path = os.path.join(
-        get_package_share_directory("igus_rebel_gazebo_ignition"),
-        "config",
-        "gazebo_gui.config",
-    )
-
-
 
     # Additional bridge for joint state if Moveit is not used (only for visualization of the description)
+    # and related gui with or without the joint position controller gui
     if LaunchConfiguration("moveit").perform(context) == 'false':
         bridge_config_path = os.path.join(
             get_package_share_directory("igus_rebel_gazebo_ignition"), 
             "config", 
             "bridge_description.yaml",
         )
+
+        gazebo_config_gui_path = os.path.join(
+            get_package_share_directory("igus_rebel_gazebo_ignition"),
+            "config",
+            "gazebo_gui_description.config",
+        )
+
     else:
         bridge_config_path = os.path.join(
             get_package_share_directory("igus_rebel_gazebo_ignition"), 
             "config", 
             "bridge_moveit.yaml",
         )
+
+        gazebo_config_gui_path = os.path.join(
+            get_package_share_directory("igus_rebel_gazebo_ignition"),
+            "config",
+            "gazebo_gui_moveit.config",
+        )
+
 
 
 

@@ -57,7 +57,7 @@ def generate_launch_description():
         name="load_gazebo",
         default_value="false",
         choices=["true", "false"],
-        description="Whether or not Gazebo Ingition is used",
+        description="Whether or not Gazebo Ignition is used",
     )
 
     use_sim_time_arg = DeclareLaunchArgument(

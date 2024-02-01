@@ -1,5 +1,6 @@
 ---
-# clock sync between gazebo and ros
+# When the Description is run, the joint state will be directly sent from Gazebo to Ros2, so a joint state publisher gui 
+# is useless. To do so, a bridge is necessary
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"

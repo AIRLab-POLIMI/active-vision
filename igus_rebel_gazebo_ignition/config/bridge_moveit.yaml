@@ -1,5 +1,5 @@
 ---
-# clock sync between gazebo and ros
+# No joint state bridge is used since the joint state in Ros are calculated by Moveit2, and they are sent to Gazebo using the control plugin
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"

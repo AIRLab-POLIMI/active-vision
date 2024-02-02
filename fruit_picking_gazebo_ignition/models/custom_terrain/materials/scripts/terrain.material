@@ -1,0 +1,14 @@
+material custom_terrain/terrain
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture terrain.png
+			
+			}
+		}
+	}
+}

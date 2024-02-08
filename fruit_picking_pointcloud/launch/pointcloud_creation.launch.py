@@ -86,8 +86,8 @@ def generate_launch_description():
                                 ('rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
                                 ('depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
                                 ('points', LaunchConfiguration('pointcloud_processed_topic'))],
-                    # parameters=[{'qos_overrides./tf_static.publisher.durability': 'transient_local',
-                    #         }],
+                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+
                 ),
             ],
             output='screen',

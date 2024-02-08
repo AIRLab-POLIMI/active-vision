@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Original Depth Image1/Status1
         - /Original Depth Cloud1/Auto Size1
       Splitter Ratio: 0.5059523582458496
     Tree Height: 694
@@ -26,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Original Depth Cloud
+    SyncSource: Processed Pointcloud
 Visualization Manager:
   Class: ""
   Displays:
@@ -349,6 +348,30 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: false
+      Name: Octomap (occupation)
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /occupied_cells_vis_array
+      Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: false
+      Name: Octomap (unoccupation)
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /free_cells_vis_array
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -410,10 +433,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1903979778289795
+      Pitch: 0.26539790630340576
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.354097366333008
+      Yaw: 3.844111442565918
     Saved: ~
 Window Geometry:
   Displays:

@@ -101,14 +101,31 @@ def launch_setup(context, *args, **kwargs):
 
     # Array of action that will be returned at the end for execution
     return_actions = []
+
+
+    # Parameters
+
+    # Sim time
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+        use_sim_time = True
+    else:
+        use_sim_time = False
+
     
+    # Frames
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+        frame_id = 'world'
+    else:
+        frame_id = 'igus_rebel_base_link'
 
-
-    # Data topics
+    
+    # Data topics. Change their value from here. In the inner launch file the default value are currently the below ones
     depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
     rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
     camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
     pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
+
+
 
 
 
@@ -124,10 +141,22 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource([
             FindPackageShare("fruit_picking_pointcloud"), '/launch', '/pointcloud_creation.launch.py']),
         launch_arguments={
+            "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
             "rgb_image_topic": rgb_image_topic,
             "camera_info_topic": camera_info_topic,
             "pointcloud_processed_topic": pointcloud_processed_topic,
+        }.items(),
+    ) 
+
+    # Octomap creation launch
+    octomap_creation_launch_file = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
+        launch_arguments={
+            "input_cloud_topic": pointcloud_processed_topic,
+            "use_sim_time": str(use_sim_time).lower(),
+            "frame_id": frame_id,
         }.items(),
     ) 
 
@@ -143,7 +172,8 @@ def launch_setup(context, *args, **kwargs):
                 FindPackageShare("fruit_picking_bringup"),
                 "rviz", "octomap.rviz"
             ]),
-        ]
+        ],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
 
@@ -152,6 +182,7 @@ def launch_setup(context, *args, **kwargs):
     # Returns  
     return_actions.append(description_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
+    return_actions.append(octomap_creation_launch_file)
     return_actions.append(rviz_node)
 
 

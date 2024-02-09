@@ -125,6 +125,13 @@ def launch_setup(context, *args, **kwargs):
     camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
     pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
 
+    octomap_occupied_cells_vis_topic = "/fruit_picking/octomap/occupied_cells_vis"
+    octomap_free_cells_vis_topic = "/fruit_picking/octomap/free_cells_vis"
+    octomap_occupied_cells_centers_topic = "/fruit_picking/octomap/occupied_cells_centers"
+    octomap_binary_topic = "/fruit_picking/octomap/octomap_binary"
+    octomap_full_topic = "/fruit_picking/octomap/octomap_full"
+    octomap_projected_map_topic = "/fruit_picking/octomap/projected_map"
+
 
 
 
@@ -154,9 +161,19 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource([
             FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
         launch_arguments={
-            "input_cloud_topic": pointcloud_processed_topic,
             "use_sim_time": str(use_sim_time).lower(),
+            "input_cloud_topic": pointcloud_processed_topic,
+            "output_occupied_cells_vis": octomap_occupied_cells_vis_topic,
+            "output_free_cells_vis": octomap_free_cells_vis_topic,
+            "output_occupied_cells_centers": octomap_occupied_cells_centers_topic,
+            "output_octomap_binary": octomap_binary_topic,
+            "output_octomap_full": octomap_full_topic,
+            "output_projected_map": octomap_projected_map_topic,
+            "resolution": '0.01',
             "frame_id": frame_id,
+            "height_map": "False",
+            "colored_map": "False",
+            "filter_ground": 'True',
         }.items(),
     ) 
 

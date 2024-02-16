@@ -19,13 +19,13 @@ from fruit_picking_segmentation_lang_sam.utils import (
 
 def test_segmentation(self):
 
-    # Load the original image as PIL image to be given in SAM input
-    original_image_sam = Image.open(os.path.join(
-        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg")).convert("RGB")
     # Load the original image in OpenCV format
     original_image = cv2.imread(os.path.join(
         get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg"))
     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+    # Load the original image as PIL image to be given in SAM input
+    original_image_sam = Image.fromarray(original_image)
+
     text_prompt = "wheel"
 
 

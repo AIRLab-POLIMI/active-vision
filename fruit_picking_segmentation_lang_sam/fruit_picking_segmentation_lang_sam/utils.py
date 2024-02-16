@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+import cv2
 
 
 
@@ -10,40 +11,48 @@ def convert_masks_to_images(masks, random_color=True):
     images = []
     for mask in masks: 
         if random_color: 
-            color = np.concatenate([np.random.random(3), np.array([0.8])], axis=0) 
+            color = np.concatenate([np.random.random(3), np.array([1.0])], axis=0) 
         else: 
-            color = np.array([30/255, 144/255, 255/255, 0.6]) 
+            color = np.array([0/255, 0/255, 255/255, 1.0]) 
         h = mask.size(dim=0)
         w = mask.size(dim=1)
         mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1) 
         image = mask_image.squeeze().cpu().numpy()
-        image = Image.fromarray((image * 255).astype(np.uint8))
         images.append(image)
     return images
 
 
 
-def export_masks_images(masks_images, folder_path):
-    # Create the folder if it doesn't exist
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
-    # Save each image in the list
-    for i, img in enumerate(masks_images):
-        img_path = os.path.join(folder_path, f'mask{i+1}.png')
-        img.save(img_path, 'PNG')
-
-
-
-def merge_masks_images(masks_images):
-    # Create a blank image with the same size and mode as the first image
-    base_image = Image.new('RGBA', masks_images[0].size, (255, 255, 255, 0))
+def merge_masks_images(masks_images, overlapping=True):
+    if overlapping: 
     
-    # Composite each image onto the base image
-    for mask_image in masks_images:
-        base_image = Image.alpha_composite(base_image, mask_image.convert('RGBA'))
-    
+        # Create a blank image with the same size and mode as the first image
+        base_image = np.zeros_like(masks_images[0])
+
+        # Composite each image onto the base image
+        for mask_image in masks_images:
+            # Replace non-transparent pixels of the base image with corresponding pixels from the current image
+            non_transparent_pixels = mask_image[:, :, 3] > 0
+            base_image[non_transparent_pixels] = mask_image[non_transparent_pixels]
+    else:
+        # Create a blank image with the same size and mode as the first image
+        base_image = np.zeros_like(masks_images[0])
+
+        # Composite each image onto the base image
+        for mask_image in masks_images:
+            base_image = cv2.addWeighted(base_image, 1, mask_image, 1, 0)
+        
+        ## If the merged images has to have an alpha channel smaller that 1:
+        # b, g, r, a = cv2.split(base_image)
+
+        # new_alpha_value = 0.8
+        # a[:] = new_alpha_value
+
+        # # Merge the channels back together
+        # base_image = cv2.merge((b, g, r, a))
+
     return base_image
+
 
 
 def show_masks_images(original_image, masks_images): 
@@ -53,7 +62,6 @@ def show_masks_images(original_image, masks_images):
         plt.gca().imshow(mask_image)
     plt.axis('off') 
     plt.show() 
-
 
 
 
@@ -116,3 +124,39 @@ def show_boxes_with_confidence(original_image, boxes, confidences):
 
     plt.tight_layout()
     plt.show()
+
+
+
+def export_masks_images(masks_images, folder_path):
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # Save each image in the list
+    for i, img in enumerate(masks_images):
+        img_path = os.path.join(folder_path, f'mask{i+1}.png')
+        # Convert numpy.ndarray to PIL Image
+        if isinstance(img, np.ndarray):
+            # Convert numpy.ndarray to PIL Image
+            img = Image.fromarray((img * 255).astype(np.uint8))
+            # Save PIL Image
+            img.save(img_path)
+        else:
+            raise ValueError(f"Unsupported image type: {type(img)}. Expected numpy.ndarray.")
+
+
+
+def export_merged_masks_images(merged_masks_images, folder_path):
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    img_path = os.path.join(folder_path, f'merged.png')
+    # Convert numpy.ndarray to PIL Image
+    if isinstance(merged_masks_images, np.ndarray):
+        # Convert numpy.ndarray to PIL Image
+        merged_masks_images = Image.fromarray((merged_masks_images * 255).astype(np.uint8))
+        # Save PIL Image
+        merged_masks_images.save(img_path)
+    else:
+        raise ValueError(f"Unsupported image type: {type(merged_masks_images)}. Expected numpy.ndarray.")

@@ -2,29 +2,38 @@ import os
 from typing import List
 import torch
 from PIL import Image
-
+import cv2
+import numpy as np
 from ament_index_python.packages import get_package_share_directory
 
 from fruit_picking_segmentation_lang_sam.utils import (
     convert_masks_to_images, 
-    export_masks_images,
     merge_masks_images,
     show_masks_images,
     show_masks_images_with_confidence,
-    show_boxes_with_confidence)
+    show_boxes_with_confidence,
+    export_masks_images,
+    export_merged_masks_images
+)
 
 
 def test_segmentation(self):
 
-    # Get original image and text prompts
-    original_image = Image.open(os.path.join(
+    # Load the original image as PIL image to be given in SAM input
+    original_image_sam = Image.open(os.path.join(
         get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg")).convert("RGB")
+    # Load the original image in OpenCV format
+    original_image = cv2.imread(os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg"))
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
     text_prompt = "wheel"
 
 
     # Predict from LANG SAM
-    masks, boxes, phrases, logits = self._lang_sam.predict(original_image, text_prompt)
+    masks, boxes, phrases, logits = self._lang_sam.predict(original_image_sam, text_prompt)
+    # Convert confidences tensor in list fo float rounded at the 3rd digit
     confidences = [round(logit.item(), 3) for logit in logits]
+    
 
     
 
@@ -49,25 +58,18 @@ def test_segmentation(self):
     
 
 
-    # Convert bool masks to PIL images
+    # Convert bool masks to cv2 images
     masks_images = convert_masks_to_images(masks)
     for mask_image in masks_images:
         self.get_logger().info(
-            f"Mask (image): \n{mask_image}. Type of this data: {type(mask_image)}"
+            f"Mask (cv2 image): \n{mask_image}. Type of this data: {type(mask_image)}"
         )
     # Convert boxes tensor in list of lists
     boxes = boxes.tolist()
+    
 
 
-
-    # Export masks images
-    # self.get_logger().info("Exporting masks images...") 
-
-    # export_masks_images(masks_images, os.path.join(
-    #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
-
-    # self.get_logger().info("Masks images exported.")
-
+    
 
 
     # Plot masks images
@@ -80,15 +82,16 @@ def test_segmentation(self):
 
 
 
-    # Plot and export merged masks images
-    # self.get_logger().info("Plotting and exporting merged masks images...") 
+    # Plot merged masks images
+    self.get_logger().info("Plotting merged masks images...") 
 
-    # merged_masks_images = merge_masks_images(masks_images)
-    # show_masks_images(original_image, [merged_masks_images]) 
-    # export_masks_images([merged_masks_images], os.path.join(
-    #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+    merged_masks_images = merge_masks_images(masks_images)
+    show_masks_images(original_image, np.array([merged_masks_images])) 
+    self.get_logger().info(
+        f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}"
+    )
 
-    # self.get_logger().info("Masks merged images plotted and exported.")
+    self.get_logger().info("Masks merged images plotted.")
 
 
 
@@ -99,6 +102,8 @@ def test_segmentation(self):
     show_masks_images_with_confidence(original_image, masks_images, boxes, confidences) 
 
     self.get_logger().info("Masks images with confidence plotted.")
+
+
 
 
     # Plotting image with bounding boxes and confidences
@@ -112,12 +117,36 @@ def test_segmentation(self):
 
 
 
+    # Export masks images
+    self.get_logger().info("Exporting masks images...") 
+
+    export_masks_images(masks_images, os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+
+    self.get_logger().info("Masks images exported.")
+
+
+
+
+    # Export merged masks images
+    self.get_logger().info("Exporting merged masks images...") 
+
+    export_merged_masks_images(merged_masks_images, os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+
+    self.get_logger().info("Merged masks images exported.")
+
+
+
+
+
 def fake_segmentation(self):
     
-    # Load the original image
-    original_image = Image.open(os.path.join(
-        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg")).convert("RGB")
-    original_width, original_height = original_image.size
+    # Load the original image in OpenCV format
+    original_image = cv2.imread(os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "car.jpeg"))
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+    original_height, original_width, channels = original_image.shape
     
 
 
@@ -193,11 +222,11 @@ def fake_segmentation(self):
     
 
 
-    # Convert bool masks to PIL images
+    # Convert bool masks to cv2 images
     masks_images = convert_masks_to_images(masks)
     for mask_image in masks_images:
         self.get_logger().info(
-            f"Mask (image): \n{mask_image}. Type of this data: {type(mask_image)}"
+            f"Mask (cv2 image): \n{mask_image}. Type of this data: {type(mask_image)}"
         )
     # Convert boxes tensor in list of lists
     boxes = boxes.tolist()
@@ -206,14 +235,7 @@ def fake_segmentation(self):
 
 
 
-    # Export masks images
-    # self.get_logger().info("Exporting masks images...") 
-
-    # export_masks_images(masks_images, os.path.join(
-    #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
-
-    # self.get_logger().info("Masks images exported.")
-
+    
 
 
     # Plot masks images
@@ -226,15 +248,16 @@ def fake_segmentation(self):
 
 
 
-    # Plot and export merged masks images
-    # self.get_logger().info("Plotting and exporting merged masks images...") 
+    # Plot merged masks images
+    self.get_logger().info("Plotting merged masks images...") 
 
-    # merged_masks_images = merge_masks_images(masks_images)
-    # show_masks_images(original_image, [merged_masks_images]) 
-    # export_masks_images([merged_masks_images], os.path.join(
-    #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+    merged_masks_images = merge_masks_images(masks_images)
+    show_masks_images(original_image, np.array([merged_masks_images])) 
+    self.get_logger().info(
+        f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}"
+    )
 
-    # self.get_logger().info("Masks merged images plotted and exported.")
+    self.get_logger().info("Masks merged images plotted.")
 
 
 
@@ -247,10 +270,36 @@ def fake_segmentation(self):
     self.get_logger().info("Masks images with confidence plotted.")
 
 
+
+
     # Plotting image with bounding boxes and confidences
     self.get_logger().info("Plotting bounding boxes with confidence...") 
 
     show_boxes_with_confidence(original_image, boxes, confidences) 
 
     self.get_logger().info("Bounding boxes with confidence plotted.")
+
+
+
+
+
+    # Export masks images
+    self.get_logger().info("Exporting masks images...") 
+
+    export_masks_images(masks_images, os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+
+    self.get_logger().info("Masks images exported.")
+
+
+
+
+    # Export merged masks images
+    self.get_logger().info("Exporting merged masks images...") 
+
+    export_merged_masks_images(merged_masks_images, os.path.join(
+        get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+
+    self.get_logger().info("Merged masks images exported.")
+
 

@@ -65,8 +65,26 @@ def test_segmentation(self):
             f"Mask (cv2 image): \n{mask_image}. Type of this data: {type(mask_image)}"
         )
     # Convert boxes tensor in list of lists
-    boxes = boxes.tolist()
-    
+    # boxes = boxes.tolist()
+
+
+    # Different types of boxes
+    self.get_logger().info(
+        f"\nDifferent types of boxes:\n"
+    )
+    self.get_logger().info(
+        f"Boxes (tensor): \n{boxes}. Type of this data: {type(boxes)}"
+    )
+    self.get_logger().info(
+        f"Boxes (list of lists): \n{boxes.tolist()}. Type of this data: {type(boxes.tolist())}"
+    )
+    self.get_logger().info(
+        f"Boxes (np.array): \n{boxes.squeeze().cpu().numpy()}. Type of this data: {type(boxes.squeeze().cpu().numpy())}"
+    )
+    self.get_logger().info(
+        f"Boxes (list): \n{boxes.squeeze().cpu().numpy().astype(float).ravel()}. Type of this data: {type(boxes.squeeze().cpu().numpy().astype(float).ravel())}"
+    )
+
 
 
     

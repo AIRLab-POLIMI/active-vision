@@ -1,0 +1,6 @@
+sensor_msgs/Image           image           # Image to segment
+string                      text_prompt     # Text for the segmentation
+---
+sensor_msgs/Image[]         masks_images    # Masks generated from the model
+std_msgs/Float64MultiArray  boxes           # Boxes surrounding the segmented masks
+float32[]                   confidences     # confidences of the masks

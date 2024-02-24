@@ -7,13 +7,13 @@ import cv2
 
 
 
-def convert_masks_to_images(masks, random_color=True): 
+def convert_masks_to_images(masks, random_color=False): 
     images = []
     for mask in masks: 
         if random_color: 
             color = np.concatenate([np.random.random(3), np.array([1.0])], axis=0) 
         else: 
-            color = np.array([0/255, 0/255, 255/255, 1.0]) 
+            color = np.array([0.000034, 0.333, 1.000000, 1.0])
         h = mask.size(dim=0)
         w = mask.size(dim=1)
         mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1) 
@@ -52,6 +52,20 @@ def merge_masks_images(masks_images, overlapping=True):
         # base_image = cv2.merge((b, g, r, a))
 
     return base_image
+
+
+
+def rgba_to_rgb_with_white_background(rgba_image):
+    # Create a copy of the original image to avoid modifying the input
+    rgb_image = rgba_image.copy()
+
+    # Set pixels with alpha less than 0.5 to white
+    rgb_image[rgba_image[..., 3] < 0.5] = [255, 255, 255, 255]
+
+    # Remove the alpha channel
+    rgb_image = rgb_image[..., :3]
+
+    return rgb_image
 
 
 
@@ -155,7 +169,7 @@ def export_merged_masks_images(merged_masks_images, folder_path):
     # Convert numpy.ndarray to PIL Image
     if isinstance(merged_masks_images, np.ndarray):
         # Convert numpy.ndarray to PIL Image
-        merged_masks_images = Image.fromarray((merged_masks_images * 255).astype(np.uint8))
+        merged_masks_images = Image.fromarray((merged_masks_images * 255 * 255).astype(np.uint8))
         # Save PIL Image
         merged_masks_images.save(img_path)
     else:

@@ -16,8 +16,8 @@ def generate_launch_description() -> LaunchDescription:
     ld.add_action(
         DeclareLaunchArgument(
             "approach",
-            default_value="service",
-            choices=["service", "pub_sub"],
+            default_value="pub_sub",
+            choices=["test_client", "pub_sub"],
             description="Approach of the LANG SAM model.",
         )
     )
@@ -47,11 +47,28 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    ld.add_action(
+        DeclareLaunchArgument(
+            "input_image_topic",
+            default_value="/virtual_camera_link/rgbd_camera/image_raw",
+            description="Topic that contains the original RGB data that needs to be segmented",
+        )
+    )
+
+    ld.add_action(
+        DeclareLaunchArgument(
+            "output_image_topic",
+            default_value="/fruit_picking/segmentation/lang_sam/image",
+            description="Topic that contains the segmented RGB data that comes from the LANG SAM server",
+        )
+    )
+
 
 
 
     # Nodes
     
+    # Server is always executed
     ld.add_action(
         Node(
             package="fruit_picking_segmentation_lang_sam",
@@ -63,7 +80,7 @@ def generate_launch_description() -> LaunchDescription:
                     "model_type": LaunchConfiguration("model_type"),
                 }
             ],
-            condition=LaunchConfigurationEquals('approach', 'service'),
+            condition=LaunchConfigurationEquals('approach', 'test_client'),
         )
     )
 
@@ -79,23 +96,25 @@ def generate_launch_description() -> LaunchDescription:
                     "prompt": LaunchConfiguration("prompt"),
                 }
             ],
-            condition=LaunchConfigurationEquals('approach', 'service'),
+            condition=LaunchConfigurationEquals('approach', 'test_client'),
         )
     )
 
-    # ld.add_action(
-    #     Node(
-    #         package="fruit_picking_segmentation_lang_sam",
-    #         executable="lang_sam_pub_sub",
-    #         name="lang_sam_pub_sub",
-    #         output="screen",
-    #         parameters=[
-    #             {
-    #                 "model_type": LaunchConfiguration("model_type"),
-    #             }
-    #         ],
-    #         condition=LaunchConfigurationEquals('approach', 'pub_sub'),
-    #     )
-    # )
+    ld.add_action(
+        Node(
+            package="fruit_picking_segmentation_lang_sam",
+            executable="lang_sam_pub_sub",
+            name="lang_sam_pub_sub",
+            output="screen",
+            parameters=[
+                {
+                    "model_type": LaunchConfiguration("model_type"),
+                    "input_image_topic": LaunchConfiguration("input_image_topic"),
+                    "output_image_topic": LaunchConfiguration("output_image_topic"),
+                }
+            ],
+            condition=LaunchConfigurationEquals('approach', 'pub_sub'),
+        )
+    )
 
     return ld

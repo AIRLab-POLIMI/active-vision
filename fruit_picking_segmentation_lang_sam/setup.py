@@ -32,6 +32,7 @@ setup(
         'console_scripts': [
             "lang_sam_server = fruit_picking_segmentation_lang_sam.lang_sam_server:main",
             "lang_sam_client = fruit_picking_segmentation_lang_sam.lang_sam_client:main",
+            "lang_sam_pub_sub = fruit_picking_segmentation_lang_sam.lang_sam_pub_sub:main",
         ],
     },
 )

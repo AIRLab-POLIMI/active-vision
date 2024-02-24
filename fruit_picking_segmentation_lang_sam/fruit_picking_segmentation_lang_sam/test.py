@@ -9,6 +9,7 @@ from ament_index_python.packages import get_package_share_directory
 from fruit_picking_segmentation_lang_sam.utils import (
     convert_masks_to_images, 
     merge_masks_images,
+    rgba_to_rgb_with_white_background,
     show_masks_images,
     show_masks_images_with_confidence,
     show_boxes_with_confidence,
@@ -272,10 +273,23 @@ def fake_segmentation(self):
     merged_masks_images = merge_masks_images(masks_images)
     show_masks_images(original_image, np.array([merged_masks_images])) 
     self.get_logger().info(
-        f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}"
+        f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}. Size: {merged_masks_images.shape}"
     )
 
     self.get_logger().info("Masks merged images plotted.")
+
+
+
+    # Plot merged RGB masks images
+    self.get_logger().info("Plotting merged RGB masks images...") 
+
+    merged_RGB_masks_images = rgba_to_rgb_with_white_background(merged_masks_images)
+    show_masks_images(original_image, np.array([merged_RGB_masks_images])) 
+    self.get_logger().info(
+        f"Merged RGB (cv2 image): \n{merged_RGB_masks_images}. Type of this data: {type(merged_RGB_masks_images)}. Size: {merged_RGB_masks_images.shape}"
+    )
+
+    self.get_logger().info("RGB Masks merged images plotted.")
 
 
 
@@ -315,7 +329,7 @@ def fake_segmentation(self):
     # Export merged masks images
     self.get_logger().info("Exporting merged masks images...") 
 
-    export_merged_masks_images(merged_masks_images, os.path.join(
+    export_merged_masks_images(merged_RGB_masks_images, os.path.join(
         get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
 
     self.get_logger().info("Merged masks images exported.")

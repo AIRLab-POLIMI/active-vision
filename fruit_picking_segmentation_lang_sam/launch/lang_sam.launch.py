@@ -49,6 +49,15 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
+            "multiple_output_topics",
+            default_value="true",
+            choices=["true", "false"],
+            description="Argument to specify the creation of multiple output topics containing each a different mask",
+        )
+    )
+
+    ld.add_action(
+        DeclareLaunchArgument(
             "input_image_topic",
             default_value="/virtual_camera_link/rgbd_camera/image_raw",
             description="Topic that contains the original RGB data that needs to be segmented",
@@ -109,6 +118,7 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[
                 {
                     "model_type": LaunchConfiguration("model_type"),
+                    "multiple_output_topics": LaunchConfiguration("multiple_output_topics"),
                     "input_image_topic": LaunchConfiguration("input_image_topic"),
                     "output_image_topic": LaunchConfiguration("output_image_topic"),
                 }

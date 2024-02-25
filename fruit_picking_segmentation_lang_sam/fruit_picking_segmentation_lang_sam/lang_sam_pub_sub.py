@@ -30,12 +30,14 @@ class LANGSAMPubSub(Node):
             namespace="",
             parameters=[
                 ("model_type", "vit_h"),
+                ("multiple_output_topics", True),
                 ("input_image_topic", "/virtual_camera_link/rgbd_camera/image_raw"),
                 ("output_image_topic", "/fruit_picking/segmentation/lang_sam/image"),
             ],
         )
 
         self._model_type = self.get_parameter("model_type").value
+        self._multiple_output_topics = self.get_parameter("multiple_output_topics").value
         self._input_image_topic = self.get_parameter("input_image_topic").value
         self._output_image_topic = self.get_parameter("output_image_topic").value
 
@@ -57,11 +59,11 @@ class LANGSAMPubSub(Node):
 
 
         # Define publisher and subscriber
-        self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
         self.subscription = self.create_subscription(
             SensorImage, self._input_image_topic, self.segment, 10)
 
      
+
 
 
         self.get_logger().info(f'Pub-Sub client is ready.')
@@ -114,22 +116,21 @@ class LANGSAMPubSub(Node):
             f"Masks found: {masks.size(0)}."
         )
 
-
+        # Case when the model did not segment any mask, thus the result is a null image
         if masks.size(0) <= 0:
             merged_masks_images = None
 
+            # Define publisher and publish
+            self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
+            self.publish_segmentation(merged_masks_images)
+            
+        # Case when the model segmented some masks
         else:
+
             # Prepare merged masks images to be published
             # Convert bool masks tensor to cv2 images
             masks_images = convert_masks_to_images(masks)
-            merged_masks_images = merge_masks_images(masks_images)
-            merged_masks_images = rgba_to_rgb_with_white_background(merged_masks_images)
-            merged_masks_images = np.uint8(merged_masks_images * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
 
-            # In order to visualize in Rviz, the image need to be processed more
-            merged_masks_images = cv2.convertScaleAbs(merged_masks_images)
-            merged_masks_images = self.bridge.cv2_to_imgmsg(merged_masks_images)
-            
             # Convert boxes tensor in std_msgs/Float64MultiArray
             boxes = boxes.squeeze().cpu().numpy().astype(float).ravel().tolist()
             msg_boxes = Float64MultiArray()
@@ -138,8 +139,46 @@ class LANGSAMPubSub(Node):
             # Convert confidences tensor in list fo float rounded at the 3rd digit
             confidences = [round(logit.item(), 3) for logit in logits]
 
+            
 
-        self.publish_segmentation(merged_masks_images)
+            # Case when publishing on multiple topics each mask is required
+            if self._multiple_output_topics:
+
+                for i, mask_image in enumerate(masks_images):
+                    mask_image = rgba_to_rgb_with_white_background(mask_image)
+                    mask_image = np.uint8(mask_image * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
+
+                    # In order to visualize in Rviz, the image need to be processed more
+                    mask_image = cv2.convertScaleAbs(mask_image)
+                    mask_image = self.bridge.cv2_to_imgmsg(mask_image)
+
+                    # Define publisher and publish
+                    output_topic = f"{self._output_image_topic}/mask_{i}"
+                    self.publisher = self.create_publisher(SensorImage, output_topic, 10)
+                    self.publish_segmentation(mask_image)
+
+
+            # Case when publishing on a single topic the merged masks is required
+            else:
+
+                merged_masks_images = merge_masks_images(masks_images)
+                merged_masks_images = rgba_to_rgb_with_white_background(merged_masks_images)
+                merged_masks_images = np.uint8(merged_masks_images * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
+
+                # In order to visualize in Rviz, the image need to be processed more
+                merged_masks_images = cv2.convertScaleAbs(merged_masks_images)
+                merged_masks_images = self.bridge.cv2_to_imgmsg(merged_masks_images)
+
+                # Define publisher and publish
+                self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
+                self.publish_segmentation(merged_masks_images)
+
+            
+
+            
+
+
+        
 
 
     

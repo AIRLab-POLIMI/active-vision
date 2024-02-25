@@ -2,8 +2,9 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image as SensorImage
 from cv_bridge import CvBridge
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray, String
 from ament_index_python import get_package_share_directory
+import json
 
 import os
 import cv2
@@ -18,9 +19,10 @@ from fruit_picking_segmentation_lang_sam.utils import merge_masks_images, conver
 class LANGSAMPubSub(Node):
 
 
-    # Init method
     def __init__(self):
         super().__init__('lang_sam_pub_sub')
+        
+        # Create bridge between cv2 images and sensor_msgs/Image type
         self.bridge = CvBridge()
 
 
@@ -33,6 +35,8 @@ class LANGSAMPubSub(Node):
                 ("multiple_output_topics", True),
                 ("input_image_topic", "/virtual_camera_link/rgbd_camera/image_raw"),
                 ("output_image_topic", "/fruit_picking/segmentation/lang_sam/image"),
+                ("output_boxes_topic", "/fruit_picking/segmentation/lang_sam/boxes"),
+                ("output_confidences_topic", "/fruit_picking/segmentation/lang_sam/confidences"),
             ],
         )
 
@@ -40,6 +44,9 @@ class LANGSAMPubSub(Node):
         self._multiple_output_topics = self.get_parameter("multiple_output_topics").value
         self._input_image_topic = self.get_parameter("input_image_topic").value
         self._output_image_topic = self.get_parameter("output_image_topic").value
+        self._output_boxes_topic = self.get_parameter("output_boxes_topic").value
+        self._output_confidences_topic = self.get_parameter("output_confidences_topic").value
+
 
 
 
@@ -58,15 +65,19 @@ class LANGSAMPubSub(Node):
 
 
 
-        # Define publisher and subscriber
+        # Define image subscriber
         self.subscription = self.create_subscription(
             SensorImage, self._input_image_topic, self.segment, 10)
 
-     
+
+        # Define boxes and confidences publishers
+        self.boxes_publisher = self.create_publisher(String, self._output_boxes_topic, 10)
+        self.confidences_publisher = self.create_publisher(String, self._output_confidences_topic, 10)
 
 
 
         self.get_logger().info(f'Pub-Sub client is ready.')
+
 
 
 
@@ -75,9 +86,38 @@ class LANGSAMPubSub(Node):
         # If merged masks image coming from the server is not node, it is published
         if image_msg is not None:
             self.publisher.publish(image_msg)
-            self.get_logger().info('Merged masks published.')
+            self.get_logger().info('[Image-pub] Merged masks published.')
         else:
-            self.get_logger().info('Nothing published.')
+            self.get_logger().info('[Image-pub] Nothing published.')
+
+
+
+
+    def publish_boxes_segmentation(self, boxes, masks_names):
+
+        # Convert boxes tensor in list of lists and publish as a json string
+        boxes = boxes.tolist()
+        boxes_dict = dict(zip(masks_names, boxes))
+        boxes_json_str = json.dumps(boxes_dict)  # Serialize dictionary to JSON string
+        msg_boxes = String()
+        msg_boxes.data = boxes_json_str # to deserialize: confidences_dict = json.loads(confidences_json_str)
+
+        self.boxes_publisher.publish(msg_boxes)
+        self.get_logger().info('[Boxes-pub] Boxes published.')
+
+
+
+    def publish_confidences_segmentation(self, confidences, masks_names):
+
+        # Publish confidences list as a json string
+        confidences_dict = dict(zip(masks_names, confidences))
+        confidences_json_str = json.dumps(confidences_dict)  # Serialize dictionary to JSON string
+        msg_confidences = String()
+        msg_confidences.data = confidences_json_str # to deserialize: confidences_dict = json.loads(confidences_json_str)
+
+        self.confidences_publisher.publish(msg_confidences)
+        self.get_logger().info('[Confidences-pub] Confidences published.')   
+        
 
 
 
@@ -85,7 +125,7 @@ class LANGSAMPubSub(Node):
     def segment(self, msg):
 
         # Get input image from input topic
-        self.get_logger().info('Original image received.')
+        self.get_logger().info('[Sub] Original image received.')
         self.original_image = msg
 
 
@@ -100,21 +140,23 @@ class LANGSAMPubSub(Node):
 
         # Segmentation
         self.get_logger().info(
-            f"Segmenting image of shape {img.shape} with text prompt prior: {text_prompt_query}"
+            f"[Sub] Segmenting image of shape {img.shape} with text prompt prior: {text_prompt_query}"
         )
         start = self.get_clock().now().nanoseconds
 
         masks, boxes, phrases, logits = self._lang_sam.predict(img_query, text_prompt_query)
 
         self.get_logger().info(
-            f"Segmentation completed in {round((self.get_clock().now().nanoseconds - start)/1.e9, 2)}s."
+            f"[Sub] Segmentation completed in {round((self.get_clock().now().nanoseconds - start)/1.e9, 2)}s."
         )
 
 
         # Check number of masks found
         self.get_logger().info(
-            f"Masks found: {masks.size(0)}."
+            f"[Sub] Masks found: {masks.size(0)}."
         )
+
+
 
         # Case when the model did not segment any mask, thus the result is a null image
         if masks.size(0) <= 0:
@@ -124,22 +166,25 @@ class LANGSAMPubSub(Node):
             self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
             self.publish_segmentation(merged_masks_images)
             
+
         # Case when the model segmented some masks
         else:
+
+            masks_names = [f"mask_{i}" for i in range(1, 5)]
 
             # Prepare merged masks images to be published
             # Convert bool masks tensor to cv2 images
             masks_images = convert_masks_to_images(masks)
 
-            # Convert boxes tensor in std_msgs/Float64MultiArray
-            boxes = boxes.squeeze().cpu().numpy().astype(float).ravel().tolist()
-            msg_boxes = Float64MultiArray()
-            msg_boxes.data = boxes
-
-            # Convert confidences tensor in list fo float rounded at the 3rd digit
+            # Convert confidences tensor in list fo float rounded at the 3rd digit and 
             confidences = [round(logit.item(), 3) for logit in logits]
 
-            
+            # Publish boxes and confidences
+            self.publish_boxes_segmentation(boxes, masks_names)
+            self.publish_confidences_segmentation(confidences, masks_names)
+
+
+
 
             # Case when publishing on multiple topics each mask is required
             if self._multiple_output_topics:
@@ -153,7 +198,7 @@ class LANGSAMPubSub(Node):
                     mask_image = self.bridge.cv2_to_imgmsg(mask_image)
 
                     # Define publisher and publish
-                    output_topic = f"{self._output_image_topic}/mask_{i}"
+                    output_topic = f"{self._output_image_topic}/mask_{i + 1}"
                     self.publisher = self.create_publisher(SensorImage, output_topic, 10)
                     self.publish_segmentation(mask_image)
 
@@ -175,13 +220,6 @@ class LANGSAMPubSub(Node):
 
             
 
-            
-
-
-        
-
-
-    
 
 
 def main(args=None):

@@ -72,6 +72,22 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    ld.add_action(
+        DeclareLaunchArgument(
+            "output_boxes_topic",
+            default_value="/fruit_picking/segmentation/lang_sam/boxes",
+            description="Topic that contains the boxes of the segmented RGB data that comes from the LANG SAM server",
+        )
+    )
+
+    ld.add_action(
+        DeclareLaunchArgument(
+            "output_confidences_topic",
+            default_value="/fruit_picking/segmentation/lang_sam/confidences",
+            description="Topic that contains the confidences of the segmented RGB data that comes from the LANG SAM server",
+        )
+    )
+
 
 
 
@@ -121,6 +137,8 @@ def generate_launch_description() -> LaunchDescription:
                     "multiple_output_topics": LaunchConfiguration("multiple_output_topics"),
                     "input_image_topic": LaunchConfiguration("input_image_topic"),
                     "output_image_topic": LaunchConfiguration("output_image_topic"),
+                    "output_boxes_topic": LaunchConfiguration("output_boxes_topic"),
+                    "output_confidences_topic": LaunchConfiguration("output_confidences_topic"),
                 }
             ],
             condition=LaunchConfigurationEquals('approach', 'pub_sub'),

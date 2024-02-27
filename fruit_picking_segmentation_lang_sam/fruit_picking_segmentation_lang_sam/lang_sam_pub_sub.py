@@ -53,19 +53,17 @@ class LANGSAMPubSub(Node):
 
 
 
-
+    
         # Load LANG SAM model
         self.get_logger().info(
-            f"Loading LANG SAM model '{self._model_type}'. This may take some time..."
+            f"[INIT] Loading LANG SAM model '{self._model_type}'. This may take some time..."
         )
 
         self._lang_sam = LangSAM(
             self._model_type,
         )
 
-        self.get_logger().info("LANG SAM model loaded.")
-
-
+        self.get_logger().info("[INIT] LANG SAM model loaded.")
 
 
         # Define image subscriber
@@ -79,7 +77,7 @@ class LANGSAMPubSub(Node):
 
 
 
-        self.get_logger().info(f'Pub-Sub client is ready.')
+        self.get_logger().info(f'[INIT] Pub-Sub client is ready.')
 
 
 
@@ -117,7 +115,7 @@ class LANGSAMPubSub(Node):
 
         self.confidences_publisher.publish(msg_confidences)
         self.get_logger().info('[Confidences-pub] Confidences published.')   
-        
+    
 
 
 
@@ -125,7 +123,7 @@ class LANGSAMPubSub(Node):
 
         # Get input image from input topic, and size
         self.get_logger().info('------------------------------------------------')
-        self.get_logger().info('[Sub] Original image received.')
+        self.get_logger().info('[LANG-SAM] Original image received.')
         self.original_image = msg
 
 
@@ -144,14 +142,14 @@ class LANGSAMPubSub(Node):
 
         # Segmentation
         self.get_logger().info(
-            f"[Sub] Segmenting image of shape {img_shape} with text prompt prior: {text_prompt_query}..."
+            f"[LANG-SAM] Segmenting image of shape {img_shape} with text prompt prior: {text_prompt_query}..."
         )
         start = self.get_clock().now().nanoseconds
 
         masks, boxes, phrases, confidences = self._lang_sam.predict(img_query, text_prompt_query)
 
         self.get_logger().info(
-            f"[Sub] Segmentation completed in {round((self.get_clock().now().nanoseconds - start)/1.e9, 5)}s."
+            f"[LANG-SAM] Segmentation completed in {round((self.get_clock().now().nanoseconds - start)/1.e9, 5)}s."
         )
 
 
@@ -163,21 +161,22 @@ class LANGSAMPubSub(Node):
         start_pub = self.get_clock().now().nanoseconds
 
         # Reset all the masks topics to white image
-        for i in range(0, LANGSAMPubSub.masks_counter):
-            
-            self.get_logger().info(f'[Image-pub] Resetting mask_{i + 1}...')
-            white_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
-            white_image = self.bridge.cv2_to_imgmsg(white_image)
-            
-            reset_output_topic = f"{self._output_image_topic}/mask_{i + 1}"
-            self.publisher = self.create_publisher(SensorImage, reset_output_topic, 10)
-            self.publish_segmentation(white_image)
+        if self._multiple_output_topics:
+            for i in range(0, LANGSAMPubSub.masks_counter):
+                
+                self.get_logger().info(f'[Image-pub] Resetting mask_{i + 1}...')
+                white_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
+                white_image = self.bridge.cv2_to_imgmsg(white_image)
+                
+                reset_output_topic = f"{self._output_image_topic}/mask_{i + 1}"
+                self.publisher = self.create_publisher(SensorImage, reset_output_topic, 10)
+                self.publish_segmentation(white_image)
 
 
 
         # Check number of masks found
         self.get_logger().info(
-            f"[Sub] Masks found: {masks.size(0)}."
+            f"[LANG-SAM] Masks found: {masks.size(0)}."
         )
 
 
@@ -193,9 +192,9 @@ class LANGSAMPubSub(Node):
             self.publish_segmentation(white_image)
 
             # Publish boxes and confidences as empty lists
-            self.get_logger().info(f'[Image-pub] Publishing empty boxes...')
+            self.get_logger().info(f'[Boxes-pub] Publishing empty boxes...')
             self.publish_boxes_segmentation(torch.empty_like(torch.tensor([])), [])
-            self.get_logger().info(f'[Image-pub] Publishing empty confidences...')
+            self.get_logger().info(f'[Confidences-pub] Publishing empty confidences...')
             self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [])
             
             
@@ -211,9 +210,9 @@ class LANGSAMPubSub(Node):
 
 
             # Publish boxes and confidences
-            self.get_logger().info(f'[Image-pub] Publishing boxes...')
+            self.get_logger().info(f'[Boxes-pub] Publishing boxes...')
             self.publish_boxes_segmentation(boxes, masks_names)
-            self.get_logger().info(f'[Image-pub] Publishing confidences...')
+            self.get_logger().info(f'[Confidences-pub] Publishing confidences...')
             self.publish_confidences_segmentation(confidences, masks_names)
 
 

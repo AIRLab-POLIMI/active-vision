@@ -39,7 +39,12 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
-
+    ld.add_action(
+        DeclareLaunchArgument(
+            "use_sim_time",
+            default_value="false",
+        )
+    )
 
 
     # Nodes
@@ -53,6 +58,7 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             parameters=[
                 {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "input_image_topic": LaunchConfiguration("input_image_topic"),
                     "output_image_topic": LaunchConfiguration("output_image_topic"),
                     "colors": LaunchConfiguration("colors"),

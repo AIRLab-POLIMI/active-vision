@@ -169,7 +169,7 @@ def export_merged_masks_images(merged_masks_images, folder_path):
     # Convert numpy.ndarray to PIL Image
     if isinstance(merged_masks_images, np.ndarray):
         # Convert numpy.ndarray to PIL Image
-        merged_masks_images = Image.fromarray((merged_masks_images * 255 * 255).astype(np.uint8))
+        merged_masks_images = Image.fromarray((merged_masks_images * 255).astype(np.uint8)) # add or remove a multiplication by 255 if any problem raises
         # Save PIL Image
         merged_masks_images.save(img_path)
     else:

@@ -40,6 +40,7 @@ class LANGSAMPubSub(Node):
                 ("output_image_topic", "/fruit_picking/segmentation/lang_sam/image"),
                 ("output_boxes_topic", "/fruit_picking/segmentation/lang_sam/boxes"),
                 ("output_confidences_topic", "/fruit_picking/segmentation/lang_sam/confidences"),
+                ("segmentation_prompt", "tomato"),
             ],
         )
 
@@ -49,6 +50,7 @@ class LANGSAMPubSub(Node):
         self._output_image_topic = self.get_parameter("output_image_topic").value
         self._output_boxes_topic = self.get_parameter("output_boxes_topic").value
         self._output_confidences_topic = self.get_parameter("output_confidences_topic").value
+        self._segmentation_prompt = self.get_parameter("segmentation_prompt").value
 
 
 
@@ -136,20 +138,30 @@ class LANGSAMPubSub(Node):
 
 
         # Get prompt
-        text_prompt_query = "tomato"
+        text_prompt_query = self._segmentation_prompt
 
 
 
         # Segmentation
+        start_seg = self.get_clock().now().nanoseconds
+
         self.get_logger().info(
             f"[LANG-SAM] Segmenting image of shape {img_shape} with text prompt prior: {text_prompt_query}..."
         )
-        start = self.get_clock().now().nanoseconds
+        self.get_logger().info(
+            f"[LANG-SAM] Inference starting time: {start_seg}."
+        )
 
         masks, boxes, phrases, confidences = self._lang_sam.predict(img_query, text_prompt_query)
 
+        end_seg = self.get_clock().now().nanoseconds
+
         self.get_logger().info(
-            f"[LANG-SAM] Segmentation completed in {round((self.get_clock().now().nanoseconds - start)/1.e9, 5)}s."
+            f"[LANG-SAM] Inference ended at time: {end_seg}."
+        )
+
+        self.get_logger().info(
+            f"[LANG-SAM] Segmentation completed in {round((end_seg - start_seg)/1.e9, 5)}s."
         )
 
 
@@ -166,7 +178,10 @@ class LANGSAMPubSub(Node):
                 
                 self.get_logger().info(f'[Image-pub] Resetting mask_{i + 1}...')
                 white_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
-                white_image = self.bridge.cv2_to_imgmsg(white_image)
+                white_image = cv2.cvtColor(white_image, cv2.COLOR_BGR2RGB)
+                white_image = self.bridge.cv2_to_imgmsg(white_image, encoding="rgb8")
+                white_image.header.frame_id = self.original_image.header.frame_id
+                white_image.header.stamp = self.get_clock().now().to_msg()
                 
                 reset_output_topic = f"{self._output_image_topic}/mask_{i + 1}"
                 self.publisher = self.create_publisher(SensorImage, reset_output_topic, 10)
@@ -184,7 +199,10 @@ class LANGSAMPubSub(Node):
         # Case when the model did not segment any mask, thus the result is a null image
         if masks.size(0) <= 0:
             white_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
-            white_image = self.bridge.cv2_to_imgmsg(white_image)
+            white_image = cv2.cvtColor(white_image, cv2.COLOR_BGR2RGB)
+            white_image = self.bridge.cv2_to_imgmsg(white_image, encoding="rgb8")
+            white_image.header.frame_id = self.original_image.header.frame_id
+            white_image.header.stamp = self.get_clock().now().to_msg()
 
             # Define publisher and publish
             self.get_logger().info(f'[Image-pub] Publishing empty image...')
@@ -223,11 +241,14 @@ class LANGSAMPubSub(Node):
 
                 for i, mask_image in enumerate(masks_images):
                     mask_image = rgba_to_rgb_with_white_background(mask_image)
+                    # mask_image = cv2.cvtColor(mask_image, cv2.COLOR_BGR2RGB)
                     mask_image = np.uint8(mask_image * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
 
                     # In order to visualize in Rviz, the image need to be processed more
                     mask_image = cv2.convertScaleAbs(mask_image)
-                    mask_image = self.bridge.cv2_to_imgmsg(mask_image)
+                    mask_image = self.bridge.cv2_to_imgmsg(mask_image, encoding="rgb8")
+                    mask_image.header.frame_id = self.original_image.header.frame_id
+                    mask_image.header.stamp = self.get_clock().now().to_msg()
 
                     # Define publisher and publish
                     output_topic = f"{self._output_image_topic}/mask_{i + 1}"
@@ -240,11 +261,15 @@ class LANGSAMPubSub(Node):
                     
             merged_masks_images = merge_masks_images(masks_images)
             merged_masks_images = rgba_to_rgb_with_white_background(merged_masks_images)
+            # merged_masks_images = cv2.cvtColor(merged_masks_images, cv2.COLOR_BGR2RGB)
             merged_masks_images = np.uint8(merged_masks_images * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
 
             # In order to visualize in Rviz, the image need to be processed more
             merged_masks_images = cv2.convertScaleAbs(merged_masks_images)
-            merged_masks_images = self.bridge.cv2_to_imgmsg(merged_masks_images)
+            merged_masks_images = self.bridge.cv2_to_imgmsg(merged_masks_images, encoding="rgb8")
+            merged_masks_images.header.frame_id = self.original_image.header.frame_id
+            merged_masks_images.header.stamp = self.get_clock().now().to_msg() 
+
 
             # Define publisher and publish
             self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)

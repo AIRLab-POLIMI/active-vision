@@ -2,17 +2,9 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image as SensorImage
 from cv_bridge import CvBridge
-from std_msgs.msg import String
-import json
 
 import cv2
-from lang_sam import LangSAM
-from PIL import Image
-import torch
 import numpy as np
-
-from fruit_picking_segmentation_lang_sam.utils import merge_masks_images, convert_masks_to_images, rgba_to_rgb_with_white_background
-
 
 
 class ColorFilter(Node):
@@ -45,9 +37,10 @@ class ColorFilter(Node):
         self.get_logger().info(
             f"[INIT] Color fitering masks creation initializated."
         )
-        # Define image subscriber
+        # Define image publisher and subscriber
         self.subscription = self.create_subscription(
             SensorImage, self._input_image_topic, self.color_filtering, 10)
+        self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
 
 
 
@@ -58,7 +51,7 @@ class ColorFilter(Node):
 
     def publish_segmentation(self, image_msg):
         self.publisher.publish(image_msg)
-        self.get_logger().info('[Image-pub] Image published.')
+        # self.get_logger().info('[Image-pub] Image published.')
         
 
 
@@ -66,15 +59,15 @@ class ColorFilter(Node):
     def color_filtering(self, msg):
         
         # Get input image from input topic, and size
-        self.get_logger().info('------------------------------------------------')
+        # self.get_logger().info('------------------------------------------------')
         self.original_image = msg
 
 
 
         # Format input image from sensor_msgs/Image to cv2 format
         img = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.original_image), cv2.COLOR_BGR2RGB)
-        self.get_logger().info('[COLOR-FILT] Original image received.')
-        self.get_logger().info(f'[COLOR-FILT] Filtering {self._colors} zones...')
+        # self.get_logger().info('[COLOR-FILT] Original image received.')
+        # self.get_logger().info(f'[COLOR-FILT] Filtering {self._colors} zones...')
 
         start_filt = self.get_clock().now().nanoseconds
 
@@ -96,7 +89,7 @@ class ColorFilter(Node):
             upper_green = np.array([45, 255, 255])
             color_mask = cv2.inRange(hsv, lower_green, upper_green)
 
-        else: # case when both color red and green are desired to filter
+        if self._colors == "red-green":
             # Red mask with red array regarding the hsv format
             lower_red = np.array([1, 0, 0])
             upper_red = np.array([10, 255, 255])
@@ -120,19 +113,24 @@ class ColorFilter(Node):
 
 
         # In order to visualize in Rviz, the image need to be processed more
+        filtered_img = cv2.cvtColor(filtered_img, cv2.COLOR_BGR2RGB)
         filtered_img = np.uint8(filtered_img) # in order to visualize the color image for RViz and also for the exported image
         filtered_img = cv2.convertScaleAbs(filtered_img)
-        filtered_img = self.bridge.cv2_to_imgmsg(filtered_img)
-        self.get_logger().info(f'[COLOR-FILT] Image filtered.')
+        filtered_img = self.bridge.cv2_to_imgmsg(filtered_img, encoding="rgb8")
+
+        # Add to the header of the output image stamp and frame id of the original rgb image
+        filtered_img.header.frame_id = self.original_image.header.frame_id
+        filtered_img.header.stamp = self.get_clock().now().to_msg()
+
+        # self.get_logger().info(f'[COLOR-FILT] Image filtered.')
 
 
         # Define publisher and publish
-        self.get_logger().info(f'[Image-pub] Publishing filtered image...')
-        self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
+        # self.get_logger().info(f'[Image-pub] Publishing filtered image...')
         self.publish_segmentation(filtered_img)
-        self.get_logger().info(
-            f"[COLOR-FILT] Image filtered and published in {round((self.get_clock().now().nanoseconds - start_filt)/1.e9, 5)}s."
-        )
+        # self.get_logger().info(
+        #     f"[COLOR-FILT] Image filtered and published in {round((self.get_clock().now().nanoseconds - start_filt)/1.e9, 5)}s."
+        # )
 
 
 

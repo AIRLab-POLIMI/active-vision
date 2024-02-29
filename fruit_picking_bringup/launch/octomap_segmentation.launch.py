@@ -77,6 +77,13 @@ def generate_launch_description():
         description="Name of the world to be loaded in Gazebo Ignition of the type: name.sdf",
     )
 
+    multiple_output_topics_arg = DeclareLaunchArgument(
+        name="multiple_output_topics",
+        default_value="true",
+        choices=["true", "false"],
+        description="Argument to specify the creation of multiple output topics containing each a different mask",
+    )
+
     
 
     return LaunchDescription(
@@ -90,6 +97,7 @@ def generate_launch_description():
             load_rviz_arg,
             env_gazebo_package_arg,
             full_world_name_arg,
+            multiple_output_topics_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -120,17 +128,18 @@ def launch_setup(context, *args, **kwargs):
 
     
     # Data topics. Change their value from here. In the inner launch file the default value are currently the below ones
-    depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
     rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
+    depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
+    rgb_segmented_image_topic = "/fruit_picking/segmentation/lang_sam/image"
     camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
     pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
 
-    octomap_occupied_cells_vis_topic = "/fruit_picking/octomap/occupied_cells_vis"
-    octomap_free_cells_vis_topic = "/fruit_picking/octomap/free_cells_vis"
-    octomap_occupied_cells_centers_topic = "/fruit_picking/octomap/occupied_cells_centers"
-    octomap_binary_topic = "/fruit_picking/octomap/octomap_binary"
-    octomap_full_topic = "/fruit_picking/octomap/octomap_full"
-    octomap_projected_map_topic = "/fruit_picking/octomap/projected_map"
+    octomap_occupied_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_vis"
+    octomap_free_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/free_cells_vis"
+    octomap_occupied_cells_centers_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_centers"
+    octomap_binary_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_binary"
+    octomap_full_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_full"
+    octomap_projected_map_topic = "/fruit_picking/lang_sam_segmented_octomap/projected_map"
 
 
 
@@ -141,6 +150,18 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource([
             FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
     )
+
+    # LANG SAM segmentation launch
+    lang_sam_segmentation_launch_file = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("fruit_picking_segmentation_lang_sam"), '/launch', '/lang_sam.launch.py']),
+        launch_arguments={
+            "use_sim_time": str(use_sim_time).lower(),
+            "input_image_topic": rgb_image_topic,
+            "output_image_topic": rgb_segmented_image_topic,
+            "multiple_output_topics": LaunchConfiguration("multiple_output_topics")
+        }.items(),
+    )
     
 
     # Pointcloud creation launch
@@ -148,9 +169,9 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource([
             FindPackageShare("fruit_picking_pointcloud"), '/launch', '/pointcloud_creation.launch.py']),
         launch_arguments={
-            "use_sim_time": str(use_sim_time).lower(),
+            "use_sim_time": "true",
             "depth_image_topic": depth_image_topic,
-            "rgb_image_topic": rgb_image_topic,
+            "rgb_image_topic": rgb_segmented_image_topic,
             "camera_info_topic": camera_info_topic,
             "pointcloud_processed_topic": pointcloud_processed_topic,
         }.items(),
@@ -172,7 +193,7 @@ def launch_setup(context, *args, **kwargs):
             "resolution": '0.01',
             "frame_id": frame_id,
             "height_map": "False",
-            "colored_map": "False",
+            "colored_map": "True",
             "filter_ground": 'True',
         }.items(),
     ) 
@@ -187,7 +208,7 @@ def launch_setup(context, *args, **kwargs):
             "-d", 
             PathJoinSubstitution([
                 FindPackageShare("fruit_picking_bringup"),
-                "rviz", "octomap_normal.rviz"
+                "rviz", "octomap_segmentation.rviz"
             ]),
         ],
         parameters=[{'use_sim_time': use_sim_time}],
@@ -198,8 +219,9 @@ def launch_setup(context, *args, **kwargs):
 
     # Returns  
     return_actions.append(description_launch_file)
+    return_actions.append(lang_sam_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
-    return_actions.append(octomap_creation_launch_file)
+    # return_actions.append(octomap_creation_launch_file)
     return_actions.append(rviz_node)
 
 

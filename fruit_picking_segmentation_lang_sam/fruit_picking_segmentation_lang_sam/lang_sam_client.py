@@ -92,13 +92,13 @@ class LANGSAMClient(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("image_name", "car.jpeg"),
-                ("prompt", "wheels"),
+                ("test_image_name", "car.jpeg"),
+                ("test_prompt", "wheels"),
             ],
         )
 
-        self._image_name = self.get_parameter("image_name").value
-        self._prompt = self.get_parameter("prompt").value
+        self._image_name = self.get_parameter("test_image_name").value
+        self._prompt = self.get_parameter("test_prompt").value
 
 
 
@@ -203,15 +203,15 @@ def main(args: List[str] = None) -> None:
 
 
             # Plot merged masks images
-            # print("Plotting merged masks images...") 
+            print("Plotting merged masks images...") 
 
-            # merged_masks_images = merge_masks_images(masks_images)
-            # show_masks_images(original_image, np.array([merged_masks_images])) 
-            # print(
-            #     f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}"
-            # )
+            merged_masks_images = merge_masks_images(masks_images)
+            show_masks_images(original_image, np.array([merged_masks_images])) 
+            print(
+                f"Merged (cv2 image): \n{merged_masks_images}. Type of this data: {type(merged_masks_images)}"
+            )
 
-            # print("Masks merged images plotted.")
+            print("Masks merged images plotted.")
 
 
 
@@ -237,24 +237,24 @@ def main(args: List[str] = None) -> None:
 
 
 
-            # # Export masks images
-            # print("Exporting masks images...") 
+            # Export masks images
+            print("Exporting masks images...") 
 
-            # export_masks_images(masks_images, os.path.join(
-            #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+            export_masks_images(masks_images, os.path.join(
+                get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
 
-            # print("Masks images exported.")
-
-
+            print("Masks images exported.")
 
 
-            # # Export merged masks images
-            # print("Exporting merged masks images...") 
 
-            # export_merged_masks_images(merged_masks_images, os.path.join(
-            #     get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
 
-            # print("Merged masks images exported.")
+            # Export merged masks images
+            print("Exporting merged masks images...") 
+
+            export_merged_masks_images(merged_masks_images, os.path.join(
+                get_package_share_directory("fruit_picking_segmentation_lang_sam"), "data", "masks"))
+
+            print("Merged masks images exported.")
 
 
         print(

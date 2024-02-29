@@ -95,7 +95,7 @@ class LANGSAMServer(Node):
             # Create response with model results
 
             # Convert bool masks tensor to cv2 images
-            masks_images = convert_masks_to_images(masks)
+            masks_images = convert_masks_to_images(masks, random_color=True)
             
             # Convert boxes tensor in std_msgs/Float64MultiArray
             boxes = boxes.squeeze().cpu().numpy().astype(float).ravel().tolist()

@@ -33,17 +33,17 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "image_name",
+            "test_image_name",
             default_value="car.jpeg",
-            description="Image to segment",
+            description="Image to segment for the test LANG SAM model",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "prompt",
+            "test_prompt",
             default_value="wheel",
-            description="Text prompt to give to the LANG SAM model",
+            description="Text prompt to give to the test LANG SAM model",
         )
     )
 
@@ -88,6 +88,21 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    ld.add_action(
+        DeclareLaunchArgument(
+            "segmentation_prompt",
+            default_value="tomato",
+            description="Text prompt to give to the LANG SAM model",
+        )
+    )
+
+    ld.add_action(
+        DeclareLaunchArgument(
+            "use_sim_time",
+            default_value="false",
+        )
+    )
+
 
 
 
@@ -102,6 +117,7 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             parameters=[
                 {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "model_type": LaunchConfiguration("model_type"),
                 }
             ],
@@ -117,8 +133,9 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             parameters=[
                 {
-                    "image_name": LaunchConfiguration("image_name"),
-                    "prompt": LaunchConfiguration("prompt"),
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                    "test_image_name": LaunchConfiguration("test_image_name"),
+                    "test_prompt": LaunchConfiguration("test_prompt"),
                 }
             ],
             condition=LaunchConfigurationEquals('approach', 'test_client'),
@@ -133,12 +150,14 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             parameters=[
                 {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "model_type": LaunchConfiguration("model_type"),
                     "multiple_output_topics": LaunchConfiguration("multiple_output_topics"),
                     "input_image_topic": LaunchConfiguration("input_image_topic"),
                     "output_image_topic": LaunchConfiguration("output_image_topic"),
                     "output_boxes_topic": LaunchConfiguration("output_boxes_topic"),
                     "output_confidences_topic": LaunchConfiguration("output_confidences_topic"),
+                    "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),
                 }
             ],
             condition=LaunchConfigurationEquals('approach', 'pub_sub'),

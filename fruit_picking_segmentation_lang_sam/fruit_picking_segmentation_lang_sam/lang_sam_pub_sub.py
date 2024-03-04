@@ -11,6 +11,10 @@ from PIL import Image
 import torch
 import numpy as np
 
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rosgraph_msgs.msg import Clock
+
 from fruit_picking_segmentation_lang_sam.utils import merge_masks_images, convert_masks_to_images, rgba_to_rgb_with_white_background
 
 
@@ -68,9 +72,16 @@ class LANGSAMPubSub(Node):
         self.get_logger().info("[INIT] LANG SAM model loaded.")
 
 
-        # Define image subscriber
+
+
+        # Define callback groups for multi-threading
+        clock_subscriber_group = MutuallyExclusiveCallbackGroup()
+        segment_group = MutuallyExclusiveCallbackGroup()
+
+
+        # Define image subscriber and segmentation callback
         self.subscription = self.create_subscription(
-            SensorImage, self._input_image_topic, self.segment, 10)
+            SensorImage, self._input_image_topic, self.segment, 10, callback_group=segment_group)
 
 
         # Define boxes and confidences publishers
@@ -78,9 +89,18 @@ class LANGSAMPubSub(Node):
         self.confidences_publisher = self.create_publisher(String, self._output_confidences_topic, 10)
 
 
+        # Initialize clock subscriber
+        self.clock_subscriber = self.create_subscription(Clock, '/clock', self.clock_sub, 10, callback_group=clock_subscriber_group)
+
+
+
 
         self.get_logger().info(f'[INIT] Pub-Sub client is ready.')
 
+
+
+    def clock_sub(self, msg):
+        pass
 
 
 
@@ -287,9 +307,19 @@ class LANGSAMPubSub(Node):
 
 
 def main(args=None):
+
+    # Init of the node
     rclpy.init(args=args)
     node = LANGSAMPubSub()
-    rclpy.spin(node)
+
+    # Creation of the multi thread executor for the node
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+
+    # Spin the executor
+    executor.spin()
+
+    # Terminate
     node.destroy_node()
     rclpy.shutdown()
 

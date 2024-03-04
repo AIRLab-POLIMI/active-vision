@@ -169,7 +169,7 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource([
             FindPackageShare("fruit_picking_pointcloud"), '/launch', '/pointcloud_creation.launch.py']),
         launch_arguments={
-            "use_sim_time": "true",
+            "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
             "rgb_image_topic": rgb_segmented_image_topic,
             "camera_info_topic": camera_info_topic,
@@ -221,7 +221,7 @@ def launch_setup(context, *args, **kwargs):
     return_actions.append(description_launch_file)
     return_actions.append(lang_sam_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
-    # return_actions.append(octomap_creation_launch_file)
+    return_actions.append(octomap_creation_launch_file)
     return_actions.append(rviz_node)
 
 

@@ -9,7 +9,6 @@ from launch.substitutions import (
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch.actions import OpaqueFunction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -62,7 +61,7 @@ def generate_launch_description():
         name="load_rviz",
         default_value="false",
         choices=["true", "false"],
-        description="Whether or not Rviz is used",
+        description="Whether or not Rviz is used in the Igus Rebel description launch",
     )
 
     env_gazebo_package_arg = DeclareLaunchArgument(
@@ -84,6 +83,13 @@ def generate_launch_description():
             description="Desired color to filter",
         )
 
+    test_camera_arg = DeclareLaunchArgument(
+        name="test_camera",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not only the camera is used instead of all the Igus Rebel",
+    )
+
     
 
     return LaunchDescription(
@@ -98,6 +104,7 @@ def generate_launch_description():
             env_gazebo_package_arg,
             full_world_name_arg,
             color_filter_arg,
+            test_camera_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -123,15 +130,30 @@ def launch_setup(context, *args, **kwargs):
     # Frames
     if LaunchConfiguration("load_gazebo").perform(context) == 'true':
         frame_id = 'world'
+        base_frame_id = 'igus_rebel_base_link'
     else:
-        frame_id = 'igus_rebel_base_link'
+        if LaunchConfiguration("test_camera").perform(context) == 'false':
+            frame_id = 'igus_rebel_base_link'
+            base_frame_id = 'igus_rebel_base_link'
+        else:
+            if LaunchConfiguration("camera").perform(context) == 'realsense':
+                frame_id = 'camera_color_optical_frame'
+                base_frame_id = 'camera_color_optical_frame'
 
     
     # Data topics. Change their value from here. In the inner launch file the default value are currently the below ones
-    rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
-    depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
+    if LaunchConfiguration("load_gazebo").perform(context) == 'false':
+        if LaunchConfiguration("camera").perform(context) == 'realsense':
+            rgb_image_topic = "/camera/color/image_raw"
+            depth_image_topic = "/camera/aligned_depth_to_color/image_raw"
+            camera_info_topic = "/camera/aligned_depth_to_color/camera_info"
+
+    else:
+        rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
+        depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
+        camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
+
     rgb_segmented_image_topic = "/fruit_picking/segmentation/color_filter/image"
-    camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
     pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
 
     octomap_occupied_cells_vis_topic = "/fruit_picking/color_filter_octomap/occupied_cells_vis"
@@ -145,11 +167,32 @@ def launch_setup(context, *args, **kwargs):
 
 
 
-    # Igus Rebel description launch
-    description_launch_file = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
-    )
+    if LaunchConfiguration("test_camera").perform(context) == 'false': 
+        # Igus Rebel description launch
+        description_launch_file = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
+        )
+        return_actions.append(description_launch_file)
+    else:
+        # Realsense launch file
+        realsense_launch_file = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
+            launch_arguments={
+                "enable_rgbd": "true",
+                "enable_sync": "true",
+                "align_depth.enable": "true",
+                "enable_color": "true",
+                "enable_depth": "true",
+            }.items(),
+        )
+        return_actions.append(realsense_launch_file)
+
+    
+
+
+
 
     # Color filter segmentation launch
     color_filter_segmentation_launch_file = IncludeLaunchDescription(
@@ -191,6 +234,7 @@ def launch_setup(context, *args, **kwargs):
             "output_octomap_full": octomap_full_topic,
             "output_projected_map": octomap_projected_map_topic,
             "resolution": '0.01',
+            "base_frame_id": base_frame_id,
             "frame_id": frame_id,
             "height_map": "False",
             "colored_map": "True",
@@ -200,6 +244,16 @@ def launch_setup(context, *args, **kwargs):
 
     
     # Rviz node
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+        rviz_config_file_name = 'octomap_color_filter_ignition.rviz'
+    else:
+        if LaunchConfiguration("test_camera").perform(context) == 'false':
+            rviz_config_file_name = 'octomap_color_filter.rviz'
+        else:
+            if LaunchConfiguration("camera").perform(context) == 'realsense':
+                rviz_config_file_name = 'octomap_color_filter_realsense.rviz'
+
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -208,7 +262,7 @@ def launch_setup(context, *args, **kwargs):
             "-d", 
             PathJoinSubstitution([
                 FindPackageShare("fruit_picking_bringup"),
-                "rviz", "octomap_color_filter.rviz"
+                "rviz", rviz_config_file_name
             ]),
         ],
         parameters=[{'use_sim_time': use_sim_time}],
@@ -218,7 +272,6 @@ def launch_setup(context, *args, **kwargs):
 
 
     # Returns  
-    return_actions.append(description_launch_file)
     return_actions.append(color_filter_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
     return_actions.append(octomap_creation_launch_file)

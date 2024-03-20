@@ -237,7 +237,7 @@ def launch_setup(context, *args, **kwargs):
             "base_frame_id": base_frame_id,
             "frame_id": frame_id,
             "height_map": "False",
-            "colored_map": "True",
+            "colored_map": "False",
             "filter_ground": 'True',
         }.items(),
     ) 

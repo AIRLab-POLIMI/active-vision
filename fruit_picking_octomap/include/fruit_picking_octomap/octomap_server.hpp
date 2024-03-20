@@ -72,43 +72,43 @@ using BBXSrv =  octomap_msgs::srv::BoundingBoxQuery;
 namespace ph = std::placeholders;
 
 namespace octomap_server {
-    class OctomapServer: public rclcpp::Node {
+    class OctomapServer: public rclcpp::Node {  // we are defining a new node type (class OctomapServer that extend Node class)
         
-    protected:
+    protected: // everything can be accessed by the class or by the child classes
 
         std::shared_ptr<message_filters::Subscriber<
-                            sensor_msgs::msg::PointCloud2>> m_pointCloudSub;
+                            sensor_msgs::msg::PointCloud2>> m_pointCloudSub; // pointer to a object of class Subscriber (defined in message_filters namespace) that have as topic type PT2
         std::shared_ptr<tf2_ros::MessageFilter<
-                            sensor_msgs::msg::PointCloud2>> m_tfPointCloudSub;
+                            sensor_msgs::msg::PointCloud2>> m_tfPointCloudSub; // pointer of a object of class message filter (defined in namespace tf2) that have as topic tipe PT2
         
-        static std_msgs::msg::ColorRGBA heightMapColor(double h);
+        static std_msgs::msg::ColorRGBA heightMapColor(double h); // declaration of a static function of type ColorRGBA (that is a struct containing 4 floats). It take an height and create a coloration for all the octomap, with color different based on the height
 
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2
-                          >::SharedPtr m_pointCloudPub;
+                          >::SharedPtr m_pointCloudPub; // pointer to a object of class Publisher (defined in rclcpp namespace) that have as topic type PT2. The declaration from is the same as the above subscriber
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
-                          >::SharedPtr m_fmarkerPub;
+                          >::SharedPtr m_fmarkerPub; // pointer to a object of class Publisher ... 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
-                          >::SharedPtr m_markerPub;
+                          >::SharedPtr m_markerPub; // pointer to a object of class Publisher ... 
         rclcpp::Publisher<octomap_msgs::msg::Octomap
-                          >::SharedPtr m_binaryMapPub;
+                          >::SharedPtr m_binaryMapPub; // pointer to a object of class Publisher ... 
         rclcpp::Publisher<octomap_msgs::msg::Octomap
-                          >::SharedPtr m_fullMapPub;
+                          >::SharedPtr m_fullMapPub; // pointer to a object of class Publisher ... 
         rclcpp::Publisher<nav_msgs::msg::OccupancyGrid
-                          >::SharedPtr m_mapPub;
+                          >::SharedPtr m_mapPub; // pointer to a object of class Publisher ... 
         
-        rclcpp::Service<OctomapSrv>::SharedPtr m_octomapBinaryService;
+        rclcpp::Service<OctomapSrv>::SharedPtr m_octomapBinaryService; 
         rclcpp::Service<OctomapSrv>::SharedPtr m_octomapFullService;
         rclcpp::Service<BBXSrv>::SharedPtr m_clearBBXService;
         rclcpp::Service<std_srvs::srv::Empty>::SharedPtr m_resetService;
 
-        std::shared_ptr<tf2_ros::Buffer> buffer_;
-        std::shared_ptr<tf2_ros::TransformListener> m_tfListener;
+        std::shared_ptr<tf2_ros::Buffer> buffer_; // buffer to store TF frames
+        std::shared_ptr<tf2_ros::TransformListener> m_tfListener; // listered of tf data
 
-        std::shared_ptr<OcTreeT> m_octree;
+        std::shared_ptr<OcTreeT> m_octree; // occupancy octree
         
         octomap::KeyRay m_keyRay;  // temp storage for ray casting
-        octomap::OcTreeKey m_updateBBXMin;
-        octomap::OcTreeKey m_updateBBXMax;
+        octomap::OcTreeKey m_updateBBXMin; // a key that is an address of a voxel, it is the minimum value of the bounding box of all known space
+        octomap::OcTreeKey m_updateBBXMax; // a key that is an address of a voxel, it is the maximum value of the bounding box of all known space
 
         double m_maxRange;
         std::string m_worldFrameId; // the map frame

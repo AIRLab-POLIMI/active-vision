@@ -2,9 +2,7 @@
 #include <fruit_picking_octomap/octomap_server.hpp>
 
 namespace octomap_server {
-    OctomapServer::OctomapServer(
-        const rclcpp::NodeOptions &options,
-        const std::string node_name):
+    OctomapServer::OctomapServer(const rclcpp::NodeOptions &options, const std::string node_name):
         Node(node_name, options),
         m_octree(NULL),
         m_maxRange(20),
@@ -35,11 +33,11 @@ namespace octomap_server {
         m_compressMap(true),
         m_incrementalUpdate(false) {
 
-        rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME);
+        rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME); // another structure to declare and define a shared pointer of type Clock
         this->buffer_ = std::make_shared<tf2_ros::Buffer>(clock);
-        this->buffer_->setUsingDedicatedThread(true);
+        this->buffer_->setUsingDedicatedThread(true); // tells the buffer that multiple thread will serve it
         this->m_tfListener = std::make_shared<tf2_ros::TransformListener>(
-            *buffer_, this, false);
+            *buffer_, this, false); // this refers to the class OctomapServer
         
         m_worldFrameId = this->declare_parameter("frame_id", m_worldFrameId);
         m_baseFrameId = this->declare_parameter("base_frame_id", m_baseFrameId);
@@ -285,7 +283,7 @@ namespace octomap_server {
         PCLPointCloud pc; // input cloud for filtering and ground-detection
         pcl::fromROSMsg(*cloud, pc);
         
-        Eigen::Matrix4f sensorToWorld;
+        Eigen::Matrix4f sensorToWorld; // matrix of size 4 composed of float
         geometry_msgs::msg::TransformStamped sensorToWorldTf;
         try {
             if (!this->buffer_->canTransform(
@@ -383,7 +381,7 @@ namespace octomap_server {
 
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
-        RCLCPP_INFO(this->get_logger(), "Time lapse %f", elapsed_seconds.count());
+        RCLCPP_INFO(this->get_logger(), "Time lapse [from receiving pt to final octomap insertion] %f", elapsed_seconds.count());
         
         publishAll(cloud->header.stamp);
     }
@@ -477,12 +475,12 @@ namespace octomap_server {
 
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
-        RCLCPP_INFO(this->get_logger(), "Time lapse[insert] %f", elapsed_seconds.count());
+        RCLCPP_INFO(this->get_logger(), "Time lapse [insertion of the pointcloud in free and occupied cells] %f", elapsed_seconds.count());
         
         // mark free cells only if not seen occupied in this cloud
         for(auto it = free_cells.begin(), end=free_cells.end();
             it!= end; ++it){
-            if (occupied_cells.find(*it) == occupied_cells.end()){
+            if (occupied_cells.find(*it) == occupied_cells.end()){ // if the free cell is not found in occupied cell, and so if this cell is a real free cell
                 m_octree->updateNode(*it, false);
             }
         }
@@ -574,7 +572,7 @@ namespace octomap_server {
         pcl::PointCloud<PCLPoint> pclCloud;
 
         // call pre-traversal hook:
-        handlePreNodeTraversal(rostime);
+        handlePreNodeTraversal(rostime); // only for 2dmap, not relevant for now
         
         // now, traverse all leafs in the tree:
         for (auto it = m_octree->begin(m_maxTreeDepth),
@@ -582,9 +580,9 @@ namespace octomap_server {
             bool inUpdateBBX = isInUpdateBBX(it);
 
             // call general hook:
-            handleNode(it);
+            handleNode(it); // empty function, not relevant
             if (inUpdateBBX) {
-                handleNodeInBBX(it);
+                handleNodeInBBX(it); // empty function, not relevant
             }
 
             if (m_octree->isNodeOccupied(*it)) {
@@ -610,9 +608,9 @@ namespace octomap_server {
                     } // else: current octree node is no speckle, send it out
 
                     
-                    handleOccupiedNode(it);
+                    handleOccupiedNode(it); // it insert the node into the 2d downprojected map. Ignore for now
                     if (inUpdateBBX) {
-                        handleOccupiedNodeInBBX(it);
+                        handleOccupiedNodeInBBX(it); // it insert the node into the 2d downprojected map. Ignore for now
                     }
 
                     //create marker:
@@ -699,7 +697,7 @@ namespace octomap_server {
         }
 
         // call post-traversal hook:
-        handlePostNodeTraversal(rostime);
+        handlePostNodeTraversal(rostime); // only for 2dmap, not relevant for now
 
         // finish MarkerArray:
         if (publishMarkerArray) {

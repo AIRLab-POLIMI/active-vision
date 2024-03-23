@@ -50,6 +50,7 @@ include_directories(include)
 
 # added
 add_library(fruit_picking_octomap SHARED
+  src/extended_octomap_server.cpp
   src/octomap_server.cpp
   src/transforms.cpp
   src/conversions.cpp
@@ -83,6 +84,11 @@ target_link_libraries(fruit_picking_octomap ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES
 rclcpp_components_register_node(fruit_picking_octomap
   PLUGIN "octomap_server::OctomapServer"
   EXECUTABLE octomap_server)
+
+# added
+rclcpp_components_register_node(fruit_picking_octomap
+  PLUGIN "extended_octomap_server::ExtendedOctomapServer"
+  EXECUTABLE extended_octomap_server)
 
 #added
 install(TARGETS

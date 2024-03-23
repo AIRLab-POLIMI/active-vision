@@ -36,7 +36,7 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_free_space', default_value='False'),
         Node(
             package='fruit_picking_octomap',
-            executable='octomap_server',
+            executable='extended_octomap_server',
             output='screen',
             remappings=[('cloud_in', LaunchConfiguration('input_cloud_topic')),
                         ('occupied_cells_vis_array', LaunchConfiguration('output_occupied_cells_vis')),

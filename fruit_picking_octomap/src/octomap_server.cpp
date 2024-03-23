@@ -475,7 +475,7 @@ namespace octomap_server {
 
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
-        RCLCPP_INFO(this->get_logger(), "Time lapse [insertion of the pointcloud in free and occupied cells] %f", elapsed_seconds.count());
+        RCLCPP_INFO(this->get_logger(), "Time lapse [insertion of the pointcloud in free and occupied Octkeys] %f", elapsed_seconds.count());
         
         // mark free cells only if not seen occupied in this cloud
         for(auto it = free_cells.begin(), end=free_cells.end();
@@ -536,6 +536,7 @@ namespace octomap_server {
 
         // ros::WallTime startTime = ros::WallTime::now();
         
+        // total number of nodes in the tree
         size_t octomap_size = m_octree->size();
         // TODO: estimate num occ. voxels for size of arrays (reserve)
         if (octomap_size <= 1) {

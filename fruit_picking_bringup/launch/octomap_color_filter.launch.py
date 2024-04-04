@@ -233,7 +233,7 @@ def launch_setup(context, *args, **kwargs):
             "output_octomap_binary": octomap_binary_topic,
             "output_octomap_full": octomap_full_topic,
             "output_projected_map": octomap_projected_map_topic,
-            "resolution": '0.01',
+            "resolution": '0.003',
             "base_frame_id": base_frame_id,
             "frame_id": frame_id,
             "height_map": "False",

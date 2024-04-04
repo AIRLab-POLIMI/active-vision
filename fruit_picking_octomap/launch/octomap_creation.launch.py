@@ -34,6 +34,7 @@ def generate_launch_description():
         DeclareLaunchArgument('color_free/b', default_value='1.0'),
         DeclareLaunchArgument('color_free/a', default_value='1.0'),
         DeclareLaunchArgument('publish_free_space', default_value='False'),
+        DeclareLaunchArgument('process_free_space', default_value='False'),
         Node(
             package='fruit_picking_octomap',
             executable='extended_octomap_server',
@@ -73,6 +74,7 @@ def generate_launch_description():
                 'color_free/g': LaunchConfiguration('color_free/g'),
                 'color_free/b': LaunchConfiguration('color_free/b'),
                 'color_free/a': LaunchConfiguration('color_free/a'),
-                'publish_free_space': LaunchConfiguration('publish_free_space')}]
+                'publish_free_space': LaunchConfiguration('publish_free_space'),
+                'process_free_space': LaunchConfiguration('process_free_space')}]
         )
     ])

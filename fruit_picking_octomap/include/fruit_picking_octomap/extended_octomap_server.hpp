@@ -39,7 +39,10 @@ namespace extended_octomap_server{
 
         std::shared_ptr<ExtendedOctomapMap> extended_octomap_map;
 
-        octomap::KeySet free_cells, occupied_cells;
+        octomap::KeySet global_free_cells, global_occupied_cells;
+
+        bool m_processFreeSpace;
+
 
         virtual void onInit();        
 
@@ -49,7 +52,7 @@ namespace extended_octomap_server{
             const PCLPointCloud& ground,
             const PCLPointCloud& nonground);
 
-        virtual void insertSemantic();
+        virtual void insertSemanticCallback();
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

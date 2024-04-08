@@ -51,7 +51,7 @@
 #include <fruit_picking_octomap/conversions.h>
 
 #ifndef COLOR_OCTOMAP_SERVER
-#define COLOR_OCTOMAP_SERVER
+// #define COLOR_OCTOMAP_SERVER
 #include <octomap/ColorOcTree.h>
 #endif
 

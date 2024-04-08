@@ -11,7 +11,7 @@ def generate_launch_description():
         DeclareLaunchArgument('frame_id', default_value='igus_rebel_base_link'),
         DeclareLaunchArgument('base_frame_id', default_value='igus_rebel_base_link'),
         DeclareLaunchArgument('height_map', default_value='False'),
-        DeclareLaunchArgument('colored_map', default_value='True'),
+        DeclareLaunchArgument('colored_map', default_value='False'),
         DeclareLaunchArgument('color_factor', default_value='0.8'),
         DeclareLaunchArgument('filter_ground', default_value='False'),
         DeclareLaunchArgument('filter_speckles', default_value='False'),

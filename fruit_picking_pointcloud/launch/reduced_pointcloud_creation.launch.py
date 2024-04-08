@@ -79,13 +79,15 @@ def generate_launch_description():
             executable='component_container',
             composable_node_descriptions=[
                 launch_ros.descriptions.ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyzNode',
-                    name='point_cloud_xyz_node',
-                    remappings=[('image_rect', LaunchConfiguration('depth_image_topic')),
-                                ('camera_info', LaunchConfiguration('camera_info_topic')),
+                    package='fruit_picking_pointcloud',
+                    plugin='reduced_pointcloud::ReducedPointcloud',
+                    name='reduced_pointcloud',
+                    remappings=[('rgb/camera_info', LaunchConfiguration('camera_info_topic')),
+                                ('rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
+                                ('depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
                                 ('points', LaunchConfiguration('pointcloud_processed_topic'))],
                     parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+
                 ),
             ],
             output='screen',

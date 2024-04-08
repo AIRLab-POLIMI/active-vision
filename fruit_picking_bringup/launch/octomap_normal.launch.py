@@ -139,12 +139,10 @@ def launch_setup(context, *args, **kwargs):
     # Data topics. Change their value from here. In the inner launch file the default value are currently the below ones
     if LaunchConfiguration("load_gazebo").perform(context) == 'false':
         if LaunchConfiguration("camera").perform(context) == 'realsense':
-            rgb_image_topic = "/camera/color/image_raw"
             depth_image_topic = "/camera/aligned_depth_to_color/image_raw"
             camera_info_topic = "/camera/aligned_depth_to_color/camera_info"
 
     else:
-        rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
         depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
         camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
 
@@ -191,7 +189,6 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
-            "rgb_image_topic": rgb_image_topic,
             "camera_info_topic": camera_info_topic,
             "pointcloud_processed_topic": pointcloud_processed_topic,
         }.items(),
@@ -210,7 +207,7 @@ def launch_setup(context, *args, **kwargs):
             "output_octomap_binary": octomap_binary_topic,
             "output_octomap_full": octomap_full_topic,
             "output_projected_map": octomap_projected_map_topic,
-            "resolution": '0.003',
+            "resolution": '0.006',
             "frame_id": frame_id,
             "base_frame_id": base_frame_id,
             "height_map": "False",

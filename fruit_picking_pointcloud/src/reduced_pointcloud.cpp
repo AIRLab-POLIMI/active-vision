@@ -230,9 +230,9 @@ void ReducedPointcloud::imageCb(
 
     // Convert Depth Image to Pointcloud
     if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-        depth_image_proc::convertDepth<uint16_t>(depth_msg, cloud_msg, model_);
+        convertDepth<uint16_t>(depth_msg, rgb_msg_in, cloud_msg, model_);
     } else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
-        depth_image_proc::convertDepth<float>(depth_msg, cloud_msg, model_);
+        convertDepth<float>(depth_msg, rgb_msg_in, cloud_msg, model_);
     } else {
         RCLCPP_ERROR(
         get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());

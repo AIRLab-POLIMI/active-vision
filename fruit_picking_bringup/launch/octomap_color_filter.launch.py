@@ -210,7 +210,7 @@ def launch_setup(context, *args, **kwargs):
     # Pointcloud creation launch
     pointcloud_creation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare("fruit_picking_pointcloud"), '/launch', '/pointcloud_creation.launch.py']),
+            FindPackageShare("fruit_picking_pointcloud"), '/launch', '/reduced_pointcloud_creation.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
@@ -233,7 +233,7 @@ def launch_setup(context, *args, **kwargs):
             "output_octomap_binary": octomap_binary_topic,
             "output_octomap_full": octomap_full_topic,
             "output_projected_map": octomap_projected_map_topic,
-            "resolution": '0.003',
+            "resolution": '0.006',
             "base_frame_id": base_frame_id,
             "frame_id": frame_id,
             "height_map": "False",

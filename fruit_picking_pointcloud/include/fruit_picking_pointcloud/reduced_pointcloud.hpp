@@ -98,6 +98,64 @@ namespace reduced_pointcloud{
             const Image::ConstSharedPtr & depth_msg,
             const Image::ConstSharedPtr & rgb_msg,
             const CameraInfo::ConstSharedPtr & info_msg);
+        
+        template<typename T>
+        void convertDepth(
+            const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
+            const sensor_msgs::msg::Image::ConstSharedPtr & rgb_msg,
+            sensor_msgs::msg::PointCloud2::SharedPtr & cloud_msg,
+            const image_geometry::PinholeCameraModel & model,
+            double range_max = 0.0)
+        {
+            // Use correct principal point from calibration
+            float center_x = model.cx();
+            float center_y = model.cy();
+
+            // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
+            double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1) );
+            float constant_x = unit_scaling / model.fx();
+            float constant_y = unit_scaling / model.fy();
+            float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+            sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
+            sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
+            sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
+            const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
+            const uint8_t * rgb_row = &rgb_msg->data[0]; // It obtain the RGB data from the input rgb topic
+            int row_step = depth_msg->step / sizeof(T);
+            for (int v = 0; v < static_cast<int>(cloud_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg->step) { // it iterates also through the rgb data
+                for (int u = 0; u < static_cast<int>(cloud_msg->width); ++u, ++iter_x, ++iter_y, ++iter_z) {
+                T depth = depth_row[u];
+
+                // Get the RGB values
+                uint8_t r = rgb_row[u * 3];
+                uint8_t g = rgb_row[u * 3 + 1];
+                uint8_t b = rgb_row[u * 3 + 2];
+
+
+                // Check if the RGB value is white (assuming 255,255,255 is white)
+                if (r == 255 && g == 255 && b == 255) {
+                    continue; // Skip this point
+                }
+
+                // Missing points denoted by NaNs
+                if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
+                    if (range_max != 0.0) {
+                    depth = depth_image_proc::DepthTraits<T>::fromMeters(range_max);
+                    } else {
+                    *iter_x = *iter_y = *iter_z = bad_point;
+                    continue;
+                    }
+                }
+
+                // Fill in XYZ
+                *iter_x = (u - center_x) * depth * constant_x;
+                *iter_y = (v - center_y) * depth * constant_y;
+                *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
+                }
+            }
+        }
+
     };
     
 

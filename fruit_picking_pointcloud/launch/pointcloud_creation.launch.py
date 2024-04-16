@@ -53,10 +53,16 @@ def generate_launch_description():
         description="Topic containing the rgb image data to convert",
     )
 
-    camera_info_topic_arg = DeclareLaunchArgument(
-        name="camera_info_topic",
+    depth_camera_info_topic_arg = DeclareLaunchArgument(
+        name="depth_camera_info_topic",
         default_value="/virtual_camera_link/rgbd_camera/camera_info",
-        description="Topic containing the camera info of the depth image and rgb image topics",
+        description="Topic containing the depth camera info of the depth image",
+    )
+
+    rgb_camera_info_topic_arg = DeclareLaunchArgument(
+        name="rgb_camera_info_topic",
+        default_value="/virtual_camera_link/rgb_camera/camera_info",
+        description="Topic containing the rgb camera info of the rgb image",
     )
 
     pointcloud_processed_topic_arg = DeclareLaunchArgument(
@@ -69,7 +75,8 @@ def generate_launch_description():
         
         depth_image_topic_arg,
         rgb_image_topic_arg,
-        camera_info_topic_arg,
+        depth_camera_info_topic_arg,
+        rgb_camera_info_topic_arg,
         pointcloud_processed_topic_arg,
 
         launch_ros.actions.ComposableNodeContainer(
@@ -80,10 +87,11 @@ def generate_launch_description():
             composable_node_descriptions=[
                 launch_ros.descriptions.ComposableNode(
                     package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyzNode',
-                    name='point_cloud_xyz_node',
-                    remappings=[('image_rect', LaunchConfiguration('depth_image_topic')),
-                                ('camera_info', LaunchConfiguration('camera_info_topic')),
+                    plugin='depth_image_proc::PointCloudXyzrgbNode',
+                    name='point_cloud_xyzrgb_node',
+                    remappings=[('depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
+                                ('rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
+                                ('rgb/camera_info', LaunchConfiguration('rgb_camera_info_topic')),
                                 ('points', LaunchConfiguration('pointcloud_processed_topic'))],
                     parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
                 ),

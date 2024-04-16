@@ -61,6 +61,9 @@
 
 #include "rclcpp_components/register_node_macro.hpp"
 
+#include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
+#include "fruit_picking_interfaces/msg/image_array.hpp"
+
 
 namespace reduced_pointcloud{
     
@@ -72,38 +75,52 @@ namespace reduced_pointcloud{
     protected:
 
         using PointCloud2 = sensor_msgs::msg::PointCloud2;
+        using PointCloud2Array = fruit_picking_interfaces::msg::PointcloudArray;
         using Image = sensor_msgs::msg::Image;
+        using ImageArray = fruit_picking_interfaces::msg::ImageArray;
         using CameraInfo = sensor_msgs::msg::CameraInfo;
 
         // Subscriptions
         image_transport::SubscriberFilter sub_depth_, sub_rgb_;
+        message_filters::Subscriber<ImageArray> sub_rgb_array_;
         message_filters::Subscriber<CameraInfo> sub_info_;
         using SyncPolicy = message_filters::sync_policies::ApproximateTime<Image, Image, CameraInfo>;
         using ExactSyncPolicy = message_filters::sync_policies::ExactTime<Image, Image, CameraInfo>;
         using Synchronizer = message_filters::Synchronizer<SyncPolicy>;
         using ExactSynchronizer = message_filters::Synchronizer<ExactSyncPolicy>;
+        using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<Image, ImageArray, CameraInfo>;
+        using ExactSyncPolicyArray = message_filters::sync_policies::ExactTime<Image, ImageArray, CameraInfo>;
+        using SynchronizerArray = message_filters::Synchronizer<SyncPolicyArray>;
+        using ExactSynchronizerArray = message_filters::Synchronizer<ExactSyncPolicyArray>;
         std::shared_ptr<Synchronizer> sync_;
         std::shared_ptr<ExactSynchronizer> exact_sync_;
+        std::shared_ptr<SynchronizerArray> sync_array_;
+        std::shared_ptr<ExactSynchronizerArray> exact_sync_array_;
 
         // Publications
         std::mutex connect_mutex_;
+        rclcpp::Publisher<PointCloud2Array>::SharedPtr pub_point_cloud_array_;
         rclcpp::Publisher<PointCloud2>::SharedPtr pub_point_cloud_;
 
         image_geometry::PinholeCameraModel model_;
 
-
         void connectCb();
 
+
+        void imageArrayCb(
+            const Image::ConstSharedPtr & depth_msg,
+            const ImageArray::ConstSharedPtr & rgb_msg,
+            const CameraInfo::ConstSharedPtr & info_msg);
         void imageCb(
             const Image::ConstSharedPtr & depth_msg,
-            const Image::ConstSharedPtr & rgb_msg,
+            const Image::ConstSharedPtr & rgb_msg_in,
             const CameraInfo::ConstSharedPtr & info_msg);
         
         template<typename T>
         void convertDepth(
             const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
-            const sensor_msgs::msg::Image::ConstSharedPtr & rgb_msg,
-            sensor_msgs::msg::PointCloud2::SharedPtr & cloud_msg,
+            const sensor_msgs::msg::Image & rgb_msg,
+            sensor_msgs::msg::PointCloud2 & cloud_msg,
             const image_geometry::PinholeCameraModel & model,
             double range_max = 0.0)
         {
@@ -112,19 +129,19 @@ namespace reduced_pointcloud{
             float center_y = model.cy();
 
             // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-            double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1) );
+            double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1));
             float constant_x = unit_scaling / model.fx();
             float constant_y = unit_scaling / model.fy();
             float bad_point = std::numeric_limits<float>::quiet_NaN();
 
-            sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
-            sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
-            sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
+            sensor_msgs::PointCloud2Iterator<float> iter_x(cloud_msg, "x");
+            sensor_msgs::PointCloud2Iterator<float> iter_y(cloud_msg, "y");
+            sensor_msgs::PointCloud2Iterator<float> iter_z(cloud_msg, "z");
             const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
-            const uint8_t * rgb_row = &rgb_msg->data[0]; // It obtain the RGB data from the input rgb topic
+            const uint8_t * rgb_row = &rgb_msg.data[0]; // It obtain the RGB data from the input rgb topic
             int row_step = depth_msg->step / sizeof(T);
-            for (int v = 0; v < static_cast<int>(cloud_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg->step) { // it iterates also through the rgb data
-                for (int u = 0; u < static_cast<int>(cloud_msg->width); ++u, ++iter_x, ++iter_y, ++iter_z) {
+            for (int v = 0; v < static_cast<int>(cloud_msg.height); ++v, depth_row += row_step, rgb_row += rgb_msg.step) { // it iterates also through the rgb data
+                for (int u = 0; u < static_cast<int>(cloud_msg.width); ++u, ++iter_x, ++iter_y, ++iter_z) {
                 T depth = depth_row[u];
 
                 // Get the RGB values
@@ -152,6 +169,83 @@ namespace reduced_pointcloud{
                 *iter_x = (u - center_x) * depth * constant_x;
                 *iter_y = (v - center_y) * depth * constant_y;
                 *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
+                }
+            }
+        }
+
+        template<typename T>
+        void convertDepthPtr(
+        const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
+        const sensor_msgs::msg::Image::ConstSharedPtr & rgb_msg,
+        sensor_msgs::msg::PointCloud2::SharedPtr & cloud_msg,
+        const image_geometry::PinholeCameraModel & model,
+        double range_max = 0.0)
+        {
+        // Use correct principal point from calibration
+        float center_x = model.cx();
+        float center_y = model.cy();
+
+        // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
+        double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1) );
+        float constant_x = unit_scaling / model.fx();
+        float constant_y = unit_scaling / model.fy();
+        float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+        sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
+        sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
+        sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
+        const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
+        const uint8_t * rgb_row = &rgb_msg->data[0]; // It obtain the RGB data from the input rgb topic
+        int row_step = depth_msg->step / sizeof(T);
+        for (int v = 0; v < static_cast<int>(cloud_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg->step) {
+            for (int u = 0; u < static_cast<int>(cloud_msg->width); ++u, ++iter_x, ++iter_y, ++iter_z) {
+            T depth = depth_row[u];
+
+            // Get the RGB values
+            uint8_t r = rgb_row[u * 3];
+            uint8_t g = rgb_row[u * 3 + 1];
+            uint8_t b = rgb_row[u * 3 + 2];
+
+            // Check if the RGB value is white (assuming 255,255,255 is white)
+            if (r == 255 && g == 255 && b == 255) {
+                continue; // Skip this point
+            }
+
+            // Missing points denoted by NaNs
+            if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
+                if (range_max != 0.0) {
+                depth = depth_image_proc::DepthTraits<T>::fromMeters(range_max);
+                } else {
+                *iter_x = *iter_y = *iter_z = bad_point;
+                continue;
+                }
+            }
+
+            // Fill in XYZ
+            *iter_x = (u - center_x) * depth * constant_x;
+            *iter_y = (v - center_y) * depth * constant_y;
+            *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
+            }
+        }
+        }
+
+        void convertRgb(
+            const sensor_msgs::msg::Image & rgb_msg,
+            sensor_msgs::msg::PointCloud2 & cloud_msg,
+            int red_offset, int green_offset, int blue_offset, int color_step)
+        {
+            sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(cloud_msg, "r");
+            sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(cloud_msg, "g");
+            sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(cloud_msg, "b");
+            const uint8_t * rgb = &rgb_msg.data[0];
+            int rgb_skip = rgb_msg.step - rgb_msg.width * color_step;
+            for (int v = 0; v < static_cast<int>(cloud_msg.height); ++v, rgb += rgb_skip) {
+                for (int u = 0; u < static_cast<int>(cloud_msg.width); ++u,
+                rgb += color_step, ++iter_r, ++iter_g, ++iter_b)
+                {
+                *iter_r = rgb[red_offset];
+                *iter_g = rgb[green_offset];
+                *iter_b = rgb[blue_offset];
                 }
             }
         }

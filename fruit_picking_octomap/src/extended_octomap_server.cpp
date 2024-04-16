@@ -14,6 +14,10 @@ namespace extended_octomap_server {
             RCLCPP_INFO(this->get_logger(), "Computation of free voxels will not be executed.");
 
         }
+        publishConfidence = this->declare_parameter(
+            "publish_confidence", publishConfidence);
+        publishSemantic = this->declare_parameter(
+            "publish_semantic", publishSemantic);
 
         this->onInit();
     }
@@ -24,18 +28,36 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::onInit() {
         
-        // subcribe to semantic topics
-
         RCLCPP_INFO(this->get_logger(), "On init of extended octomap server started.");
 
+        this->m_reducedPointCloudSub = std::make_shared<
+            message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
+                this, "reduced_cloud_in", rmw_qos_profile_sensor_data);
+        
+        this->m_tfReducedPointCloudSub = std::make_shared<tf2_ros::MessageFilter<
+            sensor_msgs::msg::PointCloud2>>(
+                *buffer_, m_worldFrameId, 5,
+                this->get_node_logging_interface(),
+                this->get_node_clock_interface(),
+                std::chrono::seconds(1));
+        this->m_tfReducedPointCloudSub->connectInput(*m_reducedPointCloudSub);
+        this->m_tfReducedPointCloudSub->registerCallback(
+            std::bind(&ExtendedOctomapServer::insertSemanticCallback, this, ph::_1));
+
+
+        RCLCPP_INFO(this->get_logger(), "Subscription to semantic topics done.");
 
         rclcpp::QoS qos(rclcpp::KeepLast(3));
-        this->confidenceMarkerPub = this->create_publisher<
-            visualization_msgs::msg::MarkerArray>(
-                "confidence_vis_array", qos);
-        this->semanticClassMarkerPub = this->create_publisher<
-            visualization_msgs::msg::MarkerArray>(
-                "semantic_class_vis_array", qos);
+        if (publishConfidence){
+            this->confidenceMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "confidence_vis_array", qos);
+        }
+        if (publishSemantic){
+            this->semanticClassMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "semantic_class_vis_array", qos);
+        }
     }
 
 
@@ -44,13 +66,15 @@ namespace extended_octomap_server {
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud){
         
         OctomapServer::insertCloudCallback(cloud);
-        
-        insertSemanticCallback();
-        
-        publishConfidenceMarkers(cloud->header.stamp);
 
-        publishSemanticClassMarkers(cloud->header.stamp);
+        if (publishConfidence){        
+            publishConfidenceMarkers(cloud->header.stamp);
+        }
 
+        if (publishSemantic){
+            publishSemanticClassMarkers(cloud->header.stamp);
+        }
+        
     }
 
 
@@ -189,6 +213,13 @@ namespace extended_octomap_server {
             global_free_cells.insert(free_cells.begin(), free_cells.end());
         }
 
+        // Insert into the ExtendedOctomapMap keys all the occupied OctKeys
+        // and set the class as none if the octkey does not exist yet
+        for(const auto& key : global_occupied_cells) {
+            if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
+               (*extended_octomap_map)[key] = ExtendedOctomapData();    
+            }                    
+        }
         
 #ifdef COLOR_OCTOMAP_SERVER
         if (colors) {
@@ -200,15 +231,42 @@ namespace extended_octomap_server {
 
 
 
-    void ExtendedOctomapServer::insertSemanticCallback(){
+    void ExtendedOctomapServer::insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud){
 
-        RCLCPP_INFO(this->get_logger(), "Semantic function started.");
+        RCLCPP_INFO(this->get_logger(), "Semantic callback started.");
 
-        ExtendedOctomapData test_extended_octomap_data(0.2, "tomato");
+        // From pointcloud message to Pointcloud data structure
+        PCLPointCloud reduced_pc;
+        pcl::fromROSMsg(*reduced_cloud, reduced_pc);
 
-        // Insert into the ExtendedOctomapMap keys the occupied OctKeys
-        for(const auto& key : global_occupied_cells) {
-            (*extended_octomap_map)[key] = test_extended_octomap_data;           
+        // Conversion of the pointcloud from sensor frame to world frame
+        Eigen::Matrix4f sensorToWorld;
+        geometry_msgs::msg::TransformStamped sensorToWorldTf;
+        try {
+            if (!this->buffer_->canTransform(
+                    m_worldFrameId, reduced_cloud->header.frame_id,
+                    reduced_cloud->header.stamp)) {
+                throw "Failed";
+            }
+            
+            sensorToWorldTf = this->buffer_->lookupTransform(
+                m_worldFrameId, reduced_cloud->header.frame_id,
+                reduced_cloud->header.stamp);
+            sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "%s",ex.what());
+            return;
+        }
+        pcl::transformPointCloud(reduced_pc, reduced_pc, sensorToWorld);
+        
+
+        for (auto it = reduced_pc.begin(); it != reduced_pc.end(); ++it) {
+            octomap::point3d point(it->x, it->y, it->z);                
+            octomap::OcTreeKey key;
+
+            if (m_octree->coordToKeyChecked(point, key)) {
+                (*extended_octomap_map)[key] = ExtendedOctomapData(tomato);
+            }
         }
 
         RCLCPP_INFO(this->get_logger(), "Extended octomap map updated.");
@@ -219,9 +277,21 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::publishConfidenceMarkers(const rclcpp::Time &rostime) const {
         
-        // RCLCPP_INFO(this->get_logger(), "Publishing markers of confidences...");
+        // RCLCPP_INFO(this->get_logger(), "Publishing markers of confidence...");
 
         bool publishConfidenceMarkers = confidenceMarkerPub->get_subscription_count() > 0;
+
+
+    }
+
+
+
+
+    void ExtendedOctomapServer::publishSemanticClassMarkers(const rclcpp::Time &rostime) const {
+        
+        // RCLCPP_INFO(this->get_logger(), "Publishing markers of classes...");
+
+        bool publishSemanticMarkers = semanticClassMarkerPub->get_subscription_count() > 0;
         size_t octomap_size = m_octree->size();
 
         // RCLCPP_INFO(this->get_logger(), "Tree size: %lu", octomap_size);
@@ -235,9 +305,9 @@ namespace extended_octomap_server {
         }
 
         // init markers for free space:
-        visualization_msgs::msg::MarkerArray confidenceVis;
+        visualization_msgs::msg::MarkerArray semanticVis;
         // each array stores all cubes of a different size, one for each depth level:
-        confidenceVis.markers.resize(m_treeDepth+1);
+        semanticVis.markers.resize(m_treeDepth+1);
 
         // RCLCPP_INFO(this->get_logger(), "Tree depth: %u", m_treeDepth);
         // RCLCPP_INFO(this->get_logger(), "Array length: %lu", confidenceVis.markers.size());
@@ -263,69 +333,53 @@ namespace extended_octomap_server {
             double size = m_octree->getNodeSize(m_maxTreeDepth);
 
             //create marker:
-            if (publishConfidenceMarkers){
+            if (publishSemanticMarkers){
 
                 geometry_msgs::msg::Point cubeCenter;
                 cubeCenter.x = x;
                 cubeCenter.y = y;
                 cubeCenter.z = z;
 
-                confidenceVis.markers[m_maxTreeDepth].points.push_back(cubeCenter);
+                semanticVis.markers[m_maxTreeDepth].points.push_back(cubeCenter);
 
                 std_msgs::msg::ColorRGBA _color;
-                _color.r = it->second.confidence;
-                _color.g = it->second.confidence;
-                _color.b = it->second.confidence;
-                _color.a = 1.0;                            
-                confidenceVis.markers[m_maxTreeDepth].colors.push_back(_color);
+                _color.r = it->second.r;
+                _color.g = it->second.g;
+                _color.b = it->second.b;
+                _color.a = it->second.a;                            
+                semanticVis.markers[m_maxTreeDepth].colors.push_back(_color);
             }   
         }
 
 
         // finish MarkerArray:
-        if (publishConfidenceMarkers) {
-            for (unsigned i= 0; i < confidenceVis.markers.size(); ++i){
+        if (publishSemanticMarkers) {
+            for (unsigned i= 0; i < semanticVis.markers.size(); ++i){
                 double size = m_octree->getNodeSize(i);
 
-                confidenceVis.markers[i].header.frame_id = m_worldFrameId;
-                confidenceVis.markers[i].header.stamp = rostime;
-                confidenceVis.markers[i].ns = "map";
-                confidenceVis.markers[i].id = i;
-                confidenceVis.markers[i].type =
+                semanticVis.markers[i].header.frame_id = m_worldFrameId;
+                semanticVis.markers[i].header.stamp = rostime;
+                semanticVis.markers[i].ns = "map";
+                semanticVis.markers[i].id = i;
+                semanticVis.markers[i].type =
                     visualization_msgs::msg::Marker::CUBE_LIST;
-                confidenceVis.markers[i].scale.x = size;
-                confidenceVis.markers[i].scale.y = size;
-                confidenceVis.markers[i].scale.z = size;
+                semanticVis.markers[i].scale.x = size;
+                semanticVis.markers[i].scale.y = size;
+                semanticVis.markers[i].scale.z = size;
 
-                if (confidenceVis.markers[i].points.size() > 0)
-                    confidenceVis.markers[i].action =
+                if (semanticVis.markers[i].points.size() > 0)
+                    semanticVis.markers[i].action =
                         visualization_msgs::msg::Marker::ADD;
                 else
-                    confidenceVis.markers[i].action =
+                    semanticVis.markers[i].action =
                         visualization_msgs::msg::Marker::DELETE;
             }
-            confidenceMarkerPub->publish(confidenceVis);
+            semanticClassMarkerPub->publish(semanticVis);
         }
 
-        RCLCPP_INFO(this->get_logger(), "Markers of confidences published.");
+        RCLCPP_INFO(this->get_logger(), "Markers of classes published.");
 
-    }
-
-
-
-    void ExtendedOctomapServer::publishSemanticClassMarkers(const rclcpp::Time &rostime) const {
-        
-        // RCLCPP_INFO(this->get_logger(), "Publishing markers of classes...");
-
-
-        bool publishSemanticClassMarkers = semanticClassMarkerPub->get_subscription_count() > 0;
-
-
-
-    }
-
-
-    
+    }    
 
 }
 RCLCPP_COMPONENTS_REGISTER_NODE(extended_octomap_server::ExtendedOctomapServer)

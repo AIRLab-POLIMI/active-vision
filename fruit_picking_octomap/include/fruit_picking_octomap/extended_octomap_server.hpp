@@ -6,20 +6,49 @@
 
 namespace extended_octomap_server{
 
+    enum semantic{
+        none,
+        tomato
+    };
     
     class ExtendedOctomapData{
     
     public:
 
-        ExtendedOctomapData(){}
+        ExtendedOctomapData(){
+            this->confidence = 0.0;
+            this->semantic_class = none;
+            setColor();
+        }
+
+        ExtendedOctomapData(semantic semantic_class){
+            this->semantic_class = semantic_class;
+            setColor();
+        }
         
-        ExtendedOctomapData(float confidence, std::string semantic_class){
+        ExtendedOctomapData(float confidence, semantic semantic_class){
             this->confidence = confidence;
             this->semantic_class = semantic_class;
+            setColor();
+        }
+
+        void setColor(){
+            if (semantic_class == tomato){
+                r = 1.0;
+                g = 0.0;
+                b = 0.0;
+            }
+            else if (semantic_class == none){
+                r = 1.0;
+                g = 1.0;
+                b = 1.0;
+            }
+            a = 1.0;
         }
 
         float confidence;
-        std::string semantic_class;
+        semantic semantic_class;
+        float r, g, b, a;
     };
 
 
@@ -30,6 +59,11 @@ namespace extended_octomap_server{
     class ExtendedOctomapServer : public octomap_server::OctomapServer{
 
     protected:
+
+        std::shared_ptr<message_filters::Subscriber<
+                            sensor_msgs::msg::PointCloud2>> m_reducedPointCloudSub;
+        std::shared_ptr<tf2_ros::MessageFilter<
+                            sensor_msgs::msg::PointCloud2>> m_tfReducedPointCloudSub;
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
                           >::SharedPtr confidenceMarkerPub;
@@ -42,7 +76,8 @@ namespace extended_octomap_server{
         octomap::KeySet global_free_cells, global_occupied_cells;
 
         bool m_processFreeSpace;
-
+        bool publishConfidence;
+        bool publishSemantic;
 
         virtual void onInit();        
 
@@ -52,7 +87,7 @@ namespace extended_octomap_server{
             const PCLPointCloud& ground,
             const PCLPointCloud& nonground);
 
-        virtual void insertSemanticCallback();
+        virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud);
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

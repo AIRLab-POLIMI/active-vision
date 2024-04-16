@@ -15,9 +15,10 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-# add service
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LANGSAMSegmentation.srv"
+  "msg/ImageArray.msg"
+  "msg/PointcloudArray.msg"
   DEPENDENCIES std_msgs sensor_msgs
 )
 

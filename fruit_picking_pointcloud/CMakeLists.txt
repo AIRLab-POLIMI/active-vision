@@ -16,6 +16,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(depth_image_proc REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(fruit_picking_interfaces REQUIRED)
 
 include_directories(include)
 
@@ -28,6 +29,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp_components
   depth_image_proc
   cv_bridge
+  fruit_picking_interfaces
 )
 
 rclcpp_components_register_nodes(${PROJECT_NAME} "reduced_pointcloud::ReducedPointcloud")

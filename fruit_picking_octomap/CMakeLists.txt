@@ -41,7 +41,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(rclcpp_components REQUIRED)
+find_package(fruit_picking_interfaces REQUIRED)
 
 # added
 link_directories(${PCL_LIBRARY_DIRS})
@@ -75,6 +75,7 @@ ament_target_dependencies(fruit_picking_octomap
   tf2
   tf2_geometry_msgs
   rclcpp_components
+  fruit_picking_interfaces
   )
 
 # added

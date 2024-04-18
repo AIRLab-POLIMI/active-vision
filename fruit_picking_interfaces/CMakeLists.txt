@@ -13,13 +13,15 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LANGSAMSegmentation.srv"
   "msg/ImageArray.msg"
   "msg/PointcloudArray.msg"
-  DEPENDENCIES std_msgs sensor_msgs
+  "msg/Confidence.msg"
+  DEPENDENCIES std_msgs sensor_msgs diagnostic_msgs
 )
 
 if(BUILD_TESTING)

@@ -1,1 +1,3 @@
-sensor_msgs/PointCloud2[]         pointclouds    # Masks generated from the model
+std_msgs/Header                   header
+sensor_msgs/PointCloud2[]         pointclouds
+diagnostic_msgs/KeyValue[]        confidences

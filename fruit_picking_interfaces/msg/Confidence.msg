@@ -1,2 +1,2 @@
 std_msgs/Header             header
-sensor_msgs/Image[]         images
+diagnostic_msgs/KeyValue[]  data

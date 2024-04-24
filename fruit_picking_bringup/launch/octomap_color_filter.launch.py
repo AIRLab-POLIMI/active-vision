@@ -225,7 +225,7 @@ def launch_setup(context, *args, **kwargs):
     ) 
 
 
-    # Pointcloud creation launch
+    # Reduced pointcloud creation launch
     reduced_pointcloud_creation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             FindPackageShare("fruit_picking_pointcloud"), '/launch', '/reduced_pointcloud_creation.launch.py']),
@@ -235,6 +235,7 @@ def launch_setup(context, *args, **kwargs):
             "rgb_image_topic": rgb_segmented_image_topic,
             "rgb_camera_info_topic": rgb_camera_info_topic,
             "pointcloud_processed_topic": reduced_pointcloud_processed_topic,
+            "publish_pointcloud_array": "False",
         }.items(),
     ) 
 
@@ -262,6 +263,7 @@ def launch_setup(context, *args, **kwargs):
             "filter_ground": 'True',
             "publish_confidence": 'False',
             "publish_semantic": 'True',
+            "pointcloud_array_subscription": 'False',
         }.items(),
     ) 
 

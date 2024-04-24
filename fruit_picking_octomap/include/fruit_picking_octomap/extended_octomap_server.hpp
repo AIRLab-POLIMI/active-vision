@@ -3,6 +3,8 @@
 #define _EXTENDED_OCTOMAP_SERVER_HPP_
 
 #include <fruit_picking_octomap/octomap_server.hpp>
+#include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
+
 
 namespace extended_octomap_server{
 
@@ -18,37 +20,49 @@ namespace extended_octomap_server{
         ExtendedOctomapData(){
             this->confidence = 0.0;
             this->semantic_class = none;
-            setColor();
+            setConfidenceColor(0.0);
+            setSemanticColor(none);
         }
 
         ExtendedOctomapData(semantic semantic_class){
+            this->confidence = 0.0;
             this->semantic_class = semantic_class;
-            setColor();
+            setConfidenceColor(0.0);
+            setSemanticColor(semantic_class);
         }
         
         ExtendedOctomapData(float confidence, semantic semantic_class){
             this->confidence = confidence;
             this->semantic_class = semantic_class;
-            setColor();
+            setConfidenceColor(confidence);
+            setSemanticColor(semantic_class);
         }
 
-        void setColor(){
+        void setSemanticColor(semantic semantic_class){
             if (semantic_class == tomato){
-                r = 1.0;
-                g = 0.0;
-                b = 0.0;
+                this->semantic_r = 1.0;
+                this->semantic_g = 0.0;
+                this->semantic_b = 0.0;
             }
             else if (semantic_class == none){
-                r = 1.0;
-                g = 1.0;
-                b = 1.0;
+                this->semantic_r = 1.0;
+                this->semantic_g = 1.0;
+                this->semantic_b = 1.0;
             }
-            a = 1.0;
+            this->semantic_a = 1.0;
+        }
+
+        void setConfidenceColor(float confidence){
+            this->confidence_r = confidence;
+            this->confidence_g = confidence;
+            this->confidence_b = confidence;
+            this->confidence_a = 1.0;
         }
 
         float confidence;
         semantic semantic_class;
-        float r, g, b, a;
+        float semantic_r, semantic_g, semantic_b, semantic_a;
+        float confidence_r, confidence_g, confidence_b, confidence_a;
     };
 
 
@@ -64,6 +78,10 @@ namespace extended_octomap_server{
                             sensor_msgs::msg::PointCloud2>> m_reducedPointCloudSub;
         std::shared_ptr<tf2_ros::MessageFilter<
                             sensor_msgs::msg::PointCloud2>> m_tfReducedPointCloudSub;
+        std::shared_ptr<message_filters::Subscriber<
+                            fruit_picking_interfaces::msg::PointcloudArray>> m_reducedPointCloudArraySub;
+        std::shared_ptr<tf2_ros::MessageFilter<
+                            fruit_picking_interfaces::msg::PointcloudArray>> m_tfReducedPointCloudArraySub;
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
                           >::SharedPtr confidenceMarkerPub;
@@ -78,6 +96,7 @@ namespace extended_octomap_server{
         bool m_processFreeSpace;
         bool publishConfidence;
         bool publishSemantic;
+        bool pointcloudArraySubscription;
 
         virtual void onInit();        
 
@@ -88,6 +107,8 @@ namespace extended_octomap_server{
             const PCLPointCloud& nonground);
 
         virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud);
+        virtual void insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &reduced_cloud_array);
+
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

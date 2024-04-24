@@ -49,15 +49,6 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "multiple_output_topics",
-            default_value="true",
-            choices=["true", "false"],
-            description="Argument to specify the creation of multiple output topics containing each a different mask",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
             "input_image_topic",
             default_value="/virtual_camera_link/rgbd_camera/image_raw",
             description="Topic that contains the original RGB data that needs to be segmented",
@@ -69,6 +60,14 @@ def generate_launch_description() -> LaunchDescription:
             "output_image_topic",
             default_value="/fruit_picking/segmentation/lang_sam/image",
             description="Topic that contains the segmented RGB data that comes from the LANG SAM server",
+        )
+    )
+
+    ld.add_action(
+        DeclareLaunchArgument(
+            "output_image_array_topic",
+            default_value="/fruit_picking/segmentation/lang_sam/image_array",
+            description="Topic that contains the segmented RGB array data that comes from the LANG SAM server",
         )
     )
 
@@ -152,9 +151,9 @@ def generate_launch_description() -> LaunchDescription:
                 {
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "model_type": LaunchConfiguration("model_type"),
-                    "multiple_output_topics": LaunchConfiguration("multiple_output_topics"),
                     "input_image_topic": LaunchConfiguration("input_image_topic"),
                     "output_image_topic": LaunchConfiguration("output_image_topic"),
+                    "output_image_array_topic": LaunchConfiguration("output_image_array_topic"),
                     "output_boxes_topic": LaunchConfiguration("output_boxes_topic"),
                     "output_confidences_topic": LaunchConfiguration("output_confidences_topic"),
                     "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),

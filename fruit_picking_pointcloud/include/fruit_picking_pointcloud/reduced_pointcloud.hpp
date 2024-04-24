@@ -59,10 +59,26 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "cv_bridge/cv_bridge.h"
 
+#include <tf2/buffer_core.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/create_timer_ros.h>
+#include <tf2_ros/message_filter.h>
+
 #include "rclcpp_components/register_node_macro.hpp"
 
 #include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
 #include "fruit_picking_interfaces/msg/image_array.hpp"
+#include "fruit_picking_interfaces/msg/confidence.hpp"
+
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/common/transforms.h>
 
 
 namespace reduced_pointcloud{
@@ -79,17 +95,19 @@ namespace reduced_pointcloud{
         using Image = sensor_msgs::msg::Image;
         using ImageArray = fruit_picking_interfaces::msg::ImageArray;
         using CameraInfo = sensor_msgs::msg::CameraInfo;
+        using Confidence = fruit_picking_interfaces::msg::Confidence;
 
         // Subscriptions
-        image_transport::SubscriberFilter sub_depth_, sub_rgb_;
+        message_filters::Subscriber<Image> sub_depth_, sub_rgb_;
         message_filters::Subscriber<ImageArray> sub_rgb_array_;
         message_filters::Subscriber<CameraInfo> sub_info_;
+        message_filters::Subscriber<Confidence> sub_conf_;
         using SyncPolicy = message_filters::sync_policies::ApproximateTime<Image, Image, CameraInfo>;
         using ExactSyncPolicy = message_filters::sync_policies::ExactTime<Image, Image, CameraInfo>;
         using Synchronizer = message_filters::Synchronizer<SyncPolicy>;
         using ExactSynchronizer = message_filters::Synchronizer<ExactSyncPolicy>;
-        using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<Image, ImageArray, CameraInfo>;
-        using ExactSyncPolicyArray = message_filters::sync_policies::ExactTime<Image, ImageArray, CameraInfo>;
+        using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<Image, ImageArray, CameraInfo, Confidence>;
+        using ExactSyncPolicyArray = message_filters::sync_policies::ExactTime<Image, ImageArray, CameraInfo, Confidence>;
         using SynchronizerArray = message_filters::Synchronizer<SyncPolicyArray>;
         using ExactSynchronizerArray = message_filters::Synchronizer<ExactSyncPolicyArray>;
         std::shared_ptr<Synchronizer> sync_;
@@ -104,13 +122,16 @@ namespace reduced_pointcloud{
 
         image_geometry::PinholeCameraModel model_;
 
-        void connectCb();
+        bool publishPointcloudArray;
 
+        void connectCb();
 
         void imageArrayCb(
             const Image::ConstSharedPtr & depth_msg,
             const ImageArray::ConstSharedPtr & rgb_msg,
-            const CameraInfo::ConstSharedPtr & info_msg);
+            const CameraInfo::ConstSharedPtr & info_msg,
+            const std::shared_ptr<const Confidence> & conf_msg);
+
         void imageCb(
             const Image::ConstSharedPtr & depth_msg,
             const Image::ConstSharedPtr & rgb_msg_in,
@@ -121,8 +142,7 @@ namespace reduced_pointcloud{
             const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
             const sensor_msgs::msg::Image & rgb_msg,
             sensor_msgs::msg::PointCloud2 & cloud_msg,
-            const image_geometry::PinholeCameraModel & model,
-            double range_max = 0.0)
+            const image_geometry::PinholeCameraModel & model)
         {
             // Use correct principal point from calibration
             float center_x = model.cx();
@@ -132,122 +152,45 @@ namespace reduced_pointcloud{
             double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1));
             float constant_x = unit_scaling / model.fx();
             float constant_y = unit_scaling / model.fy();
-            float bad_point = std::numeric_limits<float>::quiet_NaN();
 
-            sensor_msgs::PointCloud2Iterator<float> iter_x(cloud_msg, "x");
-            sensor_msgs::PointCloud2Iterator<float> iter_y(cloud_msg, "y");
-            sensor_msgs::PointCloud2Iterator<float> iter_z(cloud_msg, "z");
-            const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
-            const uint8_t * rgb_row = &rgb_msg.data[0]; // It obtain the RGB data from the input rgb topic
+            // Create an empty pcl::PointCloud<pcl::PointXYZ>
+            pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+
+            const T* depth_row = reinterpret_cast<const T*>(&depth_msg->data[0]);
+            const uint8_t* rgb_row = &rgb_msg.data[0];
             int row_step = depth_msg->step / sizeof(T);
-            for (int v = 0; v < static_cast<int>(cloud_msg.height); ++v, depth_row += row_step, rgb_row += rgb_msg.step) { // it iterates also through the rgb data
-                for (int u = 0; u < static_cast<int>(cloud_msg.width); ++u, ++iter_x, ++iter_y, ++iter_z) {
-                T depth = depth_row[u];
+            for (int v = 0; v < static_cast<int>(depth_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg.step) {
+                for (int u = 0; u < static_cast<int>(depth_msg->width); ++u) {
+                    T depth = depth_row[u];
 
-                // Get the RGB values
-                uint8_t r = rgb_row[u * 3];
-                uint8_t g = rgb_row[u * 3 + 1];
-                uint8_t b = rgb_row[u * 3 + 2];
+                    // Get the RGB values
+                    uint8_t r = rgb_row[u * 3];
+                    uint8_t g = rgb_row[u * 3 + 1];
+                    uint8_t b = rgb_row[u * 3 + 2];
 
-
-                // Check if the RGB value is white (assuming 255,255,255 is white)
-                if (r == 255 && g == 255 && b == 255) {
-                    continue; // Skip this point
-                }
-
-                // Missing points denoted by NaNs
-                if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
-                    if (range_max != 0.0) {
-                    depth = depth_image_proc::DepthTraits<T>::fromMeters(range_max);
-                    } else {
-                    *iter_x = *iter_y = *iter_z = bad_point;
-                    continue;
+                    // Check if the RGB value is white (assuming 255,255,255 is white)
+                    if (r == 255 && g == 255 && b == 255) {
+                        continue; // Skip this point
                     }
-                }
 
-                // Fill in XYZ
-                *iter_x = (u - center_x) * depth * constant_x;
-                *iter_y = (v - center_y) * depth * constant_y;
-                *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
-                }
-            }
-        }
+                    // Missing points denoted by NaNs
+                    if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
+                        continue;
+                    }
 
-        template<typename T>
-        void convertDepthPtr(
-        const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
-        const sensor_msgs::msg::Image::ConstSharedPtr & rgb_msg,
-        sensor_msgs::msg::PointCloud2::SharedPtr & cloud_msg,
-        const image_geometry::PinholeCameraModel & model,
-        double range_max = 0.0)
-        {
-        // Use correct principal point from calibration
-        float center_x = model.cx();
-        float center_y = model.cy();
-
-        // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-        double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1) );
-        float constant_x = unit_scaling / model.fx();
-        float constant_y = unit_scaling / model.fy();
-        float bad_point = std::numeric_limits<float>::quiet_NaN();
-
-        sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
-        sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
-        sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
-        const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
-        const uint8_t * rgb_row = &rgb_msg->data[0]; // It obtain the RGB data from the input rgb topic
-        int row_step = depth_msg->step / sizeof(T);
-        for (int v = 0; v < static_cast<int>(cloud_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg->step) {
-            for (int u = 0; u < static_cast<int>(cloud_msg->width); ++u, ++iter_x, ++iter_y, ++iter_z) {
-            T depth = depth_row[u];
-
-            // Get the RGB values
-            uint8_t r = rgb_row[u * 3];
-            uint8_t g = rgb_row[u * 3 + 1];
-            uint8_t b = rgb_row[u * 3 + 2];
-
-            // Check if the RGB value is white (assuming 255,255,255 is white)
-            if (r == 255 && g == 255 && b == 255) {
-                continue; // Skip this point
-            }
-
-            // Missing points denoted by NaNs
-            if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
-                if (range_max != 0.0) {
-                depth = depth_image_proc::DepthTraits<T>::fromMeters(range_max);
-                } else {
-                *iter_x = *iter_y = *iter_z = bad_point;
-                continue;
+                    // Fill in XYZ
+                    pcl::PointXYZ point;
+                    point.x = (u - center_x) * depth * constant_x;
+                    point.y = (v - center_y) * depth * constant_y;
+                    point.z = depth_image_proc::DepthTraits<T>::toMeters(depth);
+                    pcl_cloud.points.push_back(point);
                 }
             }
 
-            // Fill in XYZ
-            *iter_x = (u - center_x) * depth * constant_x;
-            *iter_y = (v - center_y) * depth * constant_y;
-            *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
-            }
-        }
-        }
-
-        void convertRgb(
-            const sensor_msgs::msg::Image & rgb_msg,
-            sensor_msgs::msg::PointCloud2 & cloud_msg,
-            int red_offset, int green_offset, int blue_offset, int color_step)
-        {
-            sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(cloud_msg, "r");
-            sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(cloud_msg, "g");
-            sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(cloud_msg, "b");
-            const uint8_t * rgb = &rgb_msg.data[0];
-            int rgb_skip = rgb_msg.step - rgb_msg.width * color_step;
-            for (int v = 0; v < static_cast<int>(cloud_msg.height); ++v, rgb += rgb_skip) {
-                for (int u = 0; u < static_cast<int>(cloud_msg.width); ++u,
-                rgb += color_step, ++iter_r, ++iter_g, ++iter_b)
-                {
-                *iter_r = rgb[red_offset];
-                *iter_g = rgb[green_offset];
-                *iter_b = rgb[blue_offset];
-                }
-            }
+            // Convert the pcl::PointCloud to a sensor_msgs::PointCloud2
+            pcl::toROSMsg(pcl_cloud, cloud_msg);
+            cloud_msg.height = 1;
+            cloud_msg.width = pcl_cloud.points.size();
         }
 
     };

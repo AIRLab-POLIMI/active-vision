@@ -40,6 +40,13 @@ from launch.actions import DeclareLaunchArgument
 
 
 def generate_launch_description():
+
+    publish_pointcloud_array_arg = DeclareLaunchArgument(
+        name="publish_pointcloud_array",
+        default_value="True",
+        choices=["True", "False"],
+        description="Whether or not publishing the array of reduced pointclouds",
+    )
     
     depth_image_topic_arg = DeclareLaunchArgument(
         name="depth_image_topic",
@@ -83,8 +90,17 @@ def generate_launch_description():
         description="Topic containing an array of pointclouds data created combining input depth image and and array of rgb images",
     )
 
+    confidences_topic_arg = DeclareLaunchArgument(
+        name="confidences_topic",
+        default_value="/fruit_picking/segmentation/lang_sam/confidences",
+        description="Topic containing confidence of the segmented masks",
+    )
+
+
+
     return LaunchDescription([
         
+        publish_pointcloud_array_arg,
         depth_image_topic_arg,
         rgb_image_topic_arg,
         rgb_image_array_topic_arg,
@@ -92,6 +108,7 @@ def generate_launch_description():
         rgb_camera_info_topic_arg,
         pointcloud_processed_topic_arg,
         pointcloud_array_processed_topic_arg,
+        confidences_topic_arg,
 
         launch_ros.actions.ComposableNodeContainer(
             name='container',
@@ -103,13 +120,16 @@ def generate_launch_description():
                     package='fruit_picking_pointcloud',
                     plugin='reduced_pointcloud::ReducedPointcloud',
                     name='reduced_pointcloud',
-                    remappings=[('reduced/rgb/camera_info', LaunchConfiguration('rgb_camera_info_topic')),
+                    remappings=[('reduced/rgb/camera_info', LaunchConfiguration('depth_camera_info_topic')),
                                 ('reduced/rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
                                 ('reduced/rgb/image_rect_color_array', LaunchConfiguration('rgb_image_array_topic')),
                                 ('reduced/depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
                                 ('reduced/points', LaunchConfiguration('pointcloud_processed_topic')),
-                                ('reduced/points_array', LaunchConfiguration('pointcloud_array_processed_topic'))],
-                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+                                ('reduced/points_array', LaunchConfiguration('pointcloud_array_processed_topic')),
+                                ('reduced/confidences', LaunchConfiguration('confidences_topic'))],
+                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time'),
+                                 'publish_pointcloud_array': LaunchConfiguration('publish_pointcloud_array')
+                                }],
 
                 ),
             ],

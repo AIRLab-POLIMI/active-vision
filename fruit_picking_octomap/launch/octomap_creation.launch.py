@@ -8,8 +8,9 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('input_cloud_topic', default_value='/fruit_picking/pointcloud/pointcloud_processed'),
         DeclareLaunchArgument('reduced_input_cloud_topic', default_value='/fruit_picking/reduced_pointcloud/pointcloud_processed'),
-        DeclareLaunchArgument('output_confidence_vis', default_value='/fruit_picking/lang_sam_segmented_octomap/confidence_vis'),
-        DeclareLaunchArgument('output_semantic_class_vis', default_value='/fruit_picking/lang_sam_segmented_octomap/confidence_vis'),
+        DeclareLaunchArgument('reduced_input_cloud_array_topic', default_value='/fruit_picking/reduced_pointcloud/pointcloud_array_processed'),
+        DeclareLaunchArgument('output_confidence_vis', default_value='/confidence_vis'),
+        DeclareLaunchArgument('output_semantic_class_vis', default_value='/semantic_class_vis'),
         DeclareLaunchArgument('resolution', default_value='0.02'),
         DeclareLaunchArgument('frame_id', default_value='igus_rebel_base_link'),
         DeclareLaunchArgument('base_frame_id', default_value='igus_rebel_base_link'),
@@ -40,12 +41,14 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_confidence', default_value='False'),
         DeclareLaunchArgument('publish_semantic', default_value='False'),
         DeclareLaunchArgument('process_free_space', default_value='False'),
+        DeclareLaunchArgument('pointcloud_array_subscription', default_value='False'),
         Node(
             package='fruit_picking_octomap',
             executable='extended_octomap_server',
             output='screen',
             remappings=[('cloud_in', LaunchConfiguration('input_cloud_topic')),
                         ('reduced_cloud_in', LaunchConfiguration('reduced_input_cloud_topic')),
+                        ('reduced_cloud_array_in', LaunchConfiguration('reduced_input_cloud_array_topic')),
                         ('occupied_cells_vis_array', LaunchConfiguration('output_occupied_cells_vis')),
                         ('free_cells_vis_array', LaunchConfiguration('output_free_cells_vis')),
                         ('octomap_point_cloud_centers', LaunchConfiguration('output_occupied_cells_centers')),
@@ -86,6 +89,7 @@ def generate_launch_description():
                 'publish_free_space': LaunchConfiguration('publish_free_space'),
                 'publish_confidence': LaunchConfiguration('publish_confidence'),
                 'publish_semantic': LaunchConfiguration('publish_semantic'),
-                'process_free_space': LaunchConfiguration('process_free_space')}]
+                'process_free_space': LaunchConfiguration('process_free_space'),
+                'pointcloud_array_subscription': LaunchConfiguration('pointcloud_array_subscription'),}]
         )
     ])

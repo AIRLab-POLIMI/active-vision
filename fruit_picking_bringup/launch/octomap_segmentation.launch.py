@@ -76,13 +76,6 @@ def generate_launch_description():
         description="Name of the world to be loaded in Gazebo Ignition of the type: name.sdf",
     )
 
-    multiple_output_topics_arg = DeclareLaunchArgument(
-        name="multiple_output_topics",
-        default_value="true",
-        choices=["true", "false"],
-        description="Argument to specify the creation of multiple output topics containing each a different mask",
-    )
-
     test_camera_arg = DeclareLaunchArgument(
         name="test_camera",
         default_value="false",
@@ -102,7 +95,6 @@ def generate_launch_description():
             load_rviz_arg,
             env_gazebo_package_arg,
             full_world_name_arg,
-            multiple_output_topics_arg,
             test_camera_arg,
             OpaqueFunction(function=launch_setup),
         ]
@@ -146,15 +138,19 @@ def launch_setup(context, *args, **kwargs):
         if LaunchConfiguration("camera").perform(context) == 'realsense':
             rgb_image_topic = "/camera/color/image_raw"
             depth_image_topic = "/camera/aligned_depth_to_color/image_raw"
-            camera_info_topic = "/camera/aligned_depth_to_color/camera_info"
+            rgb_camera_info_topic = "/camera/color/camera_info"
 
     else:
         rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
         depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
-        camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
+        rgb_camera_info_topic = "/virtual_camera_link/rgb_camera/camera_info"
 
     rgb_segmented_image_topic = "/fruit_picking/segmentation/lang_sam/image"
-    pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
+    rgb_segmented_image_array_topic = "/fruit_picking/segmentation/lang_sam/image_array"
+    base_pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
+    reduced_pointcloud_processed_topic = "/fruit_picking/reduced_pointcloud/pointcloud_processed"
+    reduced_pointcloud_array_processed_topic = "/fruit_picking/reduced_pointcloud/pointcloud_array_processed"
+    confidences_topic = "/fruit_picking/segmentation/lang_sam/confidences"
 
     octomap_occupied_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_vis"
     octomap_free_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/free_cells_vis"
@@ -202,7 +198,8 @@ def launch_setup(context, *args, **kwargs):
             "use_sim_time": str(use_sim_time).lower(),
             "input_image_topic": rgb_image_topic,
             "output_image_topic": rgb_segmented_image_topic,
-            "multiple_output_topics": LaunchConfiguration("multiple_output_topics")
+            "output_image_array_topic": rgb_segmented_image_array_topic,
+            "output_confidences_topic": confidences_topic,
         }.items(),
     )
     
@@ -214,9 +211,27 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
+            "rgb_image_topic": rgb_image_topic,
+            "rgb_camera_info_topic": rgb_camera_info_topic,
+            "pointcloud_processed_topic": base_pointcloud_processed_topic,
+        }.items(),
+    ) 
+
+
+    # Reduced pointcloud creation launch
+    reduced_pointcloud_creation_launch_file = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("fruit_picking_pointcloud"), '/launch', '/reduced_pointcloud_creation.launch.py']),
+        launch_arguments={
+            "use_sim_time": str(use_sim_time).lower(),
+            "depth_image_topic": depth_image_topic,
             "rgb_image_topic": rgb_segmented_image_topic,
-            "camera_info_topic": camera_info_topic,
-            "pointcloud_processed_topic": pointcloud_processed_topic,
+            "rgb_image_array_topic": rgb_segmented_image_array_topic,
+            "rgb_camera_info_topic": rgb_camera_info_topic,
+            "pointcloud_processed_topic": reduced_pointcloud_processed_topic,
+            "pointcloud_array_processed_topic": reduced_pointcloud_array_processed_topic,
+            "confidences_topic": confidences_topic,
+            "publish_pointcloud_array": "True",
         }.items(),
     ) 
 
@@ -226,7 +241,9 @@ def launch_setup(context, *args, **kwargs):
             FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
-            "input_cloud_topic": pointcloud_processed_topic,
+            "input_cloud_topic": base_pointcloud_processed_topic,
+            "reduced_input_cloud_topic": reduced_pointcloud_processed_topic,
+            "reduced_input_cloud_array_topic": reduced_pointcloud_array_processed_topic,
             "output_occupied_cells_vis": octomap_occupied_cells_vis_topic,
             "output_free_cells_vis": octomap_free_cells_vis_topic,
             "output_occupied_cells_centers": octomap_occupied_cells_centers_topic,
@@ -239,6 +256,9 @@ def launch_setup(context, *args, **kwargs):
             "height_map": "False",
             "colored_map": "False",
             "filter_ground": 'True',
+            "publish_confidence": 'True',
+            "publish_semantic": 'True',
+            "pointcloud_array_subscription": 'True',
         }.items(),
     ) 
 
@@ -276,6 +296,7 @@ def launch_setup(context, *args, **kwargs):
     # Returns  
     return_actions.append(lang_sam_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
+    return_actions.append(reduced_pointcloud_creation_launch_file)
     return_actions.append(octomap_creation_launch_file)
     return_actions.append(rviz_node)
 

@@ -138,6 +138,12 @@ namespace octomap_server {
         double m_groundFilterPlaneDistance;
         bool m_compressMap;
 
+        // new bool for binary and full octomap, centers pointcloud and 2d map
+        bool publishOctomapBinary;
+        bool publishOctomapFull;
+        bool publishCentersPointcloud;
+        bool publish2DProjectedMap;
+
         // downprojected 2D map:
         bool m_incrementalUpdate;
         nav_msgs::msg::OccupancyGrid m_gridmap;

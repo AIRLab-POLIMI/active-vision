@@ -12,6 +12,12 @@ namespace octomap_server {
         m_useColoredMap(false),
         m_colorFactor(0.8),
         m_publishFreeSpace(false),
+
+        // new bool for binary and full octomap, centers pointcloud and 2d map
+        publishOctomapBinary(false),
+        publishOctomapFull(false),
+        publishCentersPointcloud(false),
+        publish2DProjectedMap(false),
         m_res(0.05),
         m_treeDepth(0),
         m_maxTreeDepth(0),
@@ -150,6 +156,17 @@ namespace octomap_server {
         
         m_publishFreeSpace = this->declare_parameter(
             "publish_free_space", m_publishFreeSpace);
+
+        // definition of the bool for binary and full octomap, centers pointcloud and 2d map
+        publishOctomapBinary = this->declare_parameter(
+            "publish_octomap_binary", publishOctomapBinary);
+        publishOctomapFull = this->declare_parameter(
+            "publish_octomap_full", publishOctomapFull);
+        publishCentersPointcloud = this->declare_parameter(
+            "publish_centers_pointcloud", publishCentersPointcloud);
+        publish2DProjectedMap = this->declare_parameter(
+            "publish_2d_projected_map", publish2DProjectedMap);
+
         std::string msg = std::string("Publishing non-latched (topics are only)") +
                     "prepared as needed, will only be re-published on map change";
         RCLCPP_INFO(this->get_logger(), msg.c_str());
@@ -171,15 +188,23 @@ namespace octomap_server {
         this->m_markerPub = this->create_publisher<
             visualization_msgs::msg::MarkerArray>(
                 "occupied_cells_vis_array", qos);
-        this->m_binaryMapPub = this->create_publisher<
-            octomap_msgs::msg::Octomap>("octomap_binary", qos);
-        this->m_fullMapPub = this->create_publisher<
-            octomap_msgs::msg::Octomap>("octomap_full", qos);
-        this->m_pointCloudPub = this->create_publisher<
-            sensor_msgs::msg::PointCloud2>(
-                "octomap_point_cloud_centers", qos);
-        this->m_mapPub = this->create_publisher<
-            nav_msgs::msg::OccupancyGrid>("projected_map", qos);
+        if (publishOctomapBinary){
+            this->m_binaryMapPub = this->create_publisher<
+                octomap_msgs::msg::Octomap>("octomap_binary", qos);
+        }
+        if (publishOctomapFull){
+            this->m_fullMapPub = this->create_publisher<
+                octomap_msgs::msg::Octomap>("octomap_full", qos);
+        }
+        if (publishCentersPointcloud){
+            this->m_pointCloudPub = this->create_publisher<
+                sensor_msgs::msg::PointCloud2>(
+                    "octomap_point_cloud_centers", qos);
+        }
+        if (publish2DProjectedMap){
+            this->m_mapPub = this->create_publisher<
+                nav_msgs::msg::OccupancyGrid>("projected_map", qos);
+        }
         this->m_fmarkerPub = this->create_publisher<
             visualization_msgs::msg::MarkerArray>(
                 "free_cells_vis_array", qos);
@@ -205,12 +230,16 @@ namespace octomap_server {
         this->m_tfPointCloudSub->registerCallback(
             std::bind(&OctomapServer::insertCloudCallback, this, ph::_1));
 
-        this->m_octomapBinaryService = this->create_service<OctomapSrv>(
-            "octomap_binary",
-            std::bind(&OctomapServer::octomapBinarySrv, this, ph::_1, ph::_2));
-        this->m_octomapFullService = this->create_service<OctomapSrv>(
-            "octomap_full",
-            std::bind(&OctomapServer::octomapFullSrv, this, ph::_1, ph::_2));
+        if (publishOctomapBinary){
+            this->m_octomapBinaryService = this->create_service<OctomapSrv>(
+                "octomap_binary",
+                std::bind(&OctomapServer::octomapBinarySrv, this, ph::_1, ph::_2));
+        }
+        if (publishOctomapFull){
+            this->m_octomapFullService = this->create_service<OctomapSrv>(
+                "octomap_full",
+                std::bind(&OctomapServer::octomapFullSrv, this, ph::_1, ph::_2));
+        }
         this->m_clearBBXService = this->create_service<BBXSrv>(
             "clear_bbx",
             std::bind(&OctomapServer::clearBBXSrv, this, ph::_1, ph::_2));
@@ -549,10 +578,21 @@ namespace octomap_server {
         bool publishFreeMarkerArray = m_publishFreeSpace &&
             m_fmarkerPub->get_subscription_count()  > 0;
         bool publishMarkerArray = m_markerPub->get_subscription_count() > 0;
-        bool publishPointCloud = m_pointCloudPub->get_subscription_count() > 0;
-        bool publishBinaryMap = m_binaryMapPub->get_subscription_count() > 0;
-        bool publishFullMap = m_fullMapPub->get_subscription_count() > 0;
-        m_publish2DMap = m_mapPub->get_subscription_count() > 0;
+        bool publishPointCloud = false;
+        bool publishBinaryMap = false;
+        bool publishFullMap = false;
+        if (publishCentersPointcloud){
+            publishPointCloud = m_pointCloudPub->get_subscription_count() > 0;
+        }
+        if (publishOctomapBinary){
+            publishBinaryMap = m_binaryMapPub->get_subscription_count() > 0;
+        }
+        if (publishOctomapFull){
+            publishFullMap = m_fullMapPub->get_subscription_count() > 0;
+        }
+        if (publish2DProjectedMap){
+            m_publish2DMap = m_mapPub->get_subscription_count() > 0;
+        }
 
         // init markers for free space:
         visualization_msgs::msg::MarkerArray freeNodesVis;

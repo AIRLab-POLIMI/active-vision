@@ -36,7 +36,7 @@ namespace extended_octomap_server {
         if (pointcloudArraySubscription){
             this->m_reducedPointCloudArraySub = std::make_shared<
                 message_filters::Subscriber<fruit_picking_interfaces::msg::PointcloudArray>>(
-                    this, "reduced_cloud_array_in", rmw_qos_profile_sensor_data);
+                    this, "segmented_pointclouds_array", rmw_qos_profile_sensor_data);
             
             this->m_tfReducedPointCloudArraySub = std::make_shared<tf2_ros::MessageFilter<
                 fruit_picking_interfaces::msg::PointcloudArray>>(
@@ -50,7 +50,7 @@ namespace extended_octomap_server {
         }
         this->m_reducedPointCloudSub = std::make_shared<
             message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
-                this, "reduced_cloud_in", rmw_qos_profile_sensor_data);
+                this, "segmented_pointcloud", rmw_qos_profile_sensor_data);
         
         this->m_tfReducedPointCloudSub = std::make_shared<tf2_ros::MessageFilter<
             sensor_msgs::msg::PointCloud2>>(
@@ -70,12 +70,12 @@ namespace extended_octomap_server {
         if (publishConfidence){
             this->confidenceMarkerPub = this->create_publisher<
                 visualization_msgs::msg::MarkerArray>(
-                    "confidence_vis_array", qos);
+                    "confidence_cells_vis", qos);
         }
         if (publishSemantic){
             this->semanticClassMarkerPub = this->create_publisher<
                 visualization_msgs::msg::MarkerArray>(
-                    "semantic_class_vis_array", qos);
+                    "semantic_class_cells_vis", qos);
         }
     }
 

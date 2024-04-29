@@ -153,12 +153,14 @@ def launch_setup(context, *args, **kwargs):
     segmented_pointcloud_topic = "/fruit_picking/pointcloud/segmented_pointcloud"
     segmented_pointclouds_array_topic = "/fruit_picking/pointcloud/segmented_pointclouds_array"
 
-    octomap_occupied_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_vis"
-    octomap_free_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/free_cells_vis"
-    octomap_occupied_cells_centers_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_centers"
-    octomap_binary_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_binary"
-    octomap_full_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_full"
-    octomap_projected_map_topic = "/fruit_picking/lang_sam_segmented_octomap/projected_map"
+    octomap_occupied_cells_vis_topic = "/fruit_picking/octomap/occupied_cells_vis"
+    octomap_free_cells_vis_topic = "/fruit_picking/octomap/free_cells_vis"
+    octomap_occupied_cells_centers_pointcloud_topic = "/fruit_picking/octomap/occupied_cells_centers_pointcloud"
+    octomap_binary_topic = "/fruit_picking/octomap/octomap_binary"
+    octomap_full_topic = "/fruit_picking/octomap/octomap_full"
+    octomap_projected_map_topic = "/fruit_picking/octomap/projected_map"
+    octomap_semantic_class_cells_vis_topic = "/fruit_picking/octomap/lang_sam/semantic_class_cells_vis"
+    octomap_confidence_cells_vis_topic = "/fruit_picking/octomap/lang_sam/confidence_cells_vis"
 
 
 
@@ -241,15 +243,17 @@ def launch_setup(context, *args, **kwargs):
             FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
-            "input_cloud_topic": pointcloud_topic,
-            "reduced_input_cloud_topic": segmented_pointcloud_topic,
-            "reduced_input_cloud_array_topic": segmented_pointclouds_array_topic,
-            "output_occupied_cells_vis": octomap_occupied_cells_vis_topic,
-            "output_free_cells_vis": octomap_free_cells_vis_topic,
-            "output_occupied_cells_centers": octomap_occupied_cells_centers_topic,
-            "output_octomap_binary": octomap_binary_topic,
-            "output_octomap_full": octomap_full_topic,
-            "output_projected_map": octomap_projected_map_topic,
+            "pointcloud_topic": pointcloud_topic,
+            "segmented_pointcloud_topic": segmented_pointcloud_topic,
+            "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
+            "octomap_occupied_cells_vis_topic": octomap_occupied_cells_vis_topic,
+            "octomap_free_cells_vis_topic": octomap_free_cells_vis_topic,
+            "octomap_occupied_cells_centers_pointcloud_topic": octomap_occupied_cells_centers_pointcloud_topic,
+            "octomap_binary_topic": octomap_binary_topic,
+            "octomap_full_topic": octomap_full_topic,
+            "octomap_projected_map_topic": octomap_projected_map_topic,
+            "octomap_semantic_class_cells_vis_topic": octomap_semantic_class_cells_vis_topic,
+            "octomap_confidence_cells_vis_topic": octomap_confidence_cells_vis_topic,
             "resolution": '0.003',
             "frame_id": frame_id,
             "base_frame_id": base_frame_id,

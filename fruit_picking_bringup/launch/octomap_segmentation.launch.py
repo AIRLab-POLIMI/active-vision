@@ -212,8 +212,8 @@ def launch_setup(context, *args, **kwargs):
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
             "rgb_image_topic": rgb_image_topic,
-            "rgb_camera_info_topic": depth_image_camera_info_topic,
-            "pointcloud_processed_topic": pointcloud_topic,
+            "depth_image_camera_info_topic": depth_image_camera_info_topic,
+            "pointcloud_topic": pointcloud_topic,
         }.items(),
     ) 
 

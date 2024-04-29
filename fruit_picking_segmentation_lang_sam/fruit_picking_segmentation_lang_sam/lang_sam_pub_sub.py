@@ -36,24 +36,23 @@ class LANGSAMPubSub(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("model_type", "vit_h"),
-                ("input_image_topic", "/virtual_camera_link/rgbd_camera/image_raw"),
-                ("output_image_topic", "/fruit_picking/segmentation/lang_sam/image"),
-                ("output_image_array_topic", "/fruit_picking/segmentation/lang_sam/image_array"),
-                ("output_boxes_topic", "/fruit_picking/segmentation/lang_sam/boxes"),
-                ("output_confidences_topic", "/fruit_picking/segmentation/lang_sam/confidences"),
+                ("sam_model_type", "vit_h"),
+                ("rgb_image_topic", "rgb_image"),
+                ("lang_sam_rgb_image_topic", "/lang_sam/rgb_image"),
+                ("lang_sam_rgb_images_array_topic", "/lang_sam/rgb_images_array"),
+                ("confidences_topic", "/lang_sam/confidences"),
+                ("publish_masks_array", True),
                 ("segmentation_prompt", "tomato"),
             ],
         )
 
-        self._sam_model_type = self.get_parameter("model_type").value
-        self._input_image_topic = self.get_parameter("input_image_topic").value
-        self._output_image_topic = self.get_parameter("output_image_topic").value
-        self._output_image_array_topic = self.get_parameter("output_image_array_topic").value
-        self._output_boxes_topic = self.get_parameter("output_boxes_topic").value
-        self._output_confidences_topic = self.get_parameter("output_confidences_topic").value
+        self._sam_model_type = self.get_parameter("sam_model_type").value
+        self._rgb_image_topic = self.get_parameter("rgb_image_topic").value
+        self._lang_sam_rgb_image_topic = self.get_parameter("lang_sam_rgb_image_topic").value
+        self._lang_sam_rgb_images_array_topic = self.get_parameter("lang_sam_rgb_images_array_topic").value
+        self._confidences_topic = self.get_parameter("confidences_topic").value
+        self._publish_masks_array = self.get_parameter("publish_masks_array").value
         self._lang_sam_segmentation_prompt = self.get_parameter("segmentation_prompt").value
-
 
 
 
@@ -79,19 +78,20 @@ class LANGSAMPubSub(Node):
 
         # Define image subscriber and segmentation callback
         self.subscription = self.create_subscription(
-            SensorImage, self._input_image_topic, self.segment, 10, callback_group=segment_group)
+            SensorImage, self._rgb_image_topic, self.segment, 10, callback_group=segment_group)
 
-
-        # Define image, image array, boxes and confidences publishers
-        self.image_publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
-        self.image_array_publisher = self.create_publisher(ImageArray, self._output_image_array_topic, 10)
-        self.boxes_publisher = self.create_publisher(String, self._output_boxes_topic, 10)
-        self.confidences_publisher = self.create_publisher(Confidence, self._output_confidences_topic, 10)
-    
-
-        # Initialize clock subscriber
+         # Initialize clock subscriber
         self.clock_subscriber = self.create_subscription(Clock, '/clock', self.clock_sub, 10, callback_group=clock_subscriber_group)
 
+        # Define image, image array and confidences publishers
+        self.image_publisher = self.create_publisher(SensorImage, self._lang_sam_rgb_image_topic, 10)
+        if (self._publish_masks_array):
+            self.image_array_publisher = self.create_publisher(ImageArray, self._lang_sam_rgb_images_array_topic, 10)
+            self.get_logger().info(f'[INIT] Masks array publisher is ready.')
+
+        self.confidences_publisher = self.create_publisher(Confidence, self._confidences_topic, 10)
+    
+        self.get_logger().info(f'[INIT] Merged masks publisher is ready.')
         self.get_logger().info(f'[INIT] Pub-Sub client is ready.')
 
 
@@ -113,19 +113,6 @@ class LANGSAMPubSub(Node):
     def publish_image_array_segmentation(self, image_array_msg):
         self.image_array_publisher.publish(image_array_msg)
         self.get_logger().info('[ImageArray-pub] Image array published.')
-
-
-
-    def publish_boxes_segmentation(self, boxes, masks_names):
-        # Convert boxes tensor in list of lists and publish as a json string, together with a header
-        boxes = boxes.tolist()
-        boxes_dict = dict(zip(masks_names, boxes))
-        boxes_json_str = json.dumps(boxes_dict)  # Serialize dictionary to JSON string
-        msg_boxes = String()
-        msg_boxes.data = boxes_json_str # to deserialize: confidences_dict = json.loads(confidences_json_str)
-
-        self.boxes_publisher.publish(msg_boxes)
-        self.get_logger().info('[Boxes-pub] Boxes published.')
 
 
 
@@ -199,72 +186,60 @@ class LANGSAMPubSub(Node):
             f"[LANG-SAM] Masks found: {masks.size(0)}."
         )
 
+
         # Declare a new ImageArray object
-        mask_images_array = ImageArray()
-        mask_images_array.header.frame_id = self.original_image.header.frame_id
-        mask_images_array.header.stamp = start_pub_stamp
+        if (self._publish_masks_array):
+            mask_images_array = ImageArray()
+            mask_images_array.header.frame_id = self.original_image.header.frame_id
+            mask_images_array.header.stamp = start_pub_stamp
+
 
 
         # Case when the model did not segment any mask, thus the result is a null image
         if masks.size(0) <= 0:
+
+            # Publish confidences as empty lists
+            self.get_logger().info(f'[Confidences-pub] Publishing empty confidences...')
+            self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [], self.original_image.header.frame_id, start_pub_stamp)
+            
+            # Create empty image
             empty_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
             empty_image = cv2.cvtColor(empty_image, cv2.COLOR_BGR2RGB)
             empty_image = self.bridge.cv2_to_imgmsg(empty_image, encoding="rgb8")
             empty_image.header.frame_id = self.original_image.header.frame_id
             empty_image.header.stamp = start_pub_stamp
-            # Append the white image inside the images array
-            mask_images_array.images.append(empty_image)
 
-            # Define image publisher and publish
+
+            # Publish empty image
             self.get_logger().info(f'[Image-pub] Publishing empty image...')
             self.publish_image_segmentation(empty_image)
 
-            # Define image array publisher and publish
-            self.get_logger().info(f'[ImageArray-pub] Publishing empty images array...')
-            self.publish_image_array_segmentation(mask_images_array)
 
-            # Publish boxes and confidences as empty lists
-            self.get_logger().info(f'[Boxes-pub] Publishing empty boxes...')
-            self.publish_boxes_segmentation(torch.empty_like(torch.tensor([])), [])
-            self.get_logger().info(f'[Confidences-pub] Publishing empty confidences...')
-            self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [], self.original_image.header.frame_id, start_pub_stamp)
+            # Case when the array of masks need to be published
+            if (self._publish_masks_array):
             
-            
+                # Append the white image inside the images array
+                mask_images_array.images.append(empty_image)
+                
+                 # Publish empty image array
+                self.get_logger().info(f'[ImageArray-pub] Publishing empty images array...')
+                self.publish_image_array_segmentation(mask_images_array)
+
+                
+
+                
 
         # Case when the model segmented some masks
         else:
-
             masks_names = [f"mask_{i}" for i in range(1, masks.size(0) + 1)]
 
             # Prepare merged masks images to be published
             # Convert bool masks tensor to cv2 images
             masks_images = convert_masks_to_images(masks)
 
-
-            # Publish boxes and confidences
-            self.get_logger().info(f'[Boxes-pub] Publishing boxes...')
-            self.publish_boxes_segmentation(boxes, masks_names)
+            # Publish confidences
             self.get_logger().info(f'[Confidences-pub] Publishing confidences...')
             self.publish_confidences_segmentation(confidences, masks_names, self.original_image.header.frame_id, start_pub_stamp)
-
-
-            # Image array publication
-            for i, mask_image in enumerate(masks_images):
-                mask_image = rgba_to_rgb_with_white_background(mask_image)
-                # mask_image = cv2.cvtColor(mask_image, cv2.COLOR_BGR2RGB)
-                mask_image = np.uint8(mask_image * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
-
-                # In order to visualize in Rviz, the image need to be processed more
-                mask_image = cv2.convertScaleAbs(mask_image)
-                mask_image = self.bridge.cv2_to_imgmsg(mask_image, encoding="rgb8")
-                mask_image.header.frame_id = self.original_image.header.frame_id
-                mask_image.header.stamp = start_pub_stamp
-
-                # Add each image in the ImageArray object
-                mask_images_array.images.append(mask_image)
-            self.get_logger().info(f'[ImageArray-pub] Publishing images array...')
-            self.publish_image_array_segmentation(mask_images_array)
-
 
             # Merged masks publication  
             merged_masks_images = merge_masks_images(masks_images)
@@ -281,6 +256,25 @@ class LANGSAMPubSub(Node):
             # Define image publisher and publish
             self.get_logger().info(f'[Image-pub] Publishing merged masks image...')
             self.publish_image_segmentation(merged_masks_images)
+
+
+            # Image array publication
+            if (self._publish_masks_array):
+                for mask_image in masks_images:
+                    mask_image = rgba_to_rgb_with_white_background(mask_image)
+                    # mask_image = cv2.cvtColor(mask_image, cv2.COLOR_BGR2RGB)
+                    mask_image = np.uint8(mask_image * 255 * 255) # in order to visualize the color image for RViz and also for the exported image
+
+                    # In order to visualize in Rviz, the image need to be processed more
+                    mask_image = cv2.convertScaleAbs(mask_image)
+                    mask_image = self.bridge.cv2_to_imgmsg(mask_image, encoding="rgb8")
+                    mask_image.header.frame_id = self.original_image.header.frame_id
+                    mask_image.header.stamp = start_pub_stamp
+
+                    # Add each image in the ImageArray object
+                    mask_images_array.images.append(mask_image)
+                self.get_logger().info(f'[ImageArray-pub] Publishing images array...')
+                self.publish_image_array_segmentation(mask_images_array)
 
 
 

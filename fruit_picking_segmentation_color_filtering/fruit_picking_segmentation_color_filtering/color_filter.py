@@ -23,24 +23,26 @@ class ColorFilter(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("input_image_topic", "/virtual_camera_link/rgbd_camera/image_raw"),
-                ("output_image_topic", "/fruit_picking/segmentation/lang_sam/image"),
+                ("rgb_image_topic", "/rgb_image"),
+                ("color_filter_rgb_image_topic", "/color_filter/rgb_image"),
                 ("colors", "red"),
             ],
         )
 
-        self._input_image_topic = self.get_parameter("input_image_topic").value
-        self._output_image_topic = self.get_parameter("output_image_topic").value
+        self._rgb_image_topic = self.get_parameter("rgb_image_topic").value
+        self._color_filter_rgb_image_topic = self.get_parameter("color_filter_rgb_image_topic").value
         self._colors = self.get_parameter("colors").value       
 
 
         self.get_logger().info(
             f"[INIT] Color fitering masks creation initializated."
         )
-        # Define image publisher and subscriber
+
+
+        # Define rgb image publisher and subscriber
         self.subscription = self.create_subscription(
-            SensorImage, self._input_image_topic, self.color_filtering, 10)
-        self.publisher = self.create_publisher(SensorImage, self._output_image_topic, 10)
+            SensorImage, self._rgb_image_topic, self.color_filtering, 10)
+        self.publisher = self.create_publisher(SensorImage, self._color_filter_rgb_image_topic, 10)
 
 
 
@@ -51,17 +53,14 @@ class ColorFilter(Node):
 
     def publish_segmentation(self, image_msg):
         self.publisher.publish(image_msg)
-        # self.get_logger().info('[Image-pub] Image published.')
-        
+      
 
 
 
     def color_filtering(self, msg):
         
         # Get input image from input topic, and size
-        # self.get_logger().info('------------------------------------------------')
         self.original_image = msg
-
 
 
         # Format input image from sensor_msgs/Image to cv2 format
@@ -69,11 +68,9 @@ class ColorFilter(Node):
         # self.get_logger().info('[COLOR-FILT] Original image received.')
         # self.get_logger().info(f'[COLOR-FILT] Filtering {self._colors} zones...')
 
-        start_filt = self.get_clock().now().nanoseconds
 
         # Convert to hsv
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
 
 
         # Set filtering based on the desired color
@@ -122,16 +119,9 @@ class ColorFilter(Node):
         filtered_img.header.frame_id = self.original_image.header.frame_id
         filtered_img.header.stamp = self.get_clock().now().to_msg()
 
-        # self.get_logger().info(f'[COLOR-FILT] Image filtered.')
 
-
-        # Define publisher and publish
-        # self.get_logger().info(f'[Image-pub] Publishing filtered image...')
+        # Publish
         self.publish_segmentation(filtered_img)
-        # self.get_logger().info(
-        #     f"[COLOR-FILT] Image filtered and published in {round((self.get_clock().now().nanoseconds - start_filt)/1.e9, 5)}s."
-        # )
-
 
 
 

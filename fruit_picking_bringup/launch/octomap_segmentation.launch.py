@@ -196,10 +196,10 @@ def launch_setup(context, *args, **kwargs):
             FindPackageShare("fruit_picking_segmentation_lang_sam"), '/launch', '/lang_sam.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
-            "input_image_topic": rgb_image_topic,
-            "output_image_topic": lang_sam_rgb_image_topic,
-            "output_image_array_topic": lang_sam_rgb_images_array_topic,
-            "output_confidences_topic": confidences_topic,
+            "rgb_image_topic": rgb_image_topic,
+            "lang_sam_rgb_image_topic": lang_sam_rgb_image_topic,
+            "lang_sam_rgb_images_array_topic": lang_sam_rgb_images_array_topic,
+            "confidences_topic": confidences_topic,
         }.items(),
     )
     

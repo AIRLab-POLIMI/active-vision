@@ -202,8 +202,8 @@ def launch_setup(context, *args, **kwargs):
             FindPackageShare("fruit_picking_segmentation_color_filtering"), '/launch', '/color_filter.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
-            "input_image_topic": rgb_image_topic,
-            "output_image_topic": color_filter_rgb_image_topic,
+            "rgb_image_topic": rgb_image_topic,
+            "color_filter_rgb_image_topic": color_filter_rgb_image_topic,
             "colors": LaunchConfiguration("colors")
         }.items(),
     )

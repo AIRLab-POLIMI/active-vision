@@ -24,10 +24,10 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "model_type",
+            "sam_model_type",
             default_value="vit_b",
             choices=["vit_h", "vit_b", "vit_l"],
-            description="Type of the model to use",
+            description="Type of the SAM model to use",
         )
     )
 
@@ -49,41 +49,42 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "input_image_topic",
-            default_value="/virtual_camera_link/rgbd_camera/image_raw",
+            "rgb_image_topic",
+            default_value="/rgb_image",
             description="Topic that contains the original RGB data that needs to be segmented",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "output_image_topic",
-            default_value="/fruit_picking/segmentation/lang_sam/image",
+            "lang_sam_rgb_image_topic",
+            default_value="/lang_sam/rgb_image",
             description="Topic that contains the segmented RGB data that comes from the LANG SAM server",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "output_image_array_topic",
-            default_value="/fruit_picking/segmentation/lang_sam/image_array",
+            "lang_sam_rgb_images_array_topic",
+            default_value="/lang_sam/rgb_images_array",
             description="Topic that contains the segmented RGB array data that comes from the LANG SAM server",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "output_boxes_topic",
-            default_value="/fruit_picking/segmentation/lang_sam/boxes",
-            description="Topic that contains the boxes of the segmented RGB data that comes from the LANG SAM server",
+            "confidences_topic",
+            default_value="/lang_sam/confidences",
+            description="Topic that contains the confidences of the segmented RGB data that comes from the LANG SAM server",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "output_confidences_topic",
-            default_value="/fruit_picking/segmentation/lang_sam/confidences",
-            description="Topic that contains the confidences of the segmented RGB data that comes from the LANG SAM server",
+            "publish_masks_array",
+            default_value="True",
+            choices=["True", "False"],
+            description="Whether the model publish the various found masks as an array or not. If False, the topic still will be echoed since it is remapped in the segmented pointcloud launch.",
         )
     )
 
@@ -117,7 +118,7 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[
                 {
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
-                    "model_type": LaunchConfiguration("model_type"),
+                    "sam_model_type": LaunchConfiguration("sam_model_type"),
                 }
             ],
             condition=LaunchConfigurationEquals('approach', 'test_client'),
@@ -150,12 +151,12 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[
                 {
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
-                    "model_type": LaunchConfiguration("model_type"),
-                    "input_image_topic": LaunchConfiguration("input_image_topic"),
-                    "output_image_topic": LaunchConfiguration("output_image_topic"),
-                    "output_image_array_topic": LaunchConfiguration("output_image_array_topic"),
-                    "output_boxes_topic": LaunchConfiguration("output_boxes_topic"),
-                    "output_confidences_topic": LaunchConfiguration("output_confidences_topic"),
+                    "sam_model_type": LaunchConfiguration("sam_model_type"),
+                    "rgb_image_topic": LaunchConfiguration("rgb_image_topic"),
+                    "lang_sam_rgb_image_topic": LaunchConfiguration("lang_sam_rgb_image_topic"),
+                    "lang_sam_rgb_images_array_topic": LaunchConfiguration("lang_sam_rgb_images_array_topic"),
+                    "confidences_topic": LaunchConfiguration("confidences_topic"),
+                    "publish_masks_array": LaunchConfiguration("publish_masks_array"),
                     "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),
                 }
             ],

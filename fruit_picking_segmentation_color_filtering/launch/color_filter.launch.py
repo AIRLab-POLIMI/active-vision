@@ -16,16 +16,16 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "input_image_topic",
-            default_value="/virtual_camera_link/rgbd_camera/image_raw",
+            "rgb_image_topic",
+            default_value="/rgb_image",
             description="Topic that contains the original RGB data that needs to be segmented",
         )
     )
 
     ld.add_action(
         DeclareLaunchArgument(
-            "output_image_topic",
-            default_value="/fruit_picking/segmentation/color_filter/image",
+            "color_filter_rgb_image_topic",
+            default_value="/color_filter/rgb_image",
             description="Topic that contains the filtered RGB data that comes from the color filter",
         )
     )
@@ -59,8 +59,8 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[
                 {
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
-                    "input_image_topic": LaunchConfiguration("input_image_topic"),
-                    "output_image_topic": LaunchConfiguration("output_image_topic"),
+                    "rgb_image_topic": LaunchConfiguration("rgb_image_topic"),
+                    "color_filter_rgb_image_topic": LaunchConfiguration("color_filter_rgb_image_topic"),
                     "colors": LaunchConfiguration("colors"),
                 }
             ],

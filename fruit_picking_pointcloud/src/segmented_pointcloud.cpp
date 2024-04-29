@@ -30,26 +30,30 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <fruit_picking_pointcloud/reduced_pointcloud.hpp>
+#include <fruit_picking_pointcloud/segmented_pointcloud.hpp>
 
-namespace reduced_pointcloud{
+namespace segmented_pointcloud{
 
-ReducedPointcloud::ReducedPointcloud(const rclcpp::NodeOptions &options) : rclcpp::Node("ReducedPointcloud", options){
+SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : rclcpp::Node("SegmentedPointcloud", options){
 
     // Read parameters
     int queue_size = this->declare_parameter<int>("queue_size", 5);
     bool use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
-    publishPointcloudArray = this->declare_parameter("publish_pointcloud_array", publishPointcloudArray);
+
+    // used to specify if a single segmented pointcloud of an array of segmented pointclouds have to be published
+    publishPointcloudsArray = this->declare_parameter("publish_pointclouds_array", publishPointcloudsArray);
+    publishSinglePointcloud = this->declare_parameter("publish_single_pointcloud", publishSinglePointcloud);
+
     
 
     // Synchronize inputs. Topic subscriptions happen on demand in the connection callback.
+    // Each case has a case for the pointclouds array and one for a single pointcloud
     if (use_exact_sync) {
-        if (publishPointcloudArray){
-            RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Using exact sync for array...");
+        if (publishPointcloudsArray){
             exact_sync_array_ = std::make_shared<ExactSynchronizerArray>(ExactSyncPolicyArray(queue_size), sub_depth_, sub_rgb_array_, sub_info_, sub_conf_);
             exact_sync_array_->registerCallback(
                 std::bind(
-                    &ReducedPointcloud::imageArrayCb,
+                    &SegmentedPointcloud::imageArrayCb,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
@@ -57,12 +61,11 @@ ReducedPointcloud::ReducedPointcloud(const rclcpp::NodeOptions &options) : rclcp
                     std::placeholders::_4));
             
         }
-        else{
-            RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Using exact sync...");
+        else if (publishSinglePointcloud){
             exact_sync_ = std::make_shared<ExactSynchronizer>(ExactSyncPolicy(queue_size), sub_depth_, sub_rgb_, sub_info_);
             exact_sync_->registerCallback(
                 std::bind(
-                    &ReducedPointcloud::imageCb,
+                    &SegmentedPointcloud::imageCb,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
@@ -71,24 +74,22 @@ ReducedPointcloud::ReducedPointcloud(const rclcpp::NodeOptions &options) : rclcp
           
     } 
     else {
-        if (publishPointcloudArray){
-            RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Using apporximate sync for array...");
+        if (publishPointcloudsArray){
             sync_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(queue_size), sub_depth_, sub_rgb_array_, sub_info_, sub_conf_);
             sync_array_->registerCallback(
                 std::bind(
-                    &ReducedPointcloud::imageArrayCb,
+                    &SegmentedPointcloud::imageArrayCb,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
                     std::placeholders::_3,
                     std::placeholders::_4));            
         }
-        else{
-            RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Using approximate sync...");
+        else if (publishSinglePointcloud){
             sync_ = std::make_shared<Synchronizer>(SyncPolicy(queue_size), sub_depth_, sub_rgb_, sub_info_);
             sync_->registerCallback(
                 std::bind(
-                    &ReducedPointcloud::imageCb,
+                    &SegmentedPointcloud::imageCb,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
@@ -98,66 +99,35 @@ ReducedPointcloud::ReducedPointcloud(const rclcpp::NodeOptions &options) : rclcp
 
     connectCb();
     std::lock_guard<std::mutex> lock(connect_mutex_);
-    if (publishPointcloudArray){
-        RCLCPP_INFO(this->get_logger(), "Creating publisher for pointcloud array...");
-        pub_point_cloud_array_ = create_publisher<PointCloud2Array>("reduced/points_array", rclcpp::SensorDataQoS());
+    if (publishPointcloudsArray){
+        pub_point_cloud_array_ = create_publisher<PointCloud2Array>("segmented_pointclouds_array", rclcpp::SensorDataQoS());
     }
-    else{
-        RCLCPP_INFO(this->get_logger(), "Creating publisher for pointcloud...");
-        pub_point_cloud_ = create_publisher<PointCloud2>("reduced/points", rclcpp::SensorDataQoS());
+    else if (publishSinglePointcloud){
+        pub_point_cloud_ = create_publisher<PointCloud2>("segmented_pointcloud", rclcpp::SensorDataQoS());
     }
+    RCLCPP_INFO(this->get_logger(), "Setup completed.");
 
 }
 
-void ReducedPointcloud::connectCb()
+void SegmentedPointcloud::connectCb()
 {
     std::lock_guard<std::mutex> lock(connect_mutex_);
-    // TODO(ros2) Implement getNumSubscribers when rcl/rmw support it
-    // if (pub_point_cloud_->getNumSubscribers() == 0)
-    if (0) {
-        // TODO(ros2) Implement getNumSubscribers when rcl/rmw support it
-        sub_depth_.unsubscribe();
-        sub_rgb_.unsubscribe();
-        if (publishPointcloudArray){
-            sub_rgb_array_.unsubscribe();
-        }
-        sub_info_.unsubscribe();
-    } 
-    else if (!sub_depth_.getSubscriber()) {
-        // parameter for depth_image_transport hint
-        std::string depth_image_transport_param = "depth_image_transport";
-        image_transport::TransportHints depth_hints(this, "raw", depth_image_transport_param);
+    if (!sub_depth_.getSubscriber()) {
 
-        rclcpp::SubscriptionOptions sub_opts;
-        // Update the subscription options to allow reconfigurable qos settings.
-        sub_opts.qos_overriding_options = rclcpp::QosOverridingOptions {
-          {
-            // Here all policies that are desired to be reconfigurable are listed.
-            rclcpp::QosPolicyKind::Depth,
-            rclcpp::QosPolicyKind::Durability,
-            rclcpp::QosPolicyKind::History,
-            rclcpp::QosPolicyKind::Reliability,
-          }};
+        sub_depth_.subscribe(this, "depth_image");
+        sub_info_.subscribe(this, "depth_image_camera_info");
 
-        // depth image can use different transport.(e.g. compressedDepth)
-        sub_depth_.subscribe(
-            this, "reduced/depth_registered/image_rect");
-        // rgb array sub uses not ros transport hints.
-        if (publishPointcloudArray){
-            sub_rgb_array_.subscribe(this, "reduced/rgb/image_rect_color_array");            
-            sub_conf_.subscribe(this, "reduced/confidences");
+        if (publishPointcloudsArray){
+            sub_rgb_array_.subscribe(this, "rgb_images_array");            
+            sub_conf_.subscribe(this, "confidences");
         }
-        // rgb uses normal ros transport hints.
-        image_transport::TransportHints hints(this, "raw");
-        sub_rgb_.subscribe(
-            this, "reduced/rgb/image_rect_color");
-        sub_info_.subscribe(this, "reduced/rgb/camera_info");
+        else if (publishSinglePointcloud){
+            sub_rgb_.subscribe(this, "rgb_image");
+        }
     }
-    RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Connection done.");
-
 }
 
-void ReducedPointcloud::imageCb(
+void SegmentedPointcloud::imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg_in,
     const CameraInfo::ConstSharedPtr & info_msg)
@@ -226,19 +196,15 @@ void ReducedPointcloud::imageCb(
         rgb_msg = rgb_msg_in;
     }
 
-   
+    // Create an empty pointcloud message that will be published at the end
+    auto pointcloud_msg = std::make_shared<PointCloud2>();
 
-    auto cloud_msg = std::make_shared<PointCloud2>();
-
-    // sensor_msgs::PointCloud2Modifier pcd_modifier(*cloud_msg); // not used since it will be converted into a pcl cloud
-    // pcd_modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
-
-    // Convert Depth Image to Pointcloud
+    // Convert Depth Image message to Pointcloud message such that the final pointcloud contain only the segmented points
     if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-        convertDepth<uint16_t>(depth_msg, *rgb_msg, *cloud_msg, model_);
+        convertDepth<uint16_t>(*depth_msg, *rgb_msg, *pointcloud_msg, model_);
     } 
     else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
-        convertDepth<float>(depth_msg, *rgb_msg, *cloud_msg, model_);
+        convertDepth<float>(*depth_msg, *rgb_msg, *pointcloud_msg, model_);
     } 
     else {
         RCLCPP_ERROR(
@@ -246,23 +212,22 @@ void ReducedPointcloud::imageCb(
         return;
     }
 
-    cloud_msg->header = depth_msg->header;
-    cloud_msg->is_dense = false;
-    cloud_msg->is_bigendian = false;
+    // Fill header of pointcloud message
+    pointcloud_msg->header = depth_msg->header;
+    pointcloud_msg->is_dense = false;
+    pointcloud_msg->is_bigendian = false;
 
-    pub_point_cloud_->publish(*cloud_msg);
-    RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Pointcloud published.");
+    pub_point_cloud_->publish(*pointcloud_msg);
+    RCLCPP_INFO(this->get_logger(), "Pointcloud published.");
 
 }
 
-void ReducedPointcloud::imageArrayCb(
+void SegmentedPointcloud::imageArrayCb(
     const Image::ConstSharedPtr & depth_msg,
     const ImageArray::ConstSharedPtr & rgb_array_in,
     const CameraInfo::ConstSharedPtr & info_msg,
     const std::shared_ptr<const Confidence> & conf_msg)
 {
-    RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD] Image Array CB activated.");
-
     // Check for bad inputs through all the rgb images
     for (const auto& rgb_msg_in : rgb_array_in->images){
         if (depth_msg->header.frame_id != rgb_msg_in.header.frame_id) {
@@ -278,21 +243,20 @@ void ReducedPointcloud::imageArrayCb(
     // Update camera model
     model_.fromCameraInfo(info_msg);
 
-    auto cloud_array = std::make_shared<PointCloud2Array>();
-    cloud_array->header = depth_msg->header;
-    cloud_array->confidences = conf_msg->data;
-    cloud_array->pointclouds = std::vector<PointCloud2>(rgb_array_in->images.size());
+    // Create an empty pointclouds array message that will be published at the end
+    auto pointcloud_array = std::make_shared<PointCloud2Array>();
 
-    auto cloud = std::make_shared<PointCloud2>();
-
-    pcl::PointCloud<pcl::PointXYZ> full_pcl_cloud;
-
+    // Fill the pointclouds array message header
+    pointcloud_array->header = depth_msg->header;
+    pointcloud_array->confidences = conf_msg->data;
+    pointcloud_array->pointclouds = std::vector<PointCloud2>(rgb_array_in->images.size());
 
     for (size_t i = 0; i < rgb_array_in->images.size(); ++i){
 
+        // Define the rgb message containing a segmentation
         auto& rgb_msg_in = rgb_array_in->images[i];
-        auto cloud_msg = std::make_shared<PointCloud2>();
-
+        // Define the segmented pointcloud that will contain a segmentation
+        auto pointcloud_msg = std::make_shared<PointCloud2>();
 
         // Check if the input images have to be resized
         Image rgb_msg = rgb_msg_in;
@@ -344,58 +308,40 @@ void ReducedPointcloud::imageArrayCb(
             rgb_msg = rgb_msg_in;
         }     
 
-        // sensor_msgs::PointCloud2Modifier pcd_modifier(*cloud_msg);
-        // pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
-
-        // Convert Depth Image to Pointcloud
+        // Convert Depth Image message to Pointcloud message such that the final pointcloud contain only the segmented points
         if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-            convertDepth<uint16_t>(depth_msg, rgb_msg, *cloud_msg, model_);
+            convertDepth<uint16_t>(*depth_msg, rgb_msg, *pointcloud_msg, model_);
         } 
         else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
-            convertDepth<float>(depth_msg, rgb_msg, *cloud_msg, model_);
+            convertDepth<float>(*depth_msg, rgb_msg, *pointcloud_msg, model_);
         } 
         else {
             RCLCPP_ERROR(get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());
             return;
         }
 
-        pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
-        pcl::fromROSMsg(*cloud_msg, pcl_cloud);
+        // Fill header of pointcloud message
+        pointcloud_msg->header = depth_msg->header;
+        pointcloud_msg->is_dense = false;
+        pointcloud_msg->is_bigendian = false;
 
-        full_pcl_cloud += pcl_cloud;
-
-        cloud_msg->header = depth_msg->header;
-        cloud_msg->is_dense = false;
-        cloud_msg->is_bigendian = false;
-
-        cloud_array->pointclouds[i] = *cloud_msg;
+        pointcloud_array->pointclouds[i] = *pointcloud_msg;
 
         // Calculate the number of points in the point cloud
-        RCLCPP_INFO(this->get_logger(), "The final size of the pointcloud is %zu", cloud_msg->data.size());
+        // RCLCPP_INFO(this->get_logger(), "The final size of the pointcloud is %zu", pointcloud_msg->data.size());
 
     }
 
-    pub_point_cloud_array_->publish(*cloud_array);
-    RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD][IMAGEARRAYCB] Pointcloud array published.");
-
-    pcl::toROSMsg(full_pcl_cloud, *cloud);
-    cloud->header = depth_msg->header;
-    cloud->height = 1;
-    cloud->width = full_pcl_cloud.points.size();
-    cloud->is_dense = false;
-    cloud->is_bigendian = false;
-
-    
-    RCLCPP_INFO(this->get_logger(), "The final size of the full pointcloud is %zu", cloud->data.size());
-
-    // pub_point_cloud_->publish(*cloud);
-    RCLCPP_INFO(this->get_logger(), "[REDUCED POINTCLOUD][IMAGEARRAYCB] Full pointcloud published.");
-
-    
+    pub_point_cloud_array_->publish(*pointcloud_array);
+    RCLCPP_INFO(this->get_logger(), "Pointcloud array published.");    
 }
+
+
+
+
     
 } // namespace
 
 
 // Register the component with class_loader.
-RCLCPP_COMPONENTS_REGISTER_NODE(reduced_pointcloud::ReducedPointcloud)
+RCLCPP_COMPONENTS_REGISTER_NODE(segmented_pointcloud::SegmentedPointcloud)

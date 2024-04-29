@@ -32,8 +32,8 @@
 
 
 #pragma once
-#ifndef _REDUCED_POINTCLOUD_HPP_
-#define _REDUCED_POINTCLOUD_HPP_
+#ifndef _SEGMENTED_POINTCLOUD_HPP_
+#define _SEGMENTED_POINTCLOUD_HPP_
 
 #include <functional>
 #include <memory>
@@ -49,21 +49,12 @@
 #include "message_filters/sync_policies/exact_time.h"
 #include "message_filters/sync_policies/approximate_time.h"
 
-#include <image_transport/image_transport.hpp>
-#include <image_transport/subscriber_filter.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "cv_bridge/cv_bridge.h"
-
-#include <tf2/buffer_core.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/create_timer_ros.h>
-#include <tf2_ros/message_filter.h>
 
 #include "rclcpp_components/register_node_macro.hpp"
 
@@ -81,12 +72,12 @@
 #include <pcl/common/transforms.h>
 
 
-namespace reduced_pointcloud{
+namespace segmented_pointcloud{
     
-    class ReducedPointcloud : public rclcpp::Node{
+    class SegmentedPointcloud : public rclcpp::Node{
 
     public:
-        ReducedPointcloud(const rclcpp::NodeOptions& options);
+        SegmentedPointcloud(const rclcpp::NodeOptions& options);
 
     protected:
 
@@ -122,7 +113,8 @@ namespace reduced_pointcloud{
 
         image_geometry::PinholeCameraModel model_;
 
-        bool publishPointcloudArray;
+        bool publishPointcloudsArray;
+        bool publishSinglePointcloud;
 
         void connectCb();
 
@@ -139,7 +131,7 @@ namespace reduced_pointcloud{
         
         template<typename T>
         void convertDepth(
-            const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
+            const sensor_msgs::msg::Image & depth_msg,
             const sensor_msgs::msg::Image & rgb_msg,
             sensor_msgs::msg::PointCloud2 & cloud_msg,
             const image_geometry::PinholeCameraModel & model)
@@ -156,11 +148,11 @@ namespace reduced_pointcloud{
             // Create an empty pcl::PointCloud<pcl::PointXYZ>
             pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
 
-            const T* depth_row = reinterpret_cast<const T*>(&depth_msg->data[0]);
+            const T* depth_row = reinterpret_cast<const T*>(&depth_msg.data[0]);
             const uint8_t* rgb_row = &rgb_msg.data[0];
-            int row_step = depth_msg->step / sizeof(T);
-            for (int v = 0; v < static_cast<int>(depth_msg->height); ++v, depth_row += row_step, rgb_row += rgb_msg.step) {
-                for (int u = 0; u < static_cast<int>(depth_msg->width); ++u) {
+            int row_step = depth_msg.step / sizeof(T);
+            for (int v = 0; v < static_cast<int>(depth_msg.height); ++v, depth_row += row_step, rgb_row += rgb_msg.step) {
+                for (int u = 0; u < static_cast<int>(depth_msg.width); ++u) {
                     T depth = depth_row[u];
 
                     // Get the RGB values

@@ -138,19 +138,20 @@ def launch_setup(context, *args, **kwargs):
         if LaunchConfiguration("camera").perform(context) == 'realsense':
             rgb_image_topic = "/camera/color/image_raw"
             depth_image_topic = "/camera/aligned_depth_to_color/image_raw"
-            rgb_camera_info_topic = "/camera/color/camera_info"
+            depth_image_camera_info_topic = "/camera/aligned_depth_to_color/camera_info"
 
     else:
         rgb_image_topic = "/virtual_camera_link/rgbd_camera/image_raw"
         depth_image_topic = "/virtual_camera_link/rgbd_camera/depth_image"
-        rgb_camera_info_topic = "/virtual_camera_link/rgb_camera/camera_info"
+        depth_image_camera_info_topic = "/virtual_camera_link/rgbd_camera/camera_info"
 
-    rgb_segmented_image_topic = "/fruit_picking/segmentation/lang_sam/image"
-    rgb_segmented_image_array_topic = "/fruit_picking/segmentation/lang_sam/image_array"
-    base_pointcloud_processed_topic = "/fruit_picking/pointcloud/pointcloud_processed"
-    reduced_pointcloud_processed_topic = "/fruit_picking/reduced_pointcloud/pointcloud_processed"
-    reduced_pointcloud_array_processed_topic = "/fruit_picking/reduced_pointcloud/pointcloud_array_processed"
+    lang_sam_rgb_image_topic = "/fruit_picking/segmentation/lang_sam/rgb_image"
+    lang_sam_rgb_images_array_topic = "/fruit_picking/segmentation/lang_sam/rgb_images_array"
     confidences_topic = "/fruit_picking/segmentation/lang_sam/confidences"
+
+    pointcloud_topic = "/fruit_picking/pointcloud/pointcloud"
+    segmented_pointcloud_topic = "/fruit_picking/pointcloud/segmented_pointcloud"
+    segmented_pointclouds_array_topic = "/fruit_picking/pointcloud/segmented_pointclouds_array"
 
     octomap_occupied_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/occupied_cells_vis"
     octomap_free_cells_vis_topic = "/fruit_picking/lang_sam_segmented_octomap/free_cells_vis"
@@ -158,7 +159,6 @@ def launch_setup(context, *args, **kwargs):
     octomap_binary_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_binary"
     octomap_full_topic = "/fruit_picking/lang_sam_segmented_octomap/octomap_full"
     octomap_projected_map_topic = "/fruit_picking/lang_sam_segmented_octomap/projected_map"
-
 
 
 
@@ -197,8 +197,8 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
             "input_image_topic": rgb_image_topic,
-            "output_image_topic": rgb_segmented_image_topic,
-            "output_image_array_topic": rgb_segmented_image_array_topic,
+            "output_image_topic": lang_sam_rgb_image_topic,
+            "output_image_array_topic": lang_sam_rgb_images_array_topic,
             "output_confidences_topic": confidences_topic,
         }.items(),
     )
@@ -212,26 +212,26 @@ def launch_setup(context, *args, **kwargs):
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
             "rgb_image_topic": rgb_image_topic,
-            "rgb_camera_info_topic": rgb_camera_info_topic,
-            "pointcloud_processed_topic": base_pointcloud_processed_topic,
+            "rgb_camera_info_topic": depth_image_camera_info_topic,
+            "pointcloud_processed_topic": pointcloud_topic,
         }.items(),
     ) 
 
 
     # Reduced pointcloud creation launch
-    reduced_pointcloud_creation_launch_file = IncludeLaunchDescription(
+    segmented_pointcloud_creation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare("fruit_picking_pointcloud"), '/launch', '/reduced_pointcloud_creation.launch.py']),
+            FindPackageShare("fruit_picking_pointcloud"), '/launch', '/segmented_pointcloud_creation.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
             "depth_image_topic": depth_image_topic,
-            "rgb_image_topic": rgb_segmented_image_topic,
-            "rgb_image_array_topic": rgb_segmented_image_array_topic,
-            "rgb_camera_info_topic": rgb_camera_info_topic,
-            "pointcloud_processed_topic": reduced_pointcloud_processed_topic,
-            "pointcloud_array_processed_topic": reduced_pointcloud_array_processed_topic,
+            "rgb_image_topic": lang_sam_rgb_image_topic,
+            "rgb_images_array_topic": lang_sam_rgb_images_array_topic,
+            "depth_image_camera_info_topic": depth_image_camera_info_topic,
+            "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
             "confidences_topic": confidences_topic,
-            "publish_pointcloud_array": "True",
+            "publish_pointclouds_array": "True",
+            "publish_single_pointcloud": "False",
         }.items(),
     ) 
 
@@ -241,9 +241,9 @@ def launch_setup(context, *args, **kwargs):
             FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
         launch_arguments={
             "use_sim_time": str(use_sim_time).lower(),
-            "input_cloud_topic": base_pointcloud_processed_topic,
-            "reduced_input_cloud_topic": reduced_pointcloud_processed_topic,
-            "reduced_input_cloud_array_topic": reduced_pointcloud_array_processed_topic,
+            "input_cloud_topic": pointcloud_topic,
+            "reduced_input_cloud_topic": segmented_pointcloud_topic,
+            "reduced_input_cloud_array_topic": segmented_pointclouds_array_topic,
             "output_occupied_cells_vis": octomap_occupied_cells_vis_topic,
             "output_free_cells_vis": octomap_free_cells_vis_topic,
             "output_occupied_cells_centers": octomap_occupied_cells_centers_topic,
@@ -296,7 +296,7 @@ def launch_setup(context, *args, **kwargs):
     # Returns  
     return_actions.append(lang_sam_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
-    return_actions.append(reduced_pointcloud_creation_launch_file)
+    return_actions.append(segmented_pointcloud_creation_launch_file)
     return_actions.append(octomap_creation_launch_file)
     return_actions.append(rviz_node)
 

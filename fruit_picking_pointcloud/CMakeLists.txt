@@ -24,7 +24,7 @@ find_package(pcl_conversions REQUIRED)
 include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
-  src/reduced_pointcloud.cpp
+  src/segmented_pointcloud.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}
@@ -37,7 +37,7 @@ ament_target_dependencies(${PROJECT_NAME}
   pcl_conversions
 )
 
-rclcpp_components_register_nodes(${PROJECT_NAME} "reduced_pointcloud::ReducedPointcloud")
+rclcpp_components_register_nodes(${PROJECT_NAME} "segmented_pointcloud::SegmentedPointcloud")
 
 install(TARGETS
   ${PROJECT_NAME}

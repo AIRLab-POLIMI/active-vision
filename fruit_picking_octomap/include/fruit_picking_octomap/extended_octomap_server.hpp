@@ -74,14 +74,16 @@ namespace extended_octomap_server{
 
     protected:
 
+        // Variables
+
         std::shared_ptr<message_filters::Subscriber<
-                            sensor_msgs::msg::PointCloud2>> m_reducedPointCloudSub;
+                            sensor_msgs::msg::PointCloud2>> segmentedPointcloudSub;
         std::shared_ptr<tf2_ros::MessageFilter<
-                            sensor_msgs::msg::PointCloud2>> m_tfReducedPointCloudSub;
+                            sensor_msgs::msg::PointCloud2>> tfSegmentedPointcloudSub;
         std::shared_ptr<message_filters::Subscriber<
-                            fruit_picking_interfaces::msg::PointcloudArray>> m_reducedPointCloudArraySub;
+                            fruit_picking_interfaces::msg::PointcloudArray>> segmentedPointcloudsArraySub;
         std::shared_ptr<tf2_ros::MessageFilter<
-                            fruit_picking_interfaces::msg::PointcloudArray>> m_tfReducedPointCloudArraySub;
+                            fruit_picking_interfaces::msg::PointcloudArray>> tfSegmentedPointcloudsArraySub;
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
                           >::SharedPtr confidenceMarkerPub;
@@ -93,13 +95,16 @@ namespace extended_octomap_server{
 
         octomap::KeySet global_free_cells, global_occupied_cells;
 
-        bool m_processFreeSpace;
-        bool publishConfidence;
-        bool publishSemantic;
-        bool pointcloudArraySubscription;
+        bool processFreeSpace; // tells if saving free space on a data structure is required
+        bool publishConfidence; // tells if the confidence info isnide the extended octomap map and markers are required
+        bool publishSemantic; // tells if the semantic classes inside the extended map and markers are required
+        bool semanticPointcloudSubscription; // tells if the node needs to subscribe to the semantic pointcloud topic
+        bool semanticPointcloudsArraySubscription; // tells if the node needs to subscribe to the semantic pointclouds array topic
 
-        virtual void onInit();        
 
+        // Methods
+
+        virtual void onInit();       
 
         virtual void insertScan(
             const geometry_msgs::msg::Vector3  &sensorOrigin,
@@ -107,8 +112,8 @@ namespace extended_octomap_server{
             const PCLPointCloud& nonground);
 
         virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud);
-        virtual void insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &reduced_cloud_array);
 
+        virtual void insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &reduced_cloud_array);
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

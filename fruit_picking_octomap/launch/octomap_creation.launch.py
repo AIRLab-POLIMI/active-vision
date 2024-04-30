@@ -54,8 +54,9 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_2d_projected_map', default_value='False'),
         DeclareLaunchArgument('publish_semantic', default_value='False'),
         DeclareLaunchArgument('publish_confidence', default_value='False'),
-        DeclareLaunchArgument('pointcloud_array_subscription', default_value='False'),
-       
+        DeclareLaunchArgument('semantic_pointcloud_subscription', default_value='False'),
+        DeclareLaunchArgument('semantic_pointclouds_array_subscription', default_value='False'),
+
         Node(
             package='fruit_picking_octomap',
             executable='extended_octomap_server',
@@ -108,7 +109,8 @@ def generate_launch_description():
                 'publish_2d_projected_map': LaunchConfiguration('publish_2d_projected_map'),
                 'publish_semantic': LaunchConfiguration('publish_semantic'),
                 'publish_confidence': LaunchConfiguration('publish_confidence'),
-                'pointcloud_array_subscription': LaunchConfiguration('pointcloud_array_subscription'),
+                'semantic_pointcloud_subscription': LaunchConfiguration('semantic_pointcloud_subscription'),
+                'semantic_pointclouds_array_subscription': LaunchConfiguration('semantic_pointclouds_array_subscription'),
                 }]
         )
     ])

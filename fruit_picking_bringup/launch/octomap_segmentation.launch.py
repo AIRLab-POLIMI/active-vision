@@ -254,7 +254,7 @@ def launch_setup(context, *args, **kwargs):
             "octomap_projected_map_topic": octomap_projected_map_topic,
             "octomap_semantic_class_cells_vis_topic": octomap_semantic_class_cells_vis_topic,
             "octomap_confidence_cells_vis_topic": octomap_confidence_cells_vis_topic,
-            "resolution": '0.003',
+            "resolution": '0.005',
             "frame_id": frame_id,
             "base_frame_id": base_frame_id,
             "height_map": "False",
@@ -262,7 +262,8 @@ def launch_setup(context, *args, **kwargs):
             "filter_ground": 'True',
             "publish_confidence": 'True',
             "publish_semantic": 'True',
-            "pointcloud_array_subscription": 'True',
+            "semantic_pointcloud_subscription": 'True',
+            "semantic_pointclouds_array_subscription": 'True',
         }.items(),
     ) 
 

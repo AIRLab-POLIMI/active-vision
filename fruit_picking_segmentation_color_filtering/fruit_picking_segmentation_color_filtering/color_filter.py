@@ -117,7 +117,7 @@ class ColorFilter(Node):
 
         # Add to the header of the output image stamp and frame id of the original rgb image
         filtered_img.header.frame_id = self.original_image.header.frame_id
-        filtered_img.header.stamp = self.get_clock().now().to_msg()
+        filtered_img.header.stamp = self.original_image.header.stamp
 
 
         # Publish

@@ -1,0 +1,148 @@
+frames:
+  frame_id: "world"
+  base_frame_id: "igus_rebel_base_link"
+  realsense_frame_id: "camera_color_optical_frame"
+
+topics:
+  gazebo_ignition_input_data:
+    depth_image_topic: "/virtual_camera_link/rgbd_camera/depth_image"
+    depth_image_camera_info_topic: "/virtual_camera_link/rgbd_camera/camera_info"
+    rgb_image_topic: "/virtual_camera_link/rgbd_camera/image_raw"
+
+  realsense_input_data:
+    depth_image_topic: "/camera/aligned_depth_to_color/image_raw"
+    depth_image_camera_info_topic: "/camera/aligned_depth_to_color/camera_info"
+    rgb_image_topic: "/camera/color/image_raw"
+  
+  segmentation:
+    color_filter:
+      rgb_image_topic: &color_filter_rgb_image_topic "/fruit_picking/segmentation/color_filter/rgb_image"
+      octomap_semantic_class_cells_vis_topic: &color_filter_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/color_filter/semantic_class_cells_vis"
+
+    lang_sam:
+      rgb_image_topic: &lang_sam_rgb_image_topic "/fruit_picking/segmentation/lang_sam/rgb_image"
+      rgb_images_array_topic: &lang_sam_rgb_images_array_topic "/fruit_picking/segmentation/lang_sam/rgb_images_array"
+      confidences_topic: &lang_sam_confidences_topic "/fruit_picking/segmentation/lang_sam/confidences"
+      octomap_semantic_class_cells_vis_topic: &lang_sam_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/lang_sam/semantic_class_cells_vis"
+      octomap_confidence_cells_vis_topic: &lang_sam_octomap_confidence_cells_vis_topic "/fruit_picking/octomap/lang_sam/confidence_cells_vis"
+
+  pointcloud:
+    pointcloud_topic: &pointcloud_topic "/fruit_picking/pointcloud/pointcloud"
+    segmented_pointcloud_topic: &segmented_pointcloud_topic "/fruit_picking/pointcloud/segmented_pointcloud"
+    segmented_pointclouds_array_topic: &segmented_pointclouds_array_topic "/fruit_picking/pointcloud/segmented_pointclouds_array"
+
+  octomap:
+    octomap_occupied_cells_vis_topic: &octomap_occupied_cells_vis_topic "/fruit_picking/octomap/occupied_cells_vis"
+    octomap_free_cells_vis_topic: &octomap_free_cells_vis_topic "/fruit_picking/octomap/free_cells_vis"
+    octomap_occupied_cells_centers_pointcloud_topic: &octomap_occupied_cells_centers_pointcloud_topic "/fruit_picking/octomap/occupied_cells_centers_pointcloud"
+    octomap_binary_topic: &octomap_binary_topic "/fruit_picking/octomap/octomap_binary"
+    octomap_full_topic: &octomap_full_topic "/fruit_picking/octomap/octomap_full"
+    octomap_projected_map_topic: &octomap_projected_map_topic "/fruit_picking/octomap/projected_map"
+  
+
+launch:
+  realsense_launch:
+    enable_rgbd: "true"
+    enable_sync: "true"
+    align_depth.enable: "true"
+    enable_color: "true"
+    enable_depth: "true"
+
+  octomap_color_filter_launch: 
+    color_filter_segmentation_launch:
+      color: "red"
+    
+    segmented_pointcloud_creation_launch:
+      publish_pointclouds_array: "False"
+      publish_single_pointcloud: "True"
+    
+    octomap_creation_launch:
+      resolution: '0.005'
+      height_map: "False"
+      colored_map: "False"
+      color_factor: "0.8"
+      filter_ground: 'True'
+      filter_speckles: "False"
+      ground_filter/distance: "0.04"
+      ground_filter/angle: "0.15"
+      ground_filter/plane_distance: "0.07"
+      compress_map: "True"
+      incremental_2D_projection: "False"
+      sensor_model/max_range: "-1.0"
+      sensor_model/hit: "0.7"
+      sensor_model/miss: "0.4"
+      sensor_model/min: "0.12"
+      sensor_model/max: "0.97"
+      color/r: "1.0"
+      color/g: "1.0"
+      color/b: "1.0"
+      color/a: "1.0"
+      color_free/r: "0.0"
+      color_free/g: "0.0"
+      color_free/b: "1.0"
+      color_free/a: "1.0"
+      process_free_space: "False"
+      publish_free_space: "False"
+      publish_octomap_binary: "False"
+      publish_octomap_full: "False"
+      publish_centers_pointcloud: "False"
+      publish_2d_projected_map: "False"
+      publish_confidence: 'False'
+      publish_semantic: 'True'
+      semantic_pointcloud_subscription: 'True'
+      semantic_pointclouds_array_subscription: 'False'
+    
+    rviz:
+      ignition: "octomap_color_filter_ignition.rviz"
+      realsense: "octomap_color_filter_realsense.rviz"
+      real: "octomap_color_filter.rviz"
+  
+
+
+  octomap_segmentation_launch: 
+    segmented_pointcloud_creation_launch:
+      publish_pointclouds_array: "True"
+      publish_single_pointcloud: "False"
+    
+    octomap_creation_launch:
+      resolution: '0.005'
+      height_map: "False"
+      colored_map: "False"
+      color_factor: "0.8"
+      filter_ground: 'True'
+      filter_speckles: "False"
+      ground_filter/distance: "0.04"
+      ground_filter/angle: "0.15"
+      ground_filter/plane_distance: "0.07"
+      compress_map: "True"
+      incremental_2D_projection: "False"
+      sensor_model/max_range: "-1.0"
+      sensor_model/hit: "0.7"
+      sensor_model/miss: "0.4"
+      sensor_model/min: "0.12"
+      sensor_model/max: "0.97"
+      color/r: "1.0"
+      color/g: "1.0"
+      color/b: "1.0"
+      color/a: "1.0"
+      color_free/r: "0.0"
+      color_free/g: "0.0"
+      color_free/b: "1.0"
+      color_free/a: "1.0"
+      process_free_space: "False"
+      publish_free_space: "False"
+      publish_octomap_binary: "False"
+      publish_octomap_full: "False"
+      publish_centers_pointcloud: "False"
+      publish_2d_projected_map: "False"
+      publish_confidence: 'True'
+      publish_semantic: 'True'
+      semantic_pointcloud_subscription: 'False'
+      semantic_pointclouds_array_subscription: 'True'
+    
+    rviz:
+      ignition: "octomap_segmentation_ignition.rviz"
+      realsense: "octomap_segmentation_realsense.rviz"
+      real: "octomap_segmentation.rviz"
+
+

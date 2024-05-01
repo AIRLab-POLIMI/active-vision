@@ -44,7 +44,7 @@ namespace extended_octomap_server {
             
             this->tfSegmentedPointcloudsArraySub = std::make_shared<tf2_ros::MessageFilter<
                 fruit_picking_interfaces::msg::PointcloudArray>>(
-                    *buffer_, m_worldFrameId, 5,
+                    *buffer_, m_worldFrameId, messageFilterQueue,
                     this->get_node_logging_interface(),
                     this->get_node_clock_interface(),
                     std::chrono::seconds(1));
@@ -62,7 +62,7 @@ namespace extended_octomap_server {
             
             this->tfSegmentedPointcloudSub = std::make_shared<tf2_ros::MessageFilter<
                 sensor_msgs::msg::PointCloud2>>(
-                    *buffer_, m_worldFrameId, 5,
+                    *buffer_, m_worldFrameId, messageFilterQueue,
                     this->get_node_logging_interface(),
                     this->get_node_clock_interface(),
                     std::chrono::seconds(1));
@@ -245,7 +245,7 @@ namespace extended_octomap_server {
 
         // Insert into the ExtendedOctomapMap keys all the occupied OctKeys
         // and set the class as none if the octkey does not exist yet
-        for(const auto& key : global_occupied_cells) {
+        for(const auto& key : occupied_cells) {
             if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
                (*extended_octomap_map)[key] = ExtendedOctomapData();  
             }                    

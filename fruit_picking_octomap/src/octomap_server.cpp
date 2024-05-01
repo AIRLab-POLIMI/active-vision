@@ -13,6 +13,9 @@ namespace octomap_server {
         m_colorFactor(0.8),
         m_publishFreeSpace(false),
 
+        // new value for the message filter queue
+        messageFilterQueue(5),
+
         // new bool for binary and full octomap, centers pointcloud and 2d map
         publishOctomapBinary(false),
         publishOctomapFull(false),
@@ -167,6 +170,9 @@ namespace octomap_server {
         publish2DProjectedMap = this->declare_parameter(
             "publish_2d_projected_map", publish2DProjectedMap);
 
+        messageFilterQueue = this->declare_parameter(
+            "message_filter_queue", messageFilterQueue);
+
         std::string msg = std::string("Publishing non-latched (topics are only)") +
                     "prepared as needed, will only be re-published on map change";
         RCLCPP_INFO(this->get_logger(), msg.c_str());
@@ -222,7 +228,7 @@ namespace octomap_server {
         
         this->m_tfPointCloudSub = std::make_shared<tf2_ros::MessageFilter<
             sensor_msgs::msg::PointCloud2>>(
-                *buffer_, m_worldFrameId, 5,
+                *buffer_, m_worldFrameId, messageFilterQueue,
                 this->get_node_logging_interface(),
                 this->get_node_clock_interface(),
                 std::chrono::seconds(1));

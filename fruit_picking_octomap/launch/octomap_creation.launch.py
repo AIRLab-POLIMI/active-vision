@@ -56,11 +56,17 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_confidence', default_value='False'),
         DeclareLaunchArgument('semantic_pointcloud_subscription', default_value='False'),
         DeclareLaunchArgument('semantic_pointclouds_array_subscription', default_value='False'),
+        DeclareLaunchArgument('message_filter_queue', default_value='5'),
 
         Node(
             package='fruit_picking_octomap',
             executable='extended_octomap_server',
             output='screen',
+            arguments= [
+                "--ros-args",
+                "--log-level",
+                "extended_octomap_server:=debug",
+            ],
             remappings=[('cloud_in', LaunchConfiguration('pointcloud_topic')),
                         ('segmented_pointcloud', LaunchConfiguration('segmented_pointcloud_topic')),
                         ('segmented_pointclouds_array', LaunchConfiguration('segmented_pointclouds_array_topic')),
@@ -111,6 +117,7 @@ def generate_launch_description():
                 'publish_confidence': LaunchConfiguration('publish_confidence'),
                 'semantic_pointcloud_subscription': LaunchConfiguration('semantic_pointcloud_subscription'),
                 'semantic_pointclouds_array_subscription': LaunchConfiguration('semantic_pointclouds_array_subscription'),
+                'message_filter_queue': LaunchConfiguration('message_filter_queue'),
                 }]
         )
     ])

@@ -57,7 +57,7 @@ launch:
       publish_single_pointcloud: "True"
     
     octomap_creation_launch:
-      resolution: '0.005'
+      resolution: '0.006'
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -91,6 +91,7 @@ launch:
       publish_semantic: 'True'
       semantic_pointcloud_subscription: 'True'
       semantic_pointclouds_array_subscription: 'False'
+      message_filter_queue: '100'
     
     rviz:
       ignition: "octomap_color_filter_ignition.rviz"
@@ -105,7 +106,7 @@ launch:
       publish_single_pointcloud: "False"
     
     octomap_creation_launch:
-      resolution: '0.005'
+      resolution: '0.006'
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -139,6 +140,7 @@ launch:
       publish_semantic: 'True'
       semantic_pointcloud_subscription: 'False'
       semantic_pointclouds_array_subscription: 'True'
+      message_filter_queue: '100'
     
     rviz:
       ignition: "octomap_segmentation_ignition.rviz"

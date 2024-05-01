@@ -137,6 +137,9 @@ namespace octomap_server {
         double m_groundFilterAngle;
         double m_groundFilterPlaneDistance;
         bool m_compressMap;
+        
+        // new value for the message filter queue
+        int messageFilterQueue;
 
         // new bool for binary and full octomap, centers pointcloud and 2d map
         bool publishOctomapBinary;

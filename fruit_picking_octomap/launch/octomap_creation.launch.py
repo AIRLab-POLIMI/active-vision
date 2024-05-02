@@ -57,6 +57,9 @@ def generate_launch_description():
         DeclareLaunchArgument('semantic_pointcloud_subscription', default_value='False'),
         DeclareLaunchArgument('semantic_pointclouds_array_subscription', default_value='False'),
         DeclareLaunchArgument('message_filter_queue', default_value='5'),
+        DeclareLaunchArgument('insert_cloud_init', default_value='True'),
+        DeclareLaunchArgument('insert_semantic_init', default_value='True'),
+
 
         Node(
             package='fruit_picking_octomap',
@@ -118,6 +121,8 @@ def generate_launch_description():
                 'semantic_pointcloud_subscription': LaunchConfiguration('semantic_pointcloud_subscription'),
                 'semantic_pointclouds_array_subscription': LaunchConfiguration('semantic_pointclouds_array_subscription'),
                 'message_filter_queue': LaunchConfiguration('message_filter_queue'),
+                'insert_cloud_init': LaunchConfiguration('insert_cloud_init'),
+                'insert_semantic_init': LaunchConfiguration('insert_semantic_init'),
                 }]
         )
     ])

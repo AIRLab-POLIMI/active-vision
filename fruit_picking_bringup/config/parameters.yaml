@@ -92,6 +92,8 @@ launch:
       semantic_pointcloud_subscription: 'True'
       semantic_pointclouds_array_subscription: 'False'
       message_filter_queue: '100'
+      insert_cloud_init: 'True'
+      insert_semantic_init: 'True'
     
     rviz:
       ignition: "octomap_color_filter_ignition.rviz"
@@ -141,6 +143,8 @@ launch:
       semantic_pointcloud_subscription: 'False'
       semantic_pointclouds_array_subscription: 'True'
       message_filter_queue: '100'
+      insert_cloud_init: 'True'
+      insert_semantic_init: 'True'
     
     rviz:
       ignition: "octomap_segmentation_ignition.rviz"

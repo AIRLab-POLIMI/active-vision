@@ -4,6 +4,7 @@
 
 #include <fruit_picking_octomap/octomap_server.hpp>
 #include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
+#include <std_srvs/srv/set_bool.hpp>
 
 
 namespace extended_octomap_server{
@@ -13,6 +14,7 @@ namespace extended_octomap_server{
     
     public:
 
+        // Constructor used to initialize the voxel extended data. Called by the insertCloud callback
         ExtendedOctomapData(){
             this->confidence = 0.0;
             this->semantic_class = "none";
@@ -20,6 +22,7 @@ namespace extended_octomap_server{
             setSemanticColor("none");
         }
 
+        // Constructor used to set the voxel semantic class. Called by the insertSemantic callback (color filter approach)
         ExtendedOctomapData(std::string semantic_class){
             this->confidence = 0.0;
             this->semantic_class = semantic_class;
@@ -27,6 +30,7 @@ namespace extended_octomap_server{
             setSemanticColor(semantic_class);
         }
         
+        // Constructor used to set the voxel seantic class and also the confidence. Called by the insertSemanticArray callback (segmentation)
         ExtendedOctomapData(float confidence, std::string semantic_class){
             this->confidence = confidence;
             this->semantic_class = semantic_class;
@@ -97,6 +101,13 @@ namespace extended_octomap_server{
         bool semanticPointcloudSubscription; // tells if the node needs to subscribe to the semantic pointcloud topic
         bool semanticPointcloudsArraySubscription; // tells if the node needs to subscribe to the semantic pointclouds array topic
 
+        // Bool that are used to activate or deactivate the callbacks. They are set using some services
+        bool insertCloudActive;
+        bool insertSemanticActive;
+
+        rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
+        rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSemanticActiveService_;
+
 
         // Methods
 
@@ -115,6 +126,16 @@ namespace extended_octomap_server{
 
         void publishSemanticClassMarkers(const rclcpp::Time &) const;
 
+        void setInsertCloudActive(
+            const std::shared_ptr<rmw_request_id_t> request_header,
+            const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+            std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+
+        void setInsertSemanticActive(
+            const std::shared_ptr<rmw_request_id_t> request_header,
+            const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+            std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+        
 
     public:
 

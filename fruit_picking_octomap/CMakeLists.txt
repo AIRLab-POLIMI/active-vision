@@ -28,6 +28,7 @@ find_package(rclcpp_components REQUIRED)
 find_package(PCL 1.10 REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -63,6 +64,7 @@ ament_target_dependencies(fruit_picking_octomap
   pcl_conversions
   sensor_msgs
   std_msgs
+  std_srvs
   nav_msgs
   visualization_msgs
   geometry_msgs

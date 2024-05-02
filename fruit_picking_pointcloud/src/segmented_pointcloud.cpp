@@ -246,10 +246,11 @@ void SegmentedPointcloud::imageArrayCb(
     // Create an empty pointclouds array message that will be published at the end
     auto pointcloud_array = std::make_shared<PointCloud2Array>();
 
-    // Fill the pointclouds array message header
+    // Fill the pointclouds array message
     pointcloud_array->header = depth_msg->header;
     pointcloud_array->confidences = conf_msg->data;
     pointcloud_array->pointclouds = std::vector<PointCloud2>(rgb_array_in->images.size());
+    pointcloud_array->semantic_class = conf_msg->semantic_class;
 
     for (size_t i = 0; i < rgb_array_in->images.size(); ++i){
 

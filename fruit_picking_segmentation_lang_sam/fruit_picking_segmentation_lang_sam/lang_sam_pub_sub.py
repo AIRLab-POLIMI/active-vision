@@ -116,7 +116,7 @@ class LANGSAMPubSub(Node):
 
 
 
-    def publish_confidences_segmentation(self, confidences, masks_names, frame_id, stamp):
+    def publish_confidences_segmentation(self, confidences, masks_names, semantic_class, frame_id, stamp):
         # Convert confidences tensor in list of float rounded at the 3rd digit and 
         confidences = [round(logit.item(), 3) for logit in confidences]
 
@@ -125,6 +125,7 @@ class LANGSAMPubSub(Node):
         msg_confidences.data = [KeyValue(key=k, value=str(v)) for k, v in confidences_dict.items()] 
         msg_confidences.header.frame_id = frame_id
         msg_confidences.header.stamp = stamp
+        msg_confidences.semantic_class = semantic_class
 
         self.confidences_publisher.publish(msg_confidences)
         self.get_logger().info('[Confidences-pub] Confidences published.')   
@@ -200,7 +201,7 @@ class LANGSAMPubSub(Node):
 
             # Publish confidences as empty lists
             self.get_logger().info(f'[Confidences-pub] Publishing empty confidences...')
-            self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [], self.original_image.header.frame_id, start_pub_stamp)
+            self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [], 'none', self.original_image.header.frame_id, start_pub_stamp)
             
             # Create empty image
             empty_image = np.ones((img_shape[0], img_shape[1], 3), dtype=np.uint8) * 255
@@ -239,7 +240,7 @@ class LANGSAMPubSub(Node):
 
             # Publish confidences
             self.get_logger().info(f'[Confidences-pub] Publishing confidences...')
-            self.publish_confidences_segmentation(confidences, masks_names, self.original_image.header.frame_id, start_pub_stamp)
+            self.publish_confidences_segmentation(confidences, masks_names, text_prompt_query, self.original_image.header.frame_id, start_pub_stamp)
 
             # Merged masks publication  
             merged_masks_images = merge_masks_images(masks_images)

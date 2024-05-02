@@ -245,7 +245,7 @@ namespace extended_octomap_server {
 
         // Insert into the ExtendedOctomapMap keys all the occupied OctKeys
         // and set the class as none if the octkey does not exist yet
-        for(const auto& key : occupied_cells) {
+        for(const auto& key : global_occupied_cells) {
             if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
                (*extended_octomap_map)[key] = ExtendedOctomapData();  
             }                    
@@ -261,27 +261,27 @@ namespace extended_octomap_server {
 
 
 
-    void ExtendedOctomapServer::insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud){
+    void ExtendedOctomapServer::insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud){
 
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Semantic callback started.");
 
         // From pointcloud message to Pointcloud data structure
         PCLPointCloud reduced_pc;
-        pcl::fromROSMsg(*reduced_cloud, reduced_pc);
+        pcl::fromROSMsg(*segmented_pointcloud, reduced_pc);
 
         // Conversion of the pointcloud from sensor frame to world frame
         Eigen::Matrix4f sensorToWorld;
         geometry_msgs::msg::TransformStamped sensorToWorldTf;
         try {
             if (!this->buffer_->canTransform(
-                    m_worldFrameId, reduced_cloud->header.frame_id,
-                    reduced_cloud->header.stamp)) {
+                    m_worldFrameId, segmented_pointcloud->header.frame_id,
+                    segmented_pointcloud->header.stamp)) {
                 throw "Failed";
             }
             
             sensorToWorldTf = this->buffer_->lookupTransform(
-                m_worldFrameId, reduced_cloud->header.frame_id,
-                reduced_cloud->header.stamp);
+                m_worldFrameId, segmented_pointcloud->header.frame_id,
+                segmented_pointcloud->header.stamp);
             sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "%s",ex.what());
@@ -295,7 +295,7 @@ namespace extended_octomap_server {
             octomap::OcTreeKey key;
 
             if (m_octree->coordToKeyChecked(point, key)) {
-                (*extended_octomap_map)[key] = ExtendedOctomapData(tomato);
+                (*extended_octomap_map)[key] = ExtendedOctomapData("mask");
             }
         }
 
@@ -304,43 +304,45 @@ namespace extended_octomap_server {
     }
 
 
-    void ExtendedOctomapServer::insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &reduced_cloud_array){
+    void ExtendedOctomapServer::insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array){
 
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Semantic array callback started.");
         
-        if (!reduced_cloud_array->confidences.empty()) {
+        if (!segmented_pointclouds_array->confidences.empty()) {
 
             std::vector<float> confidences;
-            for (auto& kv : reduced_cloud_array->confidences) {
+            for (auto& kv : segmented_pointclouds_array->confidences) {
                 confidences.push_back(std::stof(kv.value));
             }
+
+            std::string semantic_class = segmented_pointclouds_array->semantic_class;
                         
 
             RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Entering loop...");
             // Loop thorugh all the poitclouds inside the array
-            for (size_t i = 0; i < reduced_cloud_array->pointclouds.size(); ++i){
-                auto& reduced_cloud = reduced_cloud_array->pointclouds[i];
+            for (size_t i = 0; i < segmented_pointclouds_array->pointclouds.size(); ++i){
+                auto& segmented_pointcloud = segmented_pointclouds_array->pointclouds[i];
                 float confidence = confidences[i];
 
                 RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Saving confidence...");
 
                 // From pointcloud message to Pointcloud data structure
                 PCLPointCloud reduced_pc;
-                pcl::fromROSMsg(reduced_cloud, reduced_pc);
+                pcl::fromROSMsg(segmented_pointcloud, reduced_pc);
 
                 // Conversion of the pointcloud from sensor frame to world frame
                 Eigen::Matrix4f sensorToWorld;
                 geometry_msgs::msg::TransformStamped sensorToWorldTf;
                 try {
                     if (!this->buffer_->canTransform(
-                            m_worldFrameId, reduced_cloud.header.frame_id,
-                            reduced_cloud.header.stamp)) {
+                            m_worldFrameId, segmented_pointcloud.header.frame_id,
+                            segmented_pointcloud.header.stamp)) {
                         throw "Failed";
                     }
                     
                     sensorToWorldTf = this->buffer_->lookupTransform(
-                        m_worldFrameId, reduced_cloud.header.frame_id,
-                        reduced_cloud.header.stamp);
+                        m_worldFrameId, segmented_pointcloud.header.frame_id,
+                        segmented_pointcloud.header.stamp);
                     sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
                 } catch (tf2::TransformException &ex) {
                     return;
@@ -360,7 +362,7 @@ namespace extended_octomap_server {
                     octomap::OcTreeKey key;
 
                     if (m_octree->coordToKeyChecked(point, key)) {
-                        (*extended_octomap_map)[key] = ExtendedOctomapData(confidence, tomato);
+                        (*extended_octomap_map)[key] = ExtendedOctomapData(confidence, semantic_class);
                     }
                 }
 

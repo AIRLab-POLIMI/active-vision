@@ -8,46 +8,42 @@
 
 namespace extended_octomap_server{
 
-    enum semantic{
-        none,
-        tomato
-    };
-    
+
     class ExtendedOctomapData{
     
     public:
 
         ExtendedOctomapData(){
             this->confidence = 0.0;
-            this->semantic_class = none;
+            this->semantic_class = "none";
             setConfidenceColor(0.0);
-            setSemanticColor(none);
+            setSemanticColor("none");
         }
 
-        ExtendedOctomapData(semantic semantic_class){
+        ExtendedOctomapData(std::string semantic_class){
             this->confidence = 0.0;
             this->semantic_class = semantic_class;
             setConfidenceColor(0.0);
             setSemanticColor(semantic_class);
         }
         
-        ExtendedOctomapData(float confidence, semantic semantic_class){
+        ExtendedOctomapData(float confidence, std::string semantic_class){
             this->confidence = confidence;
             this->semantic_class = semantic_class;
             setConfidenceColor(confidence);
             setSemanticColor(semantic_class);
         }
 
-        void setSemanticColor(semantic semantic_class){
-            if (semantic_class == tomato){
-                this->semantic_r = 1.0;
-                this->semantic_g = 0.0;
-                this->semantic_b = 0.0;
-            }
-            else if (semantic_class == none){
+        void setSemanticColor(std::string semantic_class){
+            if (semantic_class == "none"){
                 this->semantic_r = 1.0;
                 this->semantic_g = 1.0;
                 this->semantic_b = 1.0;
+            }
+            else {
+                this->semantic_r = 1.0;
+                this->semantic_g = 0.0;
+                this->semantic_b = 0.0;
             }
             this->semantic_a = 1.0;
         }
@@ -60,7 +56,7 @@ namespace extended_octomap_server{
         }
 
         float confidence;
-        semantic semantic_class;
+        std::string semantic_class;
         float semantic_r, semantic_g, semantic_b, semantic_a;
         float confidence_r, confidence_g, confidence_b, confidence_a;
     };

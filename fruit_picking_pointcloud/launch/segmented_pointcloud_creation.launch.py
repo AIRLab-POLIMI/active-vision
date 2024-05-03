@@ -113,7 +113,7 @@ def generate_launch_description():
         
 
         launch_ros.actions.ComposableNodeContainer(
-            name='container',
+            name='segmented_pointcloud_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container',

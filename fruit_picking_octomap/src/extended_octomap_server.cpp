@@ -1,6 +1,84 @@
 #include <fruit_picking_octomap/extended_octomap_server.hpp>
 
 namespace extended_octomap_server {
+
+    ExtendedOctomapData::ExtendedOctomapData(){
+        this->semantic_class = "none";            
+        this->confidence = 0.0;
+        setConfidenceColor(0.0);
+        setSemanticColor("none");
+    }
+
+
+    void ExtendedOctomapData::setSemanticClass(std::string semantic_class){
+        this->semantic_class = semantic_class;
+        setSemanticColor(semantic_class);
+    }
+
+    void ExtendedOctomapData::setConfidence(float confidence){
+        this->confidence = confidence;
+        setConfidenceColor(confidence);
+    }
+
+    void ExtendedOctomapData::setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization=0.9){
+        std::string sem_1 = this->semantic_class;
+        std::string sem_2 = semantic_class;
+        float c_1 = this->confidence;
+        float c_2 = confidence;
+
+        std::string sem_f;
+        float c_f;
+
+        if (sem_1 == sem_2){
+            sem_f = sem_2;
+            c_f = (c_1 + c_2) / 2;
+        }
+        else {
+            if (c_1 >= c_2){
+                sem_f = sem_1;
+                c_f = penalization * c_1;
+            }
+            else if (c_1 < c_2) {
+                sem_f = sem_2;
+                c_f = penalization * c_2;
+            }
+        }
+
+        setSemanticClass(sem_f);
+        setConfidence(c_f);
+
+    }
+
+    void ExtendedOctomapData::setSemanticColor(std::string semantic_class){
+        if (semantic_class == "none"){
+            this->semantic_r = 1.0;
+            this->semantic_g = 1.0;
+            this->semantic_b = 1.0;
+        }
+        else {
+            this->semantic_r = 1.0;
+            this->semantic_g = 0.0;
+            this->semantic_b = 0.0;
+        }
+        this->semantic_a = 1.0;
+    }
+
+    void ExtendedOctomapData::setConfidenceColor(float confidence){
+        this->confidence_r = confidence;
+        this->confidence_g = confidence;
+        this->confidence_b = confidence;
+        this->confidence_a = 1.0;
+    }
+
+    std::string ExtendedOctomapData::getSemanticClass(){
+        return this->semantic_class;
+    }
+
+    float ExtendedOctomapData::getConfidence(){
+        return this->confidence;
+    }
+    
+
     
     ExtendedOctomapServer::ExtendedOctomapServer(const rclcpp::NodeOptions &options, const std::string node_name) : octomap_server::OctomapServer::OctomapServer(options, node_name) {
         
@@ -24,6 +102,8 @@ namespace extended_octomap_server {
             "semantic_pointcloud_subscription", semanticPointcloudSubscription);
         semanticPointcloudsArraySubscription = this->declare_parameter(
             "semantic_pointclouds_array_subscription", semanticPointcloudsArraySubscription);
+
+
 
         // Initialize the services for the activation of the callbacks
         insertCloudActive = this->declare_parameter(
@@ -313,8 +393,8 @@ namespace extended_octomap_server {
                 octomap::OcTreeKey key;
 
                 if (m_octree->coordToKeyChecked(point, key)) {
-                    if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
-                        (*extended_octomap_map)[key].setSemanticColor("mask");
+                    if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
+                        (*extended_octomap_map)[key].setSemanticClass("mask");
                     }
                 }
             }
@@ -340,21 +420,26 @@ namespace extended_octomap_server {
             
             if (!segmented_pointclouds_array->confidences.empty()) {
 
+                // Save confidence vector
                 std::vector<float> confidences;
                 for (auto& kv : segmented_pointclouds_array->confidences) {
                     confidences.push_back(std::stof(kv.value));
                 }
 
+                // Save semantic class
                 std::string semantic_class = segmented_pointclouds_array->semantic_class;
+
+                // New unordered set to take count of the already updated octkeys
+                octomap::KeySet updatedOctKeys;
                             
 
                 RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Entering loop...");
                 // Loop thorugh all the poitclouds inside the array
                 for (size_t i = 0; i < segmented_pointclouds_array->pointclouds.size(); ++i){
                     auto& segmented_pointcloud = segmented_pointclouds_array->pointclouds[i];
+                    float old_confidence;
                     float confidence = confidences[i];
-
-                    RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Saving confidence...");
+                    float updated_confidence;
 
                     // From pointcloud message to Pointcloud data structure
                     PCLPointCloud segmented_pc;
@@ -385,22 +470,36 @@ namespace extended_octomap_server {
                     }
 
                     pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
-                    
 
+                    
+                    
+                    bool flag = true;
                     for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
                         octomap::point3d point(it->x, it->y, it->z);                
                         octomap::OcTreeKey key;
 
                         if (m_octree->coordToKeyChecked(point, key)) {
-                            if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
-                                (*extended_octomap_map)[key] = ExtendedOctomapData(confidence, semantic_class);
+                            if (updatedOctKeys.find(key) == updatedOctKeys.end()) { // If the key hasn't been updated yet
+                                if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
+                                    if (flag){
+                                        old_confidence = (*extended_octomap_map)[key].getConfidence();
+                                    }
+                                    (*extended_octomap_map)[key].setConfidenceMaxFusion(semantic_class, confidence);
+                                    if (flag){
+                                        updated_confidence = (*extended_octomap_map)[key].getConfidence();
+                                        flag = false;
+                                    }
+                                }   
+                                updatedOctKeys.insert(key); // Add the key to the set of updated keys
                             }
                         }
                     }
-
-                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Extended octomap map updated with reduced pointcloud array.");
+                    RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Object %d: Old confidence %f, new confidence %f, final confidence %f", i+1, old_confidence, confidence, updated_confidence);
 
                 }
+                
+                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Extended octomap map updated with segmented pointcloud array.");
+
 
                 if (publishConfidence){        
                     publishConfidenceMarkers(segmented_pointclouds_array->header.stamp);

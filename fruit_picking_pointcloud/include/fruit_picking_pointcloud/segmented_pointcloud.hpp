@@ -183,6 +183,9 @@ namespace segmented_pointcloud{
             pcl::toROSMsg(pcl_cloud, cloud_msg);
             cloud_msg.height = 1;
             cloud_msg.width = pcl_cloud.points.size();
+
+            RCLCPP_DEBUG(this->get_logger(), "The number of points of the PCL pointcloud is %d", pcl_cloud.points.size());
+
         }
 
     };

@@ -118,7 +118,7 @@ class LANGSAMPubSub(Node):
 
     def publish_confidences_segmentation(self, confidences, masks_names, semantic_class, frame_id, stamp):
         # Convert confidences tensor in list of float rounded at the 3rd digit and 
-        confidences = [round(logit.item(), 3) for logit in confidences]
+        confidences = [round(logit.item(), 6) for logit in confidences]
 
         confidences_dict = dict(zip(masks_names, confidences))
         msg_confidences = Confidence()

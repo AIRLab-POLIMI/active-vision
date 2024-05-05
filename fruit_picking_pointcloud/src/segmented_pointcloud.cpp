@@ -323,13 +323,13 @@ void SegmentedPointcloud::imageArrayCb(
 
         // Fill header of pointcloud message
         pointcloud_msg->header = depth_msg->header;
-        pointcloud_msg->is_dense = false;
+        pointcloud_msg->is_dense = true; // true because there are not invalid (NaN) points
         pointcloud_msg->is_bigendian = false;
 
         pointcloud_array->pointclouds[i] = *pointcloud_msg;
 
         // Calculate the number of points in the point cloud
-        // RCLCPP_INFO(this->get_logger(), "The final size of the pointcloud is %zu", pointcloud_msg->data.size());
+        RCLCPP_DEBUG(this->get_logger(), "The final size of the pointcloud is %zu", pointcloud_msg->data.size());
 
     }
 

@@ -15,54 +15,29 @@ namespace extended_octomap_server{
     public:
 
         // Constructor used to initialize the voxel extended data. Called by the insertCloud callback
-        ExtendedOctomapData(){
-            this->confidence = 0.0;
-            this->semantic_class = "none";
-            setConfidenceColor(0.0);
-            setSemanticColor("none");
-        }
+        ExtendedOctomapData();
 
-        // Constructor used to set the voxel semantic class. Called by the insertSemantic callback (color filter approach)
-        ExtendedOctomapData(std::string semantic_class){
-            this->confidence = 0.0;
-            this->semantic_class = semantic_class;
-            setConfidenceColor(0.0);
-            setSemanticColor(semantic_class);
-        }
-        
-        // Constructor used to set the voxel seantic class and also the confidence. Called by the insertSemanticArray callback (segmentation)
-        ExtendedOctomapData(float confidence, std::string semantic_class){
-            this->confidence = confidence;
-            this->semantic_class = semantic_class;
-            setConfidenceColor(confidence);
-            setSemanticColor(semantic_class);
-        }
+        void setSemanticClass(std::string semantic_class);
 
-        void setSemanticColor(std::string semantic_class){
-            if (semantic_class == "none"){
-                this->semantic_r = 1.0;
-                this->semantic_g = 1.0;
-                this->semantic_b = 1.0;
-            }
-            else {
-                this->semantic_r = 1.0;
-                this->semantic_g = 0.0;
-                this->semantic_b = 0.0;
-            }
-            this->semantic_a = 1.0;
-        }
+        void setConfidence(float confidence);
 
-        void setConfidenceColor(float confidence){
-            this->confidence_r = confidence;
-            this->confidence_g = confidence;
-            this->confidence_b = confidence;
-            this->confidence_a = 1.0;
-        }
+        void setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization);
+
+        void setSemanticColor(std::string semantic_class);
+
+        void setConfidenceColor(float confidence);
+
+        std::string getSemanticClass();
+
+        float getConfidence();
+
+        float semantic_r, semantic_g, semantic_b, semantic_a;
+        float confidence_r, confidence_g, confidence_b, confidence_a;
+
+    protected:
 
         float confidence;
         std::string semantic_class;
-        float semantic_r, semantic_g, semantic_b, semantic_a;
-        float confidence_r, confidence_g, confidence_b, confidence_a;
     };
 
 

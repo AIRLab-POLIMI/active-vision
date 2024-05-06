@@ -18,6 +18,7 @@ def generate_launch_description():
         DeclareLaunchArgument('octomap_projected_map_topic', default_value='octomap_projected_map'),    
         DeclareLaunchArgument('octomap_semantic_class_cells_vis_topic', default_value='/octomap_semantic_class_cells_vis'),
         DeclareLaunchArgument('octomap_confidence_cells_vis_topic', default_value='/octomap_confidence_cells_vis_topic'),
+        DeclareLaunchArgument('octomap_instances_cells_vis_topic', default_value='/octomap_instances_cells_vis_topic'),
 
         # Octomap parameters arguments
         DeclareLaunchArgument('resolution', default_value='0.02'),
@@ -54,6 +55,7 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_2d_projected_map', default_value='False'),
         DeclareLaunchArgument('publish_semantic', default_value='False'),
         DeclareLaunchArgument('publish_confidence', default_value='False'),
+        DeclareLaunchArgument('publish_instances', default_value='False'),
         DeclareLaunchArgument('semantic_pointcloud_subscription', default_value='False'),
         DeclareLaunchArgument('semantic_pointclouds_array_subscription', default_value='False'),
         DeclareLaunchArgument('message_filter_queue', default_value='5'),
@@ -81,6 +83,7 @@ def generate_launch_description():
                         ('projected_map', LaunchConfiguration('octomap_projected_map_topic')),
                         ('semantic_class_cells_vis', LaunchConfiguration('octomap_semantic_class_cells_vis_topic')),
                         ('confidence_cells_vis', LaunchConfiguration('octomap_confidence_cells_vis_topic')),
+                        ('instances_cells_vis', LaunchConfiguration('octomap_instances_cells_vis_topic')),
                     ],
             parameters=[
                 {'use_sim_time': LaunchConfiguration('use_sim_time'),
@@ -118,6 +121,7 @@ def generate_launch_description():
                 'publish_2d_projected_map': LaunchConfiguration('publish_2d_projected_map'),
                 'publish_semantic': LaunchConfiguration('publish_semantic'),
                 'publish_confidence': LaunchConfiguration('publish_confidence'),
+                'publish_instances': LaunchConfiguration('publish_instances'),
                 'semantic_pointcloud_subscription': LaunchConfiguration('semantic_pointcloud_subscription'),
                 'semantic_pointclouds_array_subscription': LaunchConfiguration('semantic_pointclouds_array_subscription'),
                 'message_filter_queue': LaunchConfiguration('message_filter_queue'),

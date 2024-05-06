@@ -25,6 +25,7 @@ topics:
       confidences_topic: &lang_sam_confidences_topic "/fruit_picking/segmentation/lang_sam/confidences"
       octomap_semantic_class_cells_vis_topic: &lang_sam_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/lang_sam/semantic_class_cells_vis"
       octomap_confidence_cells_vis_topic: &lang_sam_octomap_confidence_cells_vis_topic "/fruit_picking/octomap/lang_sam/confidence_cells_vis"
+      octomap_instances_cells_vis_topic: &lang_sam_octomap_instances_cells_vis_topic "/fruit_picking/octomap/lang_sam/instances_cells_vis"
 
   pointcloud:
     pointcloud_topic: &pointcloud_topic "/fruit_picking/pointcloud/pointcloud"
@@ -89,6 +90,7 @@ launch:
       publish_2d_projected_map: "False"
       publish_confidence: 'False'
       publish_semantic: 'True'
+      publish_instances: 'False'
       semantic_pointcloud_subscription: 'True'
       semantic_pointclouds_array_subscription: 'False'
       message_filter_queue: '100'
@@ -140,6 +142,7 @@ launch:
       publish_2d_projected_map: "False"
       publish_confidence: 'True'
       publish_semantic: 'True'
+      publish_instances: 'True'
       semantic_pointcloud_subscription: 'False'
       semantic_pointclouds_array_subscription: 'True'
       message_filter_queue: '100'

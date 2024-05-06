@@ -177,7 +177,7 @@ def launch_setup(context, *args, **kwargs):
     octomap_projected_map_topic = config_yaml['topics']['octomap']['octomap_projected_map_topic']
     octomap_semantic_class_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_semantic_class_cells_vis_topic']
     octomap_confidence_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_confidence_cells_vis_topic']
-
+    octomap_instances_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_instances_cells_vis_topic']
 
 
     # Input entity
@@ -270,6 +270,7 @@ def launch_setup(context, *args, **kwargs):
                 "octomap_projected_map_topic": octomap_projected_map_topic,
                 "octomap_semantic_class_cells_vis_topic": octomap_semantic_class_cells_vis_topic,
                 "octomap_confidence_cells_vis_topic": octomap_confidence_cells_vis_topic,
+                "octomap_instances_cells_vis_topic": octomap_instances_cells_vis_topic,
                 "frame_id": frame_id,
                 "base_frame_id": base_frame_id
             },

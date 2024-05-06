@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Original Depth Image
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -346,6 +346,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /fruit_picking/octomap/lang_sam/confidence_cells_vis
       Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: false
+      Name: Instances Octomap (occupied)
+      Namespaces:
+        map: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /fruit_picking/octomap/lang_sam/instances_cells_vis
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

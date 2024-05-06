@@ -7,6 +7,7 @@ namespace extended_octomap_server {
         this->confidence = 0.0;
         setConfidenceColor(0.0);
         setSemanticColor("none");
+        setInstance(0);
     }
 
 
@@ -49,6 +50,11 @@ namespace extended_octomap_server {
 
     }
 
+    void ExtendedOctomapData::setInstance(int instance){
+        this->instance = instance;
+        setInstanceColor(instance);
+    }
+
     void ExtendedOctomapData::setSemanticColor(std::string semantic_class){
         if (semantic_class == "none"){
             this->semantic_r = 1.0;
@@ -70,12 +76,95 @@ namespace extended_octomap_server {
         this->confidence_a = 1.0;
     }
 
+    void ExtendedOctomapData::setInstanceColor(int instance) {
+        // Inline function to convert HSV to RGB
+        auto hsvToRgb = [](float h, float s, float v, float &r, float &g, float &b) {
+            int i;
+            float f, p, q, t;
+            if (s == 0) {
+                r = g = b = v;
+                return;
+            }
+            h /= 60; // sector 0 to 5
+            i = floor(h);
+            f = h - i; // factorial part of h
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+            switch (i) {
+                case 0:
+                    r = v;
+                    g = t;
+                    b = p;
+                    break;
+                case 1:
+                    r = q;
+                    g = v;
+                    b = p;
+                    break;
+                case 2:
+                    r = p;
+                    g = v;
+                    b = t;
+                    break;
+                case 3:
+                    r = p;
+                    g = q;
+                    b = v;
+                    break;
+                case 4:
+                    r = t;
+                    g = p;
+                    b = v;
+                    break;
+                default: // case 5:
+                    r = v;
+                    g = p;
+                    b = q;
+                    break;
+            }
+        };
+        // case when the voxel is initializated and the instance is 0
+        if (instance == 0){
+            this->instance_r = 1.0;
+            this->instance_g = 1.0;
+            this->instance_b = 1.0;
+        } 
+        else {
+            // Define base values for hue, saturation, and value
+            float baseHue = 0.0; // Starting hue
+            float baseSaturation = 0.9; // Starting saturation
+            float baseValue = 0.9; // Starting value
+
+            // Calculate adjustments based on instance number
+            float hueAdjustment = static_cast<float>(instance) * 137.5; // Golden angle 
+            float saturationAdjustment = 0; // Optional: Adjust saturation if desired
+            float valueAdjustment = 0; // Optional: Adjust value if desired
+
+            // Apply adjustments, ensuring hue wraps around at 360
+            float h = fmod(baseHue + hueAdjustment, 360);
+            float s = fmin(fmax(baseSaturation + saturationAdjustment, 0), 1); // Keep s within [0, 1]
+            float v = fmin(fmax(baseValue + valueAdjustment, 0), 1); // Keep v within [0, 1]
+
+            float r, g, b;
+            hsvToRgb(h, s, v, r, g, b); // Convert adjusted HSV to RGB
+            this->instance_r = r;
+            this->instance_g = g;
+            this->instance_b = b;
+        }
+        this->instance_a = 1.0; // Assuming alpha is always 1.0
+    }
+
     std::string ExtendedOctomapData::getSemanticClass(){
         return this->semantic_class;
     }
 
     float ExtendedOctomapData::getConfidence(){
         return this->confidence;
+    }
+
+    int ExtendedOctomapData::getInstance(){
+        return this->instance;
     }
     
 
@@ -97,6 +186,8 @@ namespace extended_octomap_server {
             "publish_confidence", publishConfidence);
         publishSemantic = this->declare_parameter(
             "publish_semantic", publishSemantic);
+        publishInstances = this->declare_parameter(
+            "publish_instances", publishInstances);
 
         semanticPointcloudSubscription = this->declare_parameter(
             "semantic_pointcloud_subscription", semanticPointcloudSubscription);
@@ -118,6 +209,9 @@ namespace extended_octomap_server {
         insertSemanticActiveService_ = this->create_service<std_srvs::srv::SetBool>(
             "set_insert_semantic_active",
             std::bind(&ExtendedOctomapServer::setInsertSemanticActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+        // Initialize the variable to keep track of the instances
+        currentMaxInstance = 1;
 
         this->onInit();
     }
@@ -181,6 +275,12 @@ namespace extended_octomap_server {
                     "semantic_class_cells_vis", qos);
             RCLCPP_INFO(this->get_logger(), "Publisher of semantic classes markers created.");
         }
+        if (publishInstances){
+            this->instancesMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "instances_cells_vis", qos);
+            RCLCPP_INFO(this->get_logger(), "Publisher of instances markers created.");
+        }
     }
 
 
@@ -198,6 +298,10 @@ namespace extended_octomap_server {
 
             if (publishSemantic){
                 publishSemanticClassMarkers(cloud->header.stamp);
+            }
+
+            if (publishInstances){
+                publishInstancesMarkers(cloud->header.stamp);
             }
         }
     }
@@ -440,6 +544,7 @@ namespace extended_octomap_server {
                     float old_confidence;
                     float confidence = confidences[i];
                     float updated_confidence;
+                    int inst;
 
                     // From pointcloud message to Pointcloud data structure
                     PCLPointCloud segmented_pc;
@@ -471,7 +576,8 @@ namespace extended_octomap_server {
 
                     pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
 
-                    
+                    // Variable to check if the instance has been updated on all the octokeys of the current pointcloud
+                    bool instance_updated = true;
                     
                     bool flag = true;
                     for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
@@ -480,7 +586,21 @@ namespace extended_octomap_server {
 
                         if (m_octree->coordToKeyChecked(point, key)) {
                             if (updatedOctKeys.find(key) == updatedOctKeys.end()) { // If the key hasn't been updated yet
-                                if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
+                                if (extended_octomap_map->find(key) != extended_octomap_map->end()) { // if the octkey exists in the extended octomap map
+
+                                    // set instance number
+                                    
+                                    if ((*extended_octomap_map)[key].getInstance() == 0){
+                                        (*extended_octomap_map)[key].setInstance(currentMaxInstance);
+                                    }
+                                    else {
+                                        instance_updated = false;
+                                    }
+                                    if (flag){
+                                        inst = (*extended_octomap_map)[key].getInstance();
+                                    }
+
+                                    // set confidence
                                     if (flag){
                                         old_confidence = (*extended_octomap_map)[key].getConfidence();
                                     }
@@ -489,12 +609,18 @@ namespace extended_octomap_server {
                                         updated_confidence = (*extended_octomap_map)[key].getConfidence();
                                         flag = false;
                                     }
+
                                 }   
                                 updatedOctKeys.insert(key); // Add the key to the set of updated keys
                             }
                         }
                     }
-                    RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Object %d: Old confidence %f, new confidence %f, final confidence %f", i+1, old_confidence, confidence, updated_confidence);
+
+                    if (instance_updated){
+                        currentMaxInstance++;
+                    }
+
+                    RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Object %d: Old confidence %f, new confidence %f, final confidence %f, instance %d", i+1, old_confidence, confidence, updated_confidence, inst);
 
                 }
                 
@@ -507,6 +633,10 @@ namespace extended_octomap_server {
 
                 if (publishSemantic){
                     publishSemanticClassMarkers(segmented_pointclouds_array->header.stamp);
+                }
+
+                if (publishInstances){
+                    publishInstancesMarkers(segmented_pointclouds_array->header.stamp);
                 }
             }
             else{
@@ -692,6 +822,95 @@ namespace extended_octomap_server {
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishSemanticClassMarkers] Markers of classes published.");
 
     } 
+
+
+    void ExtendedOctomapServer::publishInstancesMarkers(const rclcpp::Time &rostime) const {
+        
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishInstancesMarkers] Publishing markers of instances...");
+
+        bool publishInstancesMarkers = instancesMarkerPub->get_subscription_count() > 0;
+        size_t octomap_size = m_octree->size();
+
+        // RCLCPP_INFO(this->get_logger(), "Tree size: %lu", octomap_size);
+
+
+        if (octomap_size <= 1) {
+            RCLCPP_DEBUG(
+                this->get_logger(),
+                "Nothing to publish, octree is empty");
+            return;
+        }
+
+        // init markers for free space:
+        visualization_msgs::msg::MarkerArray instancesVis;
+        // each array stores all cubes of a different size, one for each depth level:
+        instancesVis.markers.resize(m_treeDepth+1);
+
+
+        tf2::Quaternion quaternion;
+        quaternion.setRPY(0, 0, 0.0);        
+        geometry_msgs::msg::Pose pose;
+        pose.orientation = tf2::toMsg(quaternion);
+
+        for (auto it = (*extended_octomap_map).begin(); it != (*extended_octomap_map).end(); ++it) {
+            // Extract the OctoKey from the iterator
+            octomap::OcTreeKey key = it->first;
+
+            // Convert the OctoKey back to world coordinates
+            double x = m_octree->keyToCoord(key[0]);
+            double y = m_octree->keyToCoord(key[1]);
+            double z = m_octree->keyToCoord(key[2]);
+            double size = m_octree->getNodeSize(m_maxTreeDepth);
+
+            //create marker:
+            if (publishInstancesMarkers){
+
+                geometry_msgs::msg::Point cubeCenter;
+                cubeCenter.x = x;
+                cubeCenter.y = y;
+                cubeCenter.z = z;
+
+                instancesVis.markers[m_maxTreeDepth].points.push_back(cubeCenter);
+
+                std_msgs::msg::ColorRGBA _color;
+                _color.r = it->second.instance_r;
+                _color.g = it->second.instance_g;
+                _color.b = it->second.instance_b;
+                _color.a = it->second.instance_a;                            
+                instancesVis.markers[m_maxTreeDepth].colors.push_back(_color);
+            }   
+        }
+
+
+        // finish MarkerArray:
+        if (publishInstancesMarkers) {
+            for (unsigned i= 0; i < instancesVis.markers.size(); ++i){
+                double size = m_octree->getNodeSize(i);
+
+                instancesVis.markers[i].header.frame_id = m_worldFrameId;
+                instancesVis.markers[i].header.stamp = rostime;
+                instancesVis.markers[i].ns = "map";
+                instancesVis.markers[i].id = i;
+                instancesVis.markers[i].type =
+                    visualization_msgs::msg::Marker::CUBE_LIST;
+                instancesVis.markers[i].scale.x = size;
+                instancesVis.markers[i].scale.y = size;
+                instancesVis.markers[i].scale.z = size;
+
+                if (instancesVis.markers[i].points.size() > 0)
+                    instancesVis.markers[i].action =
+                        visualization_msgs::msg::Marker::ADD;
+                else
+                    instancesVis.markers[i].action =
+                        visualization_msgs::msg::Marker::DELETE;
+            }
+            instancesMarkerPub->publish(instancesVis);
+        }
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishInstancesMarkers] Markers of instances published.");
+
+
+    }
+
 
 
     void ExtendedOctomapServer::setInsertCloudActive(

@@ -23,21 +23,30 @@ namespace extended_octomap_server{
 
         void setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization);
 
+        void setInstance(int instance);
+
         void setSemanticColor(std::string semantic_class);
 
         void setConfidenceColor(float confidence);
+
+        void setInstanceColor(int instance);
 
         std::string getSemanticClass();
 
         float getConfidence();
 
+        int getInstance();
+
         float semantic_r, semantic_g, semantic_b, semantic_a;
         float confidence_r, confidence_g, confidence_b, confidence_a;
+        float instance_r, instance_g, instance_b, instance_a;
+
 
     protected:
 
         float confidence;
         std::string semantic_class;
+        int instance;
     };
 
 
@@ -66,6 +75,9 @@ namespace extended_octomap_server{
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
                           >::SharedPtr semanticClassMarkerPub;
 
+        rclcpp::Publisher<visualization_msgs::msg::MarkerArray
+                          >::SharedPtr instancesMarkerPub;
+
         std::shared_ptr<ExtendedOctomapMap> extended_octomap_map;
 
         octomap::KeySet global_free_cells, global_occupied_cells;
@@ -73,6 +85,7 @@ namespace extended_octomap_server{
         bool processFreeSpace; // tells if saving free space on a data structure is required
         bool publishConfidence; // tells if the confidence info isnide the extended octomap map and markers are required
         bool publishSemantic; // tells if the semantic classes inside the extended map and markers are required
+        bool publishInstances; // tells if the instances markers are required
         bool semanticPointcloudSubscription; // tells if the node needs to subscribe to the semantic pointcloud topic
         bool semanticPointcloudsArraySubscription; // tells if the node needs to subscribe to the semantic pointclouds array topic
 
@@ -82,6 +95,9 @@ namespace extended_octomap_server{
 
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSemanticActiveService_;
+
+        // Variable to keep track of the instances
+        int currentMaxInstance;
 
 
         // Methods
@@ -100,6 +116,8 @@ namespace extended_octomap_server{
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 
         void publishSemanticClassMarkers(const rclcpp::Time &) const;
+
+        void publishInstancesMarkers(const rclcpp::Time &) const;
 
         void setInsertCloudActive(
             const std::shared_ptr<rmw_request_id_t> request_header,

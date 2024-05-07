@@ -17,17 +17,25 @@ namespace extended_octomap_server{
         // Constructor used to initialize the voxel extended data. Called by the insertCloud callback
         ExtendedOctomapData();
 
+        void setSemanticClassNoColor(std::string semantic_class);
+
         void setSemanticClass(std::string semantic_class);
+
+        void setConfidenceNoColor(float confidence);
 
         void setConfidence(float confidence);
 
         void setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization);
 
+        void setInstanceNoColor(int instance);
+
         void setInstance(int instance);
 
         void setSemanticColor(std::string semantic_class);
 
-        void setConfidenceColor(float confidence);
+        void setDirectConfidenceColor(float confidence);
+
+        void setHeatConfidenceColor(float confidence);
 
         void setInstanceColor(int instance);
 

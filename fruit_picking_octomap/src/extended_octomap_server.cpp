@@ -3,22 +3,28 @@
 namespace extended_octomap_server {
 
     ExtendedOctomapData::ExtendedOctomapData(){
-        this->semantic_class = "none";            
-        this->confidence = 0.0;
-        setConfidenceColor(0.0);
-        setSemanticColor("none");
+        setSemanticClass("none");     
+        setConfidenceNoColor(0.0);  
+        setDirectConfidenceColor(1.0);  
         setInstance(0);
     }
 
+    void ExtendedOctomapData::setSemanticClassNoColor(std::string semantic_class){
+        this->semantic_class = semantic_class;
+    }
 
     void ExtendedOctomapData::setSemanticClass(std::string semantic_class){
         this->semantic_class = semantic_class;
         setSemanticColor(semantic_class);
     }
 
+    void ExtendedOctomapData::setConfidenceNoColor(float confidence){
+        this->confidence = confidence;
+    }
+
     void ExtendedOctomapData::setConfidence(float confidence){
         this->confidence = confidence;
-        setConfidenceColor(confidence);
+        setDirectConfidenceColor(confidence);
     }
 
     void ExtendedOctomapData::setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization=0.9){
@@ -46,8 +52,12 @@ namespace extended_octomap_server {
         }
 
         setSemanticClass(sem_f);
-        setConfidence(c_f);
+        setConfidenceNoColor(c_f);
+        setHeatConfidenceColor(c_f);
+    }
 
+    void ExtendedOctomapData::setInstanceNoColor(int instance){
+        this->instance = instance;
     }
 
     void ExtendedOctomapData::setInstance(int instance){
@@ -69,11 +79,76 @@ namespace extended_octomap_server {
         this->semantic_a = 1.0;
     }
 
-    void ExtendedOctomapData::setConfidenceColor(float confidence){
+    void ExtendedOctomapData::setDirectConfidenceColor(float confidence) {
         this->confidence_r = confidence;
         this->confidence_g = confidence;
         this->confidence_b = confidence;
-        this->confidence_a = 1.0;
+        this->confidence_a = 1.0; // Assuming alpha is always full opacity
+    }
+
+    void ExtendedOctomapData::setHeatConfidenceColor(float confidence) {
+        // Map confidence to hue (0 to 120 degrees, where 0 is red and 120 is green)
+        float hue = confidence * 240.0f; // 0.0 -> 0° (red), 1.0 -> 120° (green)
+        float saturation = 1.0; // Full saturation
+        float value = 1.0; // Full brightness/value
+
+        // Convert HSV to RGB using the provided lambda function
+        auto hsvToRgb = [](float h, float s, float v, float &r, float &g, float &b) {
+            int i;
+            float f, p, q, t;
+            if (s == 0) {
+                r = g = b = v;
+                return;
+            }
+            h /= 60; // sector 0 to 5
+            i = floor(h);
+            f = h - i; // factorial part of h
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+            switch (i) {
+                case 0:
+                    r = v;
+                    g = t;
+                    b = p;
+                    break;
+                case 1:
+                    r = q;
+                    g = v;
+                    b = p;
+                    break;
+                case 2:
+                    r = p;
+                    g = v;
+                    b = t;
+                    break;
+                case 3:
+                    r = p;
+                    g = q;
+                    b = v;
+                    break;
+                case 4:
+                    r = t;
+                    g = p;
+                    b = v;
+                    break;
+                default: // case 5:
+                    r = v;
+                    g = p;
+                    b = q;
+                    break;
+            }
+        };
+
+        // Use the lambda to convert HSV to RGB
+        float r, g, b;
+        hsvToRgb(hue, saturation, value, r, g, b);
+
+        // Set the RGB values
+        this->confidence_r = r;
+        this->confidence_g = g;
+        this->confidence_b = b;
+        this->confidence_a = 1.0; // Assuming alpha is always full opacity
     }
 
     void ExtendedOctomapData::setInstanceColor(int instance) {

@@ -52,6 +52,7 @@ include_directories(include)
 # added
 add_library(fruit_picking_octomap SHARED
   src/extended_octomap_server.cpp
+  src/extended_octomap_data.cpp
   src/octomap_server.cpp
   src/transforms.cpp
   src/conversions.cpp

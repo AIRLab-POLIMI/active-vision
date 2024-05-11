@@ -3,62 +3,14 @@
 #define _EXTENDED_OCTOMAP_SERVER_HPP_
 
 #include <fruit_picking_octomap/octomap_server.hpp>
+#include <fruit_picking_octomap/extended_octomap_data.hpp>
 #include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
 #include <std_srvs/srv/set_bool.hpp>
 
 
 namespace extended_octomap_server{
 
-
-    class ExtendedOctomapData{
-    
-    public:
-
-        // Constructor used to initialize the voxel extended data. Called by the insertCloud callback
-        ExtendedOctomapData();
-
-        void setSemanticClassNoColor(std::string semantic_class);
-
-        void setSemanticClass(std::string semantic_class);
-
-        void setConfidenceNoColor(float confidence);
-
-        void setConfidence(float confidence);
-
-        void setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization);
-
-        void setInstanceNoColor(int instance);
-
-        void setInstance(int instance);
-
-        void setSemanticColor(std::string semantic_class);
-
-        void setDirectConfidenceColor(float confidence);
-
-        void setHeatConfidenceColor(float confidence);
-
-        void setInstanceColor(int instance);
-
-        std::string getSemanticClass();
-
-        float getConfidence();
-
-        int getInstance();
-
-        float semantic_r, semantic_g, semantic_b, semantic_a;
-        float confidence_r, confidence_g, confidence_b, confidence_a;
-        float instance_r, instance_g, instance_b, instance_a;
-
-
-    protected:
-
-        float confidence;
-        std::string semantic_class;
-        int instance;
-    };
-
-
-
+    using ExtendedOctomapData = extended_octomap_data::ExtendedOctomapData;
     typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, ExtendedOctomapData, octomap::OcTreeKey::KeyHash> ExtendedOctomapMap;
 
     

@@ -2,15 +2,16 @@
 
 namespace extended_octomap_server {
 
+    // Constructor
     ExtendedOctomapServer::ExtendedOctomapServer(const rclcpp::NodeOptions &options, const std::string node_name) : octomap_server::OctomapServer::OctomapServer(options, node_name) {
         
         RCLCPP_INFO(this->get_logger(), "Extended constructor started.");
 
         
-        // Initialization of the extended octomap map
+        // Initialization of the map for the additional semantic information
         extended_octomap_map = std::make_shared<ExtendedOctomapMap>();
 
-        // Initialization of the collision keys map
+        // Initialization of the map to store the key of the voxel where there are collisio between points of different instances
         collisionKeys = std::make_shared<CollisionOcTreeKeys>();
 
 
@@ -52,8 +53,7 @@ namespace extended_octomap_server {
 
 
         // Initialization of the variable to keep track of the instances
-        currentMaxInstance = 1;
-
+        currentMaxInstance = 1;     
 
 
         // Initialization of the subscribers and publishers, with their callbacks
@@ -293,7 +293,7 @@ namespace extended_octomap_server {
         // and set the class as none if the octkey does not exist yet
         for(const auto& key : global_occupied_cells) {
             if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
-               (*extended_octomap_map)[key] = ExtendedOctomapData();  
+               (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap);  
             }                    
         }
         
@@ -344,7 +344,7 @@ namespace extended_octomap_server {
 
                 if (m_octree->coordToKeyChecked(point, key)) {
                     if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
-                        (*extended_octomap_map)[key].setSemanticClass("mask");
+                        (*extended_octomap_map)[key].setSemanticClass("mask", colorMap);
                     }
                 }
             }
@@ -476,7 +476,7 @@ namespace extended_octomap_server {
 
                 // Case when the key has the same value as the major instance value of the entire pointcloud
                 if (pt_key_instance == most_frequent_instance){
-                    (*extended_octomap_map)[pt_key].setConfidenceMaxFusion(semantic_class, confidence);
+                    (*extended_octomap_map)[pt_key].setConfidenceMaxFusion(semantic_class, colorMap, confidence);
                     int pt_key_count = countPointsInVoxel(segmented_pc, pt_key, m_octree);
                     (*extended_octomap_map)[pt_key].setPointsCount(pt_key_count);
 
@@ -538,7 +538,7 @@ namespace extended_octomap_server {
             
             // Set the values of the current octreekey
             (*extended_octomap_map)[it->first].setInstance(std::get<0>(*maxTupleIt));
-            (*extended_octomap_map)[it->first].setConfidenceMaxFusion(std::get<1>(*maxTupleIt), std::get<3>(*maxTupleIt));
+            (*extended_octomap_map)[it->first].setConfidenceMaxFusion(std::get<1>(*maxTupleIt), colorMap, std::get<3>(*maxTupleIt));
             (*extended_octomap_map)[it->first].setPointsCount(std::get<2>(*maxTupleIt));
         }
 

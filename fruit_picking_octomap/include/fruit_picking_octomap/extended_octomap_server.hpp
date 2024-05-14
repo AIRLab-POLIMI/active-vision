@@ -70,6 +70,9 @@ namespace extended_octomap_server{
         // Variable to keep track of the instances
         int currentMaxInstance;
 
+        // Map to keep track of the coloration (hue value) of each semantic class (for visualization purposes)
+        std::map<std::string, float> colorMap;
+
 
         // Methods
 

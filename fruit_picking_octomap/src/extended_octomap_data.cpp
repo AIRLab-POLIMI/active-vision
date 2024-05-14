@@ -2,8 +2,10 @@
 
 namespace extended_octomap_data {
 
-    ExtendedOctomapData::ExtendedOctomapData(){
-        setSemanticClass("none");     
+    ExtendedOctomapData::ExtendedOctomapData(){}
+
+    ExtendedOctomapData::ExtendedOctomapData(std::map<std::string, float>& hueMap){
+        setSemanticClass("none", hueMap);     
         setConfidenceNoColor(0.0);  
         setDirectConfidenceColor(1.0);  
         setInstance(0);
@@ -13,9 +15,9 @@ namespace extended_octomap_data {
         this->semantic_class = semantic_class;
     }
 
-    void ExtendedOctomapData::setSemanticClass(std::string semantic_class){
+    void ExtendedOctomapData::setSemanticClass(std::string semantic_class, std::map<std::string, float>& hueMap){
         this->semantic_class = semantic_class;
-        setSemanticColor(semantic_class);
+        setSemanticColor(semantic_class, hueMap);
     }
 
     void ExtendedOctomapData::setConfidenceNoColor(float confidence){
@@ -27,7 +29,7 @@ namespace extended_octomap_data {
         setDirectConfidenceColor(confidence);
     }
 
-    void ExtendedOctomapData::setConfidenceMaxFusion(std::string semantic_class, float confidence, float penalization){
+    void ExtendedOctomapData::setConfidenceMaxFusion(std::string semantic_class, std::map<std::string, float>& hueMap, float confidence, float penalization){
         std::string sem_1 = this->semantic_class;
         std::string sem_2 = semantic_class;
         float c_1 = this->confidence;
@@ -51,7 +53,7 @@ namespace extended_octomap_data {
             }
         }
 
-        setSemanticClass(sem_f);
+        setSemanticClass(sem_f, hueMap);
         setConfidenceNoColor(c_f);
         setHeatConfidenceColor(c_f);
     }
@@ -65,18 +67,42 @@ namespace extended_octomap_data {
         setInstanceColor(instance);
     }
 
-    void ExtendedOctomapData::setSemanticColor(std::string semantic_class){
+    void ExtendedOctomapData::setSemanticColor(std::string semantic_class, std::map<std::string, float>& hueMap){
         if (semantic_class == "none"){
             this->semantic_r = 1.0;
             this->semantic_g = 1.0;
             this->semantic_b = 1.0;
         }
         else {
-            this->semantic_r = 1.0;
-            this->semantic_g = 0.0;
-            this->semantic_b = 0.0;
+            float hue;
+            // Check if the semantic class already has a hue value
+            auto it = hueMap.find(semantic_class);
+            if (it != hueMap.end()) {
+                // Use the existing hue value
+                hue = it->second;
+            } else {
+                if (hueMap.empty()) {
+                    // If the map is empty, start with a default hue, e.g., 0 for red
+                    hue = 0.0;
+                } else {
+                    // If the map is not empty, get the hue of the last element and increment it
+                    float lastHue = (--hueMap.end())->second;
+                    hue = std::fmod(lastHue + 137.5, 360); // Increment and wrap around at 360 degrees
+                }
+                // Store the new hue in the map
+                hueMap[semantic_class] = hue;
+            }
+
+            // Convert the hue to RGB for setting the object's color attributes
+            float r, g, b;
+            hsvToRgb(hue, 1.0, 1.0, r, g, b); // Assuming full saturation and value
+
+            // Set the RGB values
+            this->semantic_r = r;
+            this->semantic_g = g;
+            this->semantic_b = b;
         }
-        this->semantic_a = 1.0;
+        this->semantic_a = 1.0; // Assuming alpha is always full opacity
     }
 
     void ExtendedOctomapData::setDirectConfidenceColor(float confidence) {
@@ -87,60 +113,12 @@ namespace extended_octomap_data {
     }
 
     void ExtendedOctomapData::setHeatConfidenceColor(float confidence) {
-        // Map confidence to hue (0 to 120 degrees, where 0 is red and 120 is green)
+        // Map confidence to hue (0 to 240 degrees, where 0 is red and 240 is blue. 120 is green)
         float hue = confidence * 240.0f; // 0.0 -> 0° (red), 1.0 -> 120° (green)
         float saturation = 1.0; // Full saturation
         float value = 1.0; // Full brightness/value
 
-        // Convert HSV to RGB using the provided lambda function
-        auto hsvToRgb = [](float h, float s, float v, float &r, float &g, float &b) {
-            int i;
-            float f, p, q, t;
-            if (s == 0) {
-                r = g = b = v;
-                return;
-            }
-            h /= 60; // sector 0 to 5
-            i = floor(h);
-            f = h - i; // factorial part of h
-            p = v * (1 - s);
-            q = v * (1 - s * f);
-            t = v * (1 - s * (1 - f));
-            switch (i) {
-                case 0:
-                    r = v;
-                    g = t;
-                    b = p;
-                    break;
-                case 1:
-                    r = q;
-                    g = v;
-                    b = p;
-                    break;
-                case 2:
-                    r = p;
-                    g = v;
-                    b = t;
-                    break;
-                case 3:
-                    r = p;
-                    g = q;
-                    b = v;
-                    break;
-                case 4:
-                    r = t;
-                    g = p;
-                    b = v;
-                    break;
-                default: // case 5:
-                    r = v;
-                    g = p;
-                    b = q;
-                    break;
-            }
-        };
-
-        // Use the lambda to convert HSV to RGB
+        // Convert HSV to RGB
         float r, g, b;
         hsvToRgb(hue, saturation, value, r, g, b);
 
@@ -152,54 +130,7 @@ namespace extended_octomap_data {
     }
 
     void ExtendedOctomapData::setInstanceColor(int instance) {
-        // Inline function to convert HSV to RGB
-        auto hsvToRgb = [](float h, float s, float v, float &r, float &g, float &b) {
-            int i;
-            float f, p, q, t;
-            if (s == 0) {
-                r = g = b = v;
-                return;
-            }
-            h /= 60; // sector 0 to 5
-            i = floor(h);
-            f = h - i; // factorial part of h
-            p = v * (1 - s);
-            q = v * (1 - s * f);
-            t = v * (1 - s * (1 - f));
-            switch (i) {
-                case 0:
-                    r = v;
-                    g = t;
-                    b = p;
-                    break;
-                case 1:
-                    r = q;
-                    g = v;
-                    b = p;
-                    break;
-                case 2:
-                    r = p;
-                    g = v;
-                    b = t;
-                    break;
-                case 3:
-                    r = p;
-                    g = q;
-                    b = v;
-                    break;
-                case 4:
-                    r = t;
-                    g = p;
-                    b = v;
-                    break;
-                default: // case 5:
-                    r = v;
-                    g = p;
-                    b = q;
-                    break;
-            }
-        };
-        // case when the voxel is initializated and the instance is 0
+        // Case when the voxel is initializated and the instance is 0
         if (instance == 0){
             this->instance_r = 1.0;
             this->instance_g = 1.0;
@@ -251,5 +182,54 @@ namespace extended_octomap_data {
         return this->semantic_class_points_count;
     }
 
+    // HSV to RGB conversion function 
+    void hsvToRgb(float h, float s, float v, float &r, float &g, float &b) {
+        int i;
+        float f, p, q, t;
+        if (s == 0) {
+            r = g = b = v;
+            return;
+        }
+        h /= 60; // sector 0 to 5
+        i = floor(h);
+        f = h - i; // factorial part of h
+        p = v * (1 - s);
+        q = v * (1 - s * f);
+        t = v * (1 - s * (1 - f));
+        switch (i) {
+            case 0:
+                r = v;
+                g = t;
+                b = p;
+                break;
+            case 1:
+                r = q;
+                g = v;
+                b = p;
+                break;
+            case 2:
+                r = p;
+                g = v;
+                b = t;
+                break;
+            case 3:
+                r = p;
+                g = q;
+                b = v;
+                break;
+            case 4:
+                r = t;
+                g = p;
+                b = v;
+                break;
+            default: // case 5:
+                r = v;
+                g = p;
+                b = q;
+                break;
+        }
+    }
+
+    
 
 }

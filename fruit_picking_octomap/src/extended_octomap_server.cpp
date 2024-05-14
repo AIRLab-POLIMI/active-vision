@@ -6,15 +6,21 @@ namespace extended_octomap_server {
         
         RCLCPP_INFO(this->get_logger(), "Extended constructor started.");
 
+        
+        // Initialization of the extended octomap map
         extended_octomap_map = std::make_shared<ExtendedOctomapMap>();
 
+        // Initialization of the collision keys map
+        collisionKeys = std::make_shared<CollisionOcTreeKeys>();
+
+
+        // Initialization of the parameters
         processFreeSpace = this->declare_parameter(
             "process_free_space", processFreeSpace);
         if (processFreeSpace) {
             RCLCPP_INFO(this->get_logger(), "Computation of free voxels will not be executed.");
 
         }
-
         publishConfidence = this->declare_parameter(
             "publish_confidence", publishConfidence);
         publishSemantic = this->declare_parameter(
@@ -43,11 +49,18 @@ namespace extended_octomap_server {
             "set_insert_semantic_active",
             std::bind(&ExtendedOctomapServer::setInsertSemanticActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-        // Initialize the variable to keep track of the instances
+
+
+        // Initialization of the variable to keep track of the instances
         currentMaxInstance = 1;
 
+
+
+        // Initialization of the subscribers and publishers, with their callbacks
         this->onInit();
     }
+
+
 
     ExtendedOctomapServer::~ExtendedOctomapServer(){}
 
@@ -351,131 +364,202 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array){
 
-        if (insertSemanticActive){
 
-            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Semantic array callback started.");
+        // If the paramter to activate the callback is false, the callback will be skipped
+        if (!insertSemanticActive){
+            return;
+        }
+
+        // The callback starts the execution
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Semantic array callback started.");
+        
+
+        // If the input data composed of segmented pointclouds and relative confidences is empty, terminate the callback
+        if (segmented_pointclouds_array->confidences.empty()) {
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Semantic array callback finished with no effect.");    
+            return;   
+        }
+
+
+        // If it is not empty, save confidence vector
+        std::vector<float> confidences;
+        for (auto& kv : segmented_pointclouds_array->confidences) {
+            confidences.push_back(std::stof(kv.value));
+        }
+
+        // Save input semantic class
+        std::string semantic_class = segmented_pointclouds_array->semantic_class;
+
+
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Entering loop...");
+
+
+        // Loop thorugh all the poitclouds inside the array
+        for (size_t i = 0; i < segmented_pointclouds_array->pointclouds.size(); ++i){
+
+            // Take the pointcloud and the confidence
+            auto& segmented_pointcloud = segmented_pointclouds_array->pointclouds[i];
+            float confidence = confidences[i];
+
+
+            // Data structure to save all the octreekeys that contain the current pointcloud,
+            // so that the next operation will be done iterating through this structure
+            octomap::KeySet pointcloudKeys;
+
             
-            if (!segmented_pointclouds_array->confidences.empty()) {
 
-                // Save confidence vector
-                std::vector<float> confidences;
-                for (auto& kv : segmented_pointclouds_array->confidences) {
-                    confidences.push_back(std::stof(kv.value));
-                }
+            // From pointcloud message to Pointcloud data structure
+            PCLPointCloud segmented_pc;
+            pcl::fromROSMsg(segmented_pointcloud, segmented_pc);
 
-                // Save semantic class
-                std::string semantic_class = segmented_pointclouds_array->semantic_class;
-
-                // New unordered set to take count of the already updated octkeys
-                octomap::KeySet updatedOctKeys;
-                            
-
-                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Entering loop...");
-                // Loop thorugh all the poitclouds inside the array
-                for (size_t i = 0; i < segmented_pointclouds_array->pointclouds.size(); ++i){
-                    auto& segmented_pointcloud = segmented_pointclouds_array->pointclouds[i];
-                    float old_confidence;
-                    float confidence = confidences[i];
-                    float updated_confidence;
-                    int inst;
-
-                    // From pointcloud message to Pointcloud data structure
-                    PCLPointCloud segmented_pc;
-                    pcl::fromROSMsg(segmented_pointcloud, segmented_pc);
-
-                    // Conversion of the pointcloud from sensor frame to world frame
-                    Eigen::Matrix4f sensorToWorld;
-                    geometry_msgs::msg::TransformStamped sensorToWorldTf;
-                    try {
-                        if (!this->buffer_->canTransform(
-                                m_worldFrameId, segmented_pointcloud.header.frame_id,
-                                segmented_pointcloud.header.stamp)) {
-                            throw "Failed";
-                        }
-                        
-                        sensorToWorldTf = this->buffer_->lookupTransform(
-                            m_worldFrameId, segmented_pointcloud.header.frame_id,
-                            segmented_pointcloud.header.stamp);
-                        sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
-                    } catch (tf2::TransformException &ex) {
-                        return;
-                    } catch (const std::exception& e) {
-                        // This will catch standard exceptions
-                        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] %s",e.what());
-                    } catch (...) {
-                        // This will catch all other exceptions
-                        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Generic error.");
-                    }
-
-                    pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
-
-                    // Variable to check if the instance has been updated on all the octokeys of the current pointcloud
-                    bool instance_updated = true;
-                    
-                    bool flag = true;
-                    for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
-                        octomap::point3d point(it->x, it->y, it->z);                
-                        octomap::OcTreeKey key;
-
-                        if (m_octree->coordToKeyChecked(point, key)) {
-                            if (updatedOctKeys.find(key) == updatedOctKeys.end()) { // If the key hasn't been updated yet
-                                if (extended_octomap_map->find(key) != extended_octomap_map->end()) { // if the octkey exists in the extended octomap map
-
-                                    // set instance number
-                                    
-                                    if ((*extended_octomap_map)[key].getInstance() == 0){
-                                        (*extended_octomap_map)[key].setInstance(currentMaxInstance);
-                                    }
-                                    else {
-                                        instance_updated = false;
-                                    }
-                                    if (flag){
-                                        inst = (*extended_octomap_map)[key].getInstance();
-                                    }
-
-                                    // set confidence
-                                    if (flag){
-                                        old_confidence = (*extended_octomap_map)[key].getConfidence();
-                                    }
-                                    (*extended_octomap_map)[key].setConfidenceMaxFusion(semantic_class, confidence);
-                                    if (flag){
-                                        updated_confidence = (*extended_octomap_map)[key].getConfidence();
-                                        flag = false;
-                                    }
-
-                                }   
-                                updatedOctKeys.insert(key); // Add the key to the set of updated keys
-                            }
-                        }
-                    }
-
-                    if (instance_updated){
-                        currentMaxInstance++;
-                    }
-
-                    RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Object %d: Old confidence %f, new confidence %f, final confidence %f, instance %d", i+1, old_confidence, confidence, updated_confidence, inst);
-
+            // Conversion of the pointcloud from sensor frame to world frame
+            Eigen::Matrix4f sensorToWorld;
+            geometry_msgs::msg::TransformStamped sensorToWorldTf;
+            try {
+                if (!this->buffer_->canTransform(
+                        m_worldFrameId, segmented_pointcloud.header.frame_id,
+                        segmented_pointcloud.header.stamp)) {
+                    throw "Failed";
                 }
                 
-                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Extended octomap map updated with segmented pointcloud array.");
+                sensorToWorldTf = this->buffer_->lookupTransform(
+                    m_worldFrameId, segmented_pointcloud.header.frame_id,
+                    segmented_pointcloud.header.stamp);
+                sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
+            } catch (tf2::TransformException &ex) {
+                return;
+            } catch (const std::exception& e) {
+                // This will catch standard exceptions
+                RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] %s",e.what());
+            } catch (...) {
+                // This will catch all other exceptions
+                RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Generic error.");
+            }
+
+            pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
 
 
-                if (publishConfidence){        
-                    publishConfidenceMarkers(segmented_pointclouds_array->header.stamp);
-                }
 
-                if (publishSemantic){
-                    publishSemanticClassMarkers(segmented_pointclouds_array->header.stamp);
-                }
+            // Save the octreekeys into the data structure, if it exist, skip, since more points can be in the same key
+            for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
+                octomap::point3d point(it->x, it->y, it->z);                
+                octomap::OcTreeKey key;
 
-                if (publishInstances){
-                    publishInstancesMarkers(segmented_pointclouds_array->header.stamp);
+                if (m_octree->coordToKeyChecked(point, key)) { // find the key of the point
+                    // Try to insert the key. If the key is already present, the insertion will fail, but it's fine since we don't want duplicates.
+                    pointcloudKeys.insert(key);
                 }
             }
-            else{
-                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Semantic array callback finished with no effect.");
+
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] pointcloudKeys filled with %d keys belonging to the pointcloud with %d points", pointcloudKeys.size(), segmented_pc.size());
+
+            // Save the most frequent instance value of the previous keys
+            int most_frequent_instance = findMostFrequentInstance(*extended_octomap_map, pointcloudKeys);
+
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] The most frequent instance of these keys is %d", most_frequent_instance);
+
+
+            
+            // Variable to check if an instance has been inserted
+            bool current_max_instance_used = false;
+
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Iterating through keys...");
+
+            // Iterate through the octreekeys related to the current pointcloud
+            for(const auto& pt_key : pointcloudKeys) {
+                
+                // Get info of the key
+                int pt_key_instance = (*extended_octomap_map)[pt_key].getInstance();
+                std::string pt_key_class = (*extended_octomap_map)[pt_key].getSemanticClass();
+                int pt_key_points_count = (*extended_octomap_map)[pt_key].getPointsCount();
+                float pt_key_confidence = (*extended_octomap_map)[pt_key].getConfidence();
+
+                // Case when the key has the same value as the major instance value of the entire pointcloud
+                if (pt_key_instance == most_frequent_instance){
+                    (*extended_octomap_map)[pt_key].setConfidenceMaxFusion(semantic_class, confidence);
+                    int pt_key_count = countPointsInVoxel(segmented_pc, pt_key, m_octree);
+                    (*extended_octomap_map)[pt_key].setPointsCount(pt_key_count);
+
+                    // if the instance of this key is zero means that need to be initializated with the current max (and free) instance value
+                    if (pt_key_instance == 0){
+                        (*extended_octomap_map)[pt_key].setInstance(currentMaxInstance);
+                        current_max_instance_used = true; // flag to say that this instance value has been used
+                    }
+                }
+
+                
+
+                // Case when the key has not the same value as the major instance value of the entire pointcloud, and the 
+                // major instance value is zero, meaning that the instance has not been initialized
+                else if (pt_key_instance != most_frequent_instance && most_frequent_instance == 0){
+                    int pt_key_current_count = countPointsInVoxel(segmented_pc, pt_key, m_octree); 
+                    std::list<std::tuple<int, std::string, int, float>> tuplesList;
+                    tuplesList.push_back(std::make_tuple(pt_key_instance, pt_key_class, pt_key_points_count, pt_key_confidence));
+                    tuplesList.push_back(std::make_tuple(currentMaxInstance, semantic_class, pt_key_current_count, confidence));
+                    (*collisionKeys)[pt_key] = tuplesList;
+                }
             }
+
+
+            // Increment the current max instance value if this variable has been used for at least one octreekey
+            if (current_max_instance_used){
+                currentMaxInstance++;
+                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Instance incremented: %d", currentMaxInstance);
+            }
+            
+
+            
         }
+
+        // Check for the collisions octreekeys
+
+        // At each iteration, the collisions of an octreekey are checked
+        for (auto it = collisionKeys->begin(); it != collisionKeys->end(); ++it) {
+            const auto& tuplesList = it->second;
+            
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Collision keys:");
+            std::string logMsg = "Key: (" + std::to_string(it->first.k[0]) + ", " + std::to_string(it->first.k[1]) + ", " + std::to_string(it->first.k[2]) + ") Values: ";
+            for (const auto& tuple : tuplesList) {
+                logMsg += "Tuple: (";
+                logMsg += std::to_string(std::get<0>(tuple)) + ", "; // int
+                logMsg += std::get<1>(tuple) + ", "; // std::string
+                logMsg += std::to_string(std::get<2>(tuple)) + ", "; // int
+                logMsg += std::to_string(std::get<3>(tuple)); // float
+                logMsg += ") ";
+            }
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] %s", logMsg.c_str());
+
+            
+            // maxTupleIt will point to the tuple with the greatest third element, that is the points count value
+            auto maxTupleIt = std::max_element(tuplesList.begin(), tuplesList.end(), 
+                [](const std::tuple<int, std::string, int, float>& a, const std::tuple<int, std::string, int, float>& b) {
+                    return std::get<2>(a) < std::get<2>(b); // Compare the third element that correspond to the points count values
+                });
+            
+            // Set the values of the current octreekey
+            (*extended_octomap_map)[it->first].setInstance(std::get<0>(*maxTupleIt));
+            (*extended_octomap_map)[it->first].setConfidenceMaxFusion(std::get<1>(*maxTupleIt), std::get<3>(*maxTupleIt));
+            (*extended_octomap_map)[it->first].setPointsCount(std::get<2>(*maxTupleIt));
+        }
+
+        // Free the collision map
+        collisionKeys->clear();
+
+        
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Extended octomap map updated with segmented pointcloud array.");
+
+
+        if (publishConfidence){        
+            publishConfidenceMarkers(segmented_pointclouds_array->header.stamp);
+        }
+
+        if (publishSemantic){
+            publishSemanticClassMarkers(segmented_pointclouds_array->header.stamp);
+        }
+
+        if (publishInstances){
+            publishInstancesMarkers(segmented_pointclouds_array->header.stamp);
+        }        
     }
 
 
@@ -780,5 +864,44 @@ namespace extended_octomap_server {
         }
     }   
 
+
+    // Function to find the most frequent instance of a set of octreekeys
+    int ExtendedOctomapServer::findMostFrequentInstance(ExtendedOctomapMap& map, const octomap::KeySet& pointcloudKeys) {
+        std::map<int, int> instanceFrequency; // Map to store frequency of each instance
+
+        // Iterate over each key in the KeySet
+        for (const auto& key : pointcloudKeys) {
+            int instance = map[key].getInstance(); // Get the object from the key
+            instanceFrequency[instance]++; // Increment the frequency count for this instance
+        }
+
+        // Find the instance with the highest frequency
+        auto mostFrequent = std::max_element(instanceFrequency.begin(), instanceFrequency.end(),
+            [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                return a.second < b.second;
+            });
+        
+        return mostFrequent->first; // Return the instance (key) of the most frequent element
+    }
+    
+    
+    
+    // Function to count the number of points inside a octree node
+    int ExtendedOctomapServer::countPointsInVoxel(const PCLPointCloud& pointcloud, const octomap::OcTreeKey& targetKey, std::shared_ptr<OcTreeT> m_octree) {
+        int count = 0;
+        for (const auto& point : pointcloud) {
+            octomap::point3d point_3d(point.x, point.y, point.z);                
+            octomap::OcTreeKey key;
+            if (m_octree->coordToKeyChecked(point_3d, key)) {
+                if (key == targetKey) {
+                    ++count;
+                }
+            }
+        }
+        return count;
+    }
+
 }
+
+
 RCLCPP_COMPONENTS_REGISTER_NODE(extended_octomap_server::ExtendedOctomapServer)

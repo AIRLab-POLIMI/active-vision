@@ -10,10 +10,18 @@
 
 namespace extended_octomap_server{
 
+
+    // Definitions
+
     using ExtendedOctomapData = extended_octomap_data::ExtendedOctomapData;
+
     typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, ExtendedOctomapData, octomap::OcTreeKey::KeyHash> ExtendedOctomapMap;
 
+    typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, std::list<std::tuple<int, std::string, int, float>>, octomap::OcTreeKey::KeyHash> CollisionOcTreeKeys;
+
     
+    // Main class
+
     class ExtendedOctomapServer : public octomap_server::OctomapServer{
 
     protected:
@@ -56,6 +64,9 @@ namespace extended_octomap_server{
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSemanticActiveService_;
 
+        // Map to save octreekeys that contains collision points between different instances
+        std::shared_ptr<CollisionOcTreeKeys> collisionKeys;
+
         // Variable to keep track of the instances
         int currentMaxInstance;
 
@@ -88,6 +99,12 @@ namespace extended_octomap_server{
             const std::shared_ptr<rmw_request_id_t> request_header,
             const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
             std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+
+        // Function to find the most frequent instance of a set of octreekeys
+        int findMostFrequentInstance(ExtendedOctomapMap& map, const octomap::KeySet& pointcloudKeys);
+
+        // Function to count the number of points inside a octree node
+        int countPointsInVoxel(const PCLPointCloud& pointcloud, const octomap::OcTreeKey& targetKey, const std::shared_ptr<OcTreeT> m_octree);
         
 
     public:

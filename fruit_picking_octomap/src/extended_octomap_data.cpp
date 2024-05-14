@@ -230,6 +230,11 @@ namespace extended_octomap_data {
         this->instance_a = 1.0; // Assuming alpha is always 1.0
     }
 
+    void ExtendedOctomapData::setPointsCount(int count){
+        this->semantic_class_points_count = count;
+    }
+ 
+
     std::string ExtendedOctomapData::getSemanticClass(){
         return this->semantic_class;
     }
@@ -241,5 +246,10 @@ namespace extended_octomap_data {
     int ExtendedOctomapData::getInstance(){
         return this->instance;
     }
+
+    int ExtendedOctomapData::getPointsCount(){
+        return this->semantic_class_points_count;
+    }
+
 
 }

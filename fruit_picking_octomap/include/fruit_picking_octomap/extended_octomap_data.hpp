@@ -37,11 +37,15 @@ namespace extended_octomap_data{
 
         void setInstanceColor(int instance);
 
+        void setPointsCount(int count);
+
         std::string getSemanticClass();
 
         float getConfidence();
 
         int getInstance();
+
+        int getPointsCount();
 
         float semantic_r, semantic_g, semantic_b, semantic_a;
         float confidence_r, confidence_g, confidence_b, confidence_a;
@@ -53,6 +57,7 @@ namespace extended_octomap_data{
         float confidence;
         std::string semantic_class;
         int instance;
+        int semantic_class_points_count;
     };
 
 }

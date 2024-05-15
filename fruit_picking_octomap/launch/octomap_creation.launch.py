@@ -39,6 +39,12 @@ def generate_launch_description():
         DeclareLaunchArgument('sensor_model/miss', default_value='0.4'),
         DeclareLaunchArgument('sensor_model/min', default_value='0.12'),
         DeclareLaunchArgument('sensor_model/max', default_value='0.97'),
+        DeclareLaunchArgument('pointcloud_min_x', default_value=str(float('-inf'))),  # Approximation of -std::numeric_limits<double>::max()
+        DeclareLaunchArgument('pointcloud_max_x', default_value=str(float('inf'))),  # Approximation of std::numeric_limits<double>::max()
+        DeclareLaunchArgument('pointcloud_min_y', default_value=str(float('-inf'))),  # Approximation of -std::numeric_limits<double>::max()
+        DeclareLaunchArgument('pointcloud_max_y', default_value=str(float('inf'))), # Approximation of std::numeric_limits<double>::max()
+        DeclareLaunchArgument('pointcloud_min_z', default_value=str(float('-inf'))),  # Approximation of -std::numeric_limits<double>::max()
+        DeclareLaunchArgument('pointcloud_max_z', default_value=str(float('inf'))),  # Approximation of std::numeric_limits<double>::max()
         DeclareLaunchArgument('color/r', default_value='1.0'),
         DeclareLaunchArgument('color/g', default_value='1.0'),
         DeclareLaunchArgument('color/b', default_value='1.0'),
@@ -105,6 +111,12 @@ def generate_launch_description():
                 'sensor_model/miss': LaunchConfiguration('sensor_model/miss'),
                 'sensor_model/min': LaunchConfiguration('sensor_model/min'),
                 'sensor_model/max': LaunchConfiguration('sensor_model/max'),
+                'pointcloud_min_x': LaunchConfiguration('pointcloud_min_x'),
+                'pointcloud_max_x': LaunchConfiguration('pointcloud_max_x'),
+                'pointcloud_min_y': LaunchConfiguration('pointcloud_min_y'),
+                'pointcloud_max_y': LaunchConfiguration('pointcloud_max_y'),
+                'pointcloud_min_z': LaunchConfiguration('pointcloud_min_z'),
+                'pointcloud_max_z': LaunchConfiguration('pointcloud_max_z'),
                 'color/r': LaunchConfiguration('color/r'),
                 'color/g': LaunchConfiguration('color/g'),
                 'color/b': LaunchConfiguration('color/b'),

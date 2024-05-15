@@ -309,56 +309,84 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud){
 
-        if (insertSemanticActive){
-
-            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Semantic callback started.");
-
-            // From pointcloud message to Pointcloud data structure
-            PCLPointCloud segmented_pc;
-            pcl::fromROSMsg(*segmented_pointcloud, segmented_pc);
-
-            // Conversion of the pointcloud from sensor frame to world frame
-            Eigen::Matrix4f sensorToWorld;
-            geometry_msgs::msg::TransformStamped sensorToWorldTf;
-            try {
-                if (!this->buffer_->canTransform(
-                        m_worldFrameId, segmented_pointcloud->header.frame_id,
-                        segmented_pointcloud->header.stamp)) {
-                    throw "Failed";
-                }
-                
-                sensorToWorldTf = this->buffer_->lookupTransform(
-                    m_worldFrameId, segmented_pointcloud->header.frame_id,
-                    segmented_pointcloud->header.stamp);
-                sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
-            } catch (tf2::TransformException &ex) {
-                RCLCPP_WARN(this->get_logger(), "%s",ex.what());
-                return;
-            }
-            pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
-            
-
-            for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
-                octomap::point3d point(it->x, it->y, it->z);                
-                octomap::OcTreeKey key;
-
-                if (m_octree->coordToKeyChecked(point, key)) {
-                    if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
-                        (*extended_octomap_map)[key].setSemanticClass("mask", colorMap);
-                    }
-                }
-            }
-
-            if (publishConfidence){        
-                publishConfidenceMarkers(segmented_pointcloud->header.stamp);
-            }
-
-            if (publishSemantic){
-                publishSemanticClassMarkers(segmented_pointcloud->header.stamp);
-            }
-
-            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Extended octomap map updated with segmented pointcloud.");
+        // If the paramter to activate the callback is false, the callback will be skipped
+        if (!insertSemanticActive){
+            return;
         }
+
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Semantic callback started.");
+
+        // From pointcloud message to Pointcloud data structure
+        PCLPointCloud segmented_pc;
+        pcl::fromROSMsg(*segmented_pointcloud, segmented_pc);
+
+        // Conversion of the pointcloud from sensor frame to world frame
+        Eigen::Matrix4f sensorToWorld;
+        geometry_msgs::msg::TransformStamped sensorToWorldTf;
+        try {
+            if (!this->buffer_->canTransform(
+                    m_worldFrameId, segmented_pointcloud->header.frame_id,
+                    segmented_pointcloud->header.stamp)) {
+                throw "Failed";
+            }
+            
+            sensorToWorldTf = this->buffer_->lookupTransform(
+                m_worldFrameId, segmented_pointcloud->header.frame_id,
+                segmented_pointcloud->header.stamp);
+            sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "%s",ex.what());
+            return;
+        }
+        pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
+
+
+        // Set up filtering of the pointcloud based on the parameters related to the min and max possible values of the points
+        pcl::PassThrough<PCLPoint> pass_x;
+        pass_x.setFilterFieldName("x");
+        pass_x.setFilterLimits(m_pointcloudMinX, m_pointcloudMaxX);
+        pcl::PassThrough<PCLPoint> pass_y;
+        pass_y.setFilterFieldName("y");
+        pass_y.setFilterLimits(m_pointcloudMinY, m_pointcloudMaxY);
+        pcl::PassThrough<PCLPoint> pass_z;
+        pass_z.setFilterFieldName("z");
+        pass_z.setFilterLimits(m_pointcloudMinZ, m_pointcloudMaxZ);
+
+        pass_x.setInputCloud(segmented_pc.makeShared());
+        pass_x.filter(segmented_pc);
+        pass_y.setInputCloud(segmented_pc.makeShared());
+        pass_y.filter(segmented_pc);
+        pass_z.setInputCloud(segmented_pc.makeShared());
+        pass_z.filter(segmented_pc);
+        
+
+        // Check if after filtering the pointcloud are empty. If yes, skip the iteration
+        if (segmented_pc.empty()) {
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Pointcloud after filtering is empty, skipping to next iteration.");
+            return; // Go to the next iteration of the loop
+        }
+
+
+        for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
+            octomap::point3d point(it->x, it->y, it->z);                
+            octomap::OcTreeKey key;
+
+            if (m_octree->coordToKeyChecked(point, key)) {
+                if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
+                    (*extended_octomap_map)[key].setSemanticClass("mask", colorMap);
+                }
+            }
+        }
+
+        if (publishConfidence){        
+            publishConfidenceMarkers(segmented_pointcloud->header.stamp);
+        }
+
+        if (publishSemantic){
+            publishSemanticClassMarkers(segmented_pointcloud->header.stamp);
+        }
+
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Extended octomap map updated with segmented pointcloud.");
     }
 
 
@@ -437,6 +465,35 @@ namespace extended_octomap_server {
             }
 
             pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
+
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Pointcloud before the filtering contains %d points", segmented_pc.size());
+
+
+            // Set up filtering of the pointcloud based on the parameters related to the min and max possible values admitted of the points
+            pcl::PassThrough<PCLPoint> pass_x;
+            pass_x.setFilterFieldName("x");
+            pass_x.setFilterLimits(m_pointcloudMinX, m_pointcloudMaxX);
+            pcl::PassThrough<PCLPoint> pass_y;
+            pass_y.setFilterFieldName("y");
+            pass_y.setFilterLimits(m_pointcloudMinY, m_pointcloudMaxY);
+            pcl::PassThrough<PCLPoint> pass_z;
+            pass_z.setFilterFieldName("z");
+            pass_z.setFilterLimits(m_pointcloudMinZ, m_pointcloudMaxZ);
+
+            pass_x.setInputCloud(segmented_pc.makeShared());
+            pass_x.filter(segmented_pc);
+            pass_y.setInputCloud(segmented_pc.makeShared());
+            pass_y.filter(segmented_pc);
+            pass_z.setInputCloud(segmented_pc.makeShared());
+            pass_z.filter(segmented_pc);
+
+
+
+            // Check if after filtering the pointcloud are empty. If yes, skip the iteration
+            if (segmented_pc.empty()) {
+                RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Pointcloud after filtering is empty, skipping to next iteration.");
+                continue; // Go to the next iteration of the loop
+            }
 
 
 

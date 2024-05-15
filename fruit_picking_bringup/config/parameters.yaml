@@ -74,6 +74,7 @@ launch:
       sensor_model/miss: "0.4"
       sensor_model/min: "0.12"
       sensor_model/max: "0.97"
+      pointcloud_max_z: "0.2"
       color/r: "1.0"
       color/g: "1.0"
       color/b: "1.0"
@@ -145,7 +146,7 @@ launch:
       publish_instances: 'True'
       semantic_pointcloud_subscription: 'False'
       semantic_pointclouds_array_subscription: 'True'
-      message_filter_queue: '100'
+      message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_semantic_init: 'True'
     

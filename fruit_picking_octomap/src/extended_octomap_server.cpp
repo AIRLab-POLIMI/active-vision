@@ -72,21 +72,25 @@ namespace extended_octomap_server {
 
 
         if (semanticPointcloudsArraySubscription){
+
             this->segmentedPointcloudsArraySub = std::make_shared<
                 message_filters::Subscriber<fruit_picking_interfaces::msg::PointcloudArray>>(
                     this, "segmented_pointclouds_array", rmw_qos_profile_sensor_data);
-            
-            this->tfSegmentedPointcloudsArraySub = std::make_shared<tf2_ros::MessageFilter<
-                fruit_picking_interfaces::msg::PointcloudArray>>(
-                    *buffer_, m_worldFrameId, messageFilterQueue,
-                    this->get_node_logging_interface(),
-                    this->get_node_clock_interface(),
-                    std::chrono::seconds(1));
-            this->tfSegmentedPointcloudsArraySub->connectInput(*segmentedPointcloudsArraySub);
-            this->tfSegmentedPointcloudsArraySub->registerCallback(
-                std::bind(&ExtendedOctomapServer::insertSemanticArrayCallback, this, ph::_1));
-            
-            RCLCPP_INFO(this->get_logger(), "Subscription to semantic pointclouds array topic done.");
+
+            this->segmentedTfSub = std::make_shared<
+                message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
+                    this, "segmented_tf", rmw_qos_profile_sensor_data);
+
+      
+            sync_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudsArraySub, *segmentedTfSub);
+            sync_->registerCallback(
+                std::bind(
+                    &ExtendedOctomapServer::insertSemanticArrayCallback,
+                    this,
+                    std::placeholders::_1,
+                    std::placeholders::_2));
+                        
+            RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointclouds array and segmented tf topic done.");
         }
 
         if (semanticPointcloudSubscription){
@@ -104,7 +108,7 @@ namespace extended_octomap_server {
             this->tfSegmentedPointcloudSub->registerCallback(
                 std::bind(&ExtendedOctomapServer::insertSemanticCallback, this, ph::_1));
 
-            RCLCPP_INFO(this->get_logger(), "Subscription to semantic pointcloud topic done.");
+            RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointcloud topic done.");
         }
 
 
@@ -390,7 +394,10 @@ namespace extended_octomap_server {
     }
 
 
-    void ExtendedOctomapServer::insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array){
+    void ExtendedOctomapServer::insertSemanticArrayCallback(
+        const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
+        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
+    ){
 
 
         // If the paramter to activate the callback is false, the callback will be skipped
@@ -442,17 +449,8 @@ namespace extended_octomap_server {
 
             // Conversion of the pointcloud from sensor frame to world frame
             Eigen::Matrix4f sensorToWorld;
-            geometry_msgs::msg::TransformStamped sensorToWorldTf;
+            geometry_msgs::msg::TransformStamped sensorToWorldTf = *segmented_tf;
             try {
-                if (!this->buffer_->canTransform(
-                        m_worldFrameId, segmented_pointcloud.header.frame_id,
-                        segmented_pointcloud.header.stamp)) {
-                    throw "Failed";
-                }
-                
-                sensorToWorldTf = this->buffer_->lookupTransform(
-                    m_worldFrameId, segmented_pointcloud.header.frame_id,
-                    segmented_pointcloud.header.stamp);
                 sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
             } catch (tf2::TransformException &ex) {
                 return;

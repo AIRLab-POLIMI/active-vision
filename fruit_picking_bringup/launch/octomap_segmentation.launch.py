@@ -164,7 +164,11 @@ def launch_setup(context, *args, **kwargs):
 
     lang_sam_rgb_image_topic = config_yaml['topics']['segmentation']['lang_sam']['rgb_image_topic']
     lang_sam_rgb_images_array_topic = config_yaml['topics']['segmentation']['lang_sam']['rgb_images_array_topic']
+    lang_sam_depth_image_topic = config_yaml['topics']['segmentation']['lang_sam']['depth_image_topic']
+    lang_sam_depth_image_camera_info_topic = config_yaml['topics']['segmentation']['lang_sam']['depth_image_camera_info_topic']
     confidences_topic = config_yaml['topics']['segmentation']['lang_sam']['confidences_topic']
+    lang_sam_tf_topic = config_yaml['topics']['segmentation']['lang_sam']['tf_topic']
+
 
     pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
     segmented_pointclouds_array_topic = config_yaml['topics']['pointcloud']['segmented_pointclouds_array_topic']
@@ -211,10 +215,19 @@ def launch_setup(context, *args, **kwargs):
             **use_sim_time_dict,
             **{
                 "rgb_image_topic": rgb_image_topic,
+                "depth_image_topic": depth_image_topic,
+                "depth_image_camera_info_topic": depth_image_camera_info_topic,
                 "lang_sam_rgb_image_topic": lang_sam_rgb_image_topic,
                 "lang_sam_rgb_images_array_topic": lang_sam_rgb_images_array_topic,
-                "confidences_topic": confidences_topic
+                "lang_sam_depth_image_topic": lang_sam_depth_image_topic,
+                "lang_sam_depth_image_camera_info_topic": lang_sam_depth_image_camera_info_topic,
+                "confidences_topic": confidences_topic,
+                "lang_sam_tf_topic": lang_sam_tf_topic,
+                "frame_id": frame_id,
+                "base_frame_id": base_frame_id,
             },
+            **config_yaml['launch']['octomap_segmentation_launch']['lang_sam_segmentation_launch']
+
         }.items(),
     )
     
@@ -242,10 +255,10 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             **use_sim_time_dict,
             **{
-                "depth_image_topic": depth_image_topic,
+                "depth_image_topic": lang_sam_depth_image_topic,
                 "rgb_image_topic": lang_sam_rgb_image_topic,
                 "rgb_images_array_topic": lang_sam_rgb_images_array_topic,
-                "depth_image_camera_info_topic": depth_image_camera_info_topic,
+                "depth_image_camera_info_topic": lang_sam_depth_image_camera_info_topic,
                 "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
                 "confidences_topic": confidences_topic,
             },
@@ -262,6 +275,7 @@ def launch_setup(context, *args, **kwargs):
             **{
                 "pointcloud_topic": pointcloud_topic,
                 "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
+                "segmented_tf_topic": lang_sam_tf_topic,
                 "octomap_occupied_cells_vis_topic": octomap_occupied_cells_vis_topic,
                 "octomap_free_cells_vis_topic": octomap_free_cells_vis_topic,
                 "octomap_occupied_cells_centers_pointcloud_topic": octomap_occupied_cells_centers_pointcloud_topic,

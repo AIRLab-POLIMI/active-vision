@@ -6,6 +6,7 @@
 #include <fruit_picking_octomap/extended_octomap_data.hpp>
 #include "fruit_picking_interfaces/msg/pointcloud_array.hpp"
 #include <std_srvs/srv/set_bool.hpp>
+#include "message_filters/sync_policies/approximate_time.h"
 
 
 namespace extended_octomap_server{
@@ -14,6 +15,9 @@ namespace extended_octomap_server{
     // Definitions
 
     using ExtendedOctomapData = extended_octomap_data::ExtendedOctomapData;
+
+    using SyncPolicy = message_filters::sync_policies::ApproximateTime<fruit_picking_interfaces::msg::PointcloudArray, geometry_msgs::msg::TransformStamped>;
+    using Synchronizer = message_filters::Synchronizer<SyncPolicy>;
 
     typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, ExtendedOctomapData, octomap::OcTreeKey::KeyHash> ExtendedOctomapMap;
 
@@ -34,8 +38,11 @@ namespace extended_octomap_server{
                             sensor_msgs::msg::PointCloud2>> tfSegmentedPointcloudSub;
         std::shared_ptr<message_filters::Subscriber<
                             fruit_picking_interfaces::msg::PointcloudArray>> segmentedPointcloudsArraySub;
-        std::shared_ptr<tf2_ros::MessageFilter<
-                            fruit_picking_interfaces::msg::PointcloudArray>> tfSegmentedPointcloudsArraySub;
+                std::shared_ptr<message_filters::Subscriber<
+                            geometry_msgs::msg::TransformStamped>> segmentedTfSub;
+        
+        std::shared_ptr<Synchronizer> sync_;
+
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
                           >::SharedPtr confidenceMarkerPub;
@@ -83,9 +90,11 @@ namespace extended_octomap_server{
             const PCLPointCloud& ground,
             const PCLPointCloud& nonground);
 
-        virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &reduced_cloud);
+        virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud);
 
-        virtual void insertSemanticArrayCallback(const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &reduced_cloud_array);
+        virtual void insertSemanticArrayCallback(
+            const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

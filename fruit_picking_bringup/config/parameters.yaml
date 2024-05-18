@@ -22,7 +22,10 @@ topics:
     lang_sam:
       rgb_image_topic: &lang_sam_rgb_image_topic "/fruit_picking/segmentation/lang_sam/rgb_image"
       rgb_images_array_topic: &lang_sam_rgb_images_array_topic "/fruit_picking/segmentation/lang_sam/rgb_images_array"
+      depth_image_topic: &lang_sam_depth_image_topic "/fruit_picking/segmentation/lang_sam/depth_image"
+      depth_image_camera_info_topic: &lang_sam_depth_image_camera_info_topic "/fruit_picking/segmentation/lang_sam/camera_info"
       confidences_topic: &lang_sam_confidences_topic "/fruit_picking/segmentation/lang_sam/confidences"
+      tf_topic: &lang_sam_tf_topic "/fruit_picking/segmentation/lang_sam/tf"
       octomap_semantic_class_cells_vis_topic: &lang_sam_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/lang_sam/semantic_class_cells_vis"
       octomap_confidence_cells_vis_topic: &lang_sam_octomap_confidence_cells_vis_topic "/fruit_picking/octomap/lang_sam/confidence_cells_vis"
       octomap_instances_cells_vis_topic: &lang_sam_octomap_instances_cells_vis_topic "/fruit_picking/octomap/lang_sam/instances_cells_vis"
@@ -106,6 +109,11 @@ launch:
 
 
   octomap_segmentation_launch: 
+    lang_sam_segmentation_launch:
+      publish_original_depth_image: "True"
+      publish_original_depth_image_camera_info: "True"
+      publish_original_tf: "True"
+
     segmented_pointcloud_creation_launch:
       publish_pointclouds_array: "True"
       publish_single_pointcloud: "False"

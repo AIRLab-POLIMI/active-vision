@@ -102,7 +102,7 @@ SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : r
     if (publishPointcloudsArray){
         pub_point_cloud_array_ = create_publisher<PointCloud2Array>("segmented_pointclouds_array", rclcpp::SensorDataQoS());
     }
-    else if (publishSinglePointcloud){
+    if (publishSinglePointcloud){
         pub_point_cloud_ = create_publisher<PointCloud2>("segmented_pointcloud", rclcpp::SensorDataQoS());
     }
     RCLCPP_INFO(this->get_logger(), "Setup completed.");
@@ -334,7 +334,20 @@ void SegmentedPointcloud::imageArrayCb(
     }
 
     pub_point_cloud_array_->publish(*pointcloud_array);
-    RCLCPP_INFO(this->get_logger(), "Pointcloud array published.");    
+    RCLCPP_INFO(this->get_logger(), "Pointcloud array published.");  
+
+
+    // Publish the first pointcloud in the pointclouds array (used mostly to debug)
+    if (publishSinglePointcloud){
+        // Create an empty pointclouds array message that will be published at the end
+        RCLCPP_INFO(this->get_logger(), "creating single pointcloud...");  
+
+        auto single_pointcloud = pointcloud_array->pointclouds[0];
+        RCLCPP_INFO(this->get_logger(), "publishing single pointcloud...");  
+
+        pub_point_cloud_->publish(single_pointcloud);
+        RCLCPP_INFO(this->get_logger(), "Pointcloud published.");  
+    }  
 }
 
 

@@ -17,6 +17,9 @@ topics:
   segmentation:
     color_filter:
       rgb_image_topic: &color_filter_rgb_image_topic "/fruit_picking/segmentation/color_filter/rgb_image"
+      depth_image_topic: &color_filter_depth_image_topic "/fruit_picking/segmentation/color_filter/depth_image"
+      depth_image_camera_info_topic: &color_filter_depth_image_camera_info_topic "/fruit_picking/segmentation/color_filter/camera_info"
+      tf_topic: &color_filter_tf_topic "/fruit_picking/segmentation/color_filter/tf"
       octomap_semantic_class_cells_vis_topic: &color_filter_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/color_filter/semantic_class_cells_vis"
 
     lang_sam:
@@ -54,6 +57,9 @@ launch:
 
   octomap_color_filter_launch: 
     color_filter_segmentation_launch:
+      publish_original_depth_image: "True"
+      publish_original_depth_image_camera_info: "True"
+      publish_original_tf: "True"
       color: "red"
     
     segmented_pointcloud_creation_launch:
@@ -77,7 +83,6 @@ launch:
       sensor_model/miss: "0.4"
       sensor_model/min: "0.12"
       sensor_model/max: "0.97"
-      pointcloud_max_z: "0.2"
       color/r: "1.0"
       color/g: "1.0"
       color/b: "1.0"
@@ -110,6 +115,10 @@ launch:
 
   octomap_segmentation_launch: 
     lang_sam_segmentation_launch:
+      approach: "pub_sub"
+      sam_model_type: "vit_b"
+      publish_masks_array: "True"
+      segmentation_prompt: "tomato"
       publish_original_depth_image: "True"
       publish_original_depth_image_camera_info: "True"
       publish_original_tf: "True"

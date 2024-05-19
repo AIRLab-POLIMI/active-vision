@@ -16,8 +16,10 @@ namespace extended_octomap_server{
 
     using ExtendedOctomapData = extended_octomap_data::ExtendedOctomapData;
 
-    using SyncPolicy = message_filters::sync_policies::ApproximateTime<fruit_picking_interfaces::msg::PointcloudArray, geometry_msgs::msg::TransformStamped>;
-    using Synchronizer = message_filters::Synchronizer<SyncPolicy>;
+    using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<fruit_picking_interfaces::msg::PointcloudArray, geometry_msgs::msg::TransformStamped>;
+    using SynchronizerArray= message_filters::Synchronizer<SyncPolicyArray>;
+    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::PointCloud2, geometry_msgs::msg::TransformStamped>;
+    using Synchronizer= message_filters::Synchronizer<SyncPolicy>;
 
     typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, ExtendedOctomapData, octomap::OcTreeKey::KeyHash> ExtendedOctomapMap;
 
@@ -34,13 +36,12 @@ namespace extended_octomap_server{
 
         std::shared_ptr<message_filters::Subscriber<
                             sensor_msgs::msg::PointCloud2>> segmentedPointcloudSub;
-        std::shared_ptr<tf2_ros::MessageFilter<
-                            sensor_msgs::msg::PointCloud2>> tfSegmentedPointcloudSub;
         std::shared_ptr<message_filters::Subscriber<
                             fruit_picking_interfaces::msg::PointcloudArray>> segmentedPointcloudsArraySub;
-                std::shared_ptr<message_filters::Subscriber<
+        std::shared_ptr<message_filters::Subscriber<
                             geometry_msgs::msg::TransformStamped>> segmentedTfSub;
         
+        std::shared_ptr<SynchronizerArray> sync_array_;
         std::shared_ptr<Synchronizer> sync_;
 
 
@@ -90,7 +91,9 @@ namespace extended_octomap_server{
             const PCLPointCloud& ground,
             const PCLPointCloud& nonground);
 
-        virtual void insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud);
+        virtual void insertSemanticCallback(
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud,
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
 
         virtual void insertSemanticArrayCallback(
             const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 

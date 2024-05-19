@@ -13,23 +13,6 @@ def generate_launch_description() -> LaunchDescription:
 
     # Arguments
 
-
-    ld.add_action(
-        DeclareLaunchArgument(
-            "rgb_image_topic",
-            default_value="/rgb_image",
-            description="Topic that contains the original RGB data that needs to be segmented",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
-            "color_filter_rgb_image_topic",
-            default_value="/color_filter/rgb_image",
-            description="Topic that contains the filtered RGB data that comes from the color filter",
-        )
-    )
-
     ld.add_action(
         DeclareLaunchArgument(
             "colors",
@@ -56,11 +39,26 @@ def generate_launch_description() -> LaunchDescription:
             executable="color_filter",
             name="color_filter",
             output="screen",
+            arguments= [
+                "--ros-args",
+                "--log-level",
+                "color_filter:=debug",
+            ],
             parameters=[
                 {
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "rgb_image_topic": LaunchConfiguration("rgb_image_topic"),
+                    "depth_image_topic": LaunchConfiguration("depth_image_topic"),
+                    "depth_image_camera_info_topic": LaunchConfiguration("depth_image_camera_info_topic"),
                     "color_filter_rgb_image_topic": LaunchConfiguration("color_filter_rgb_image_topic"),
+                    "color_filter_depth_image_topic": LaunchConfiguration("color_filter_depth_image_topic"),
+                    "color_filter_depth_image_camera_info_topic": LaunchConfiguration("color_filter_depth_image_camera_info_topic"),
+                    "color_filter_tf_topic": LaunchConfiguration("color_filter_tf_topic"),
+                    "frame_id": LaunchConfiguration("frame_id"),
+                    "base_frame_id": LaunchConfiguration("base_frame_id"),
+                    "publish_original_depth_image": LaunchConfiguration("publish_original_depth_image"),
+                    "publish_original_depth_image_camera_info": LaunchConfiguration("publish_original_depth_image_camera_info"),
+                    "publish_original_tf": LaunchConfiguration("publish_original_tf"),
                     "colors": LaunchConfiguration("colors"),
                 }
             ],

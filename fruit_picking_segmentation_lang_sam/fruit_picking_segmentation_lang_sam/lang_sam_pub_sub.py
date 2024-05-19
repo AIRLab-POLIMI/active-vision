@@ -117,7 +117,7 @@ class LANGSAMPubSub(Node):
 
 
 
-        # Initialize the queue as an intermediary between the synchronizer and the real callback
+        # Initialize the queue as an intermediary between the synchronizer and the real callback  and a bool to handle the access to it
         self.segmentation_queue = Queue()
         self.lock = True
 
@@ -259,7 +259,7 @@ class LANGSAMPubSub(Node):
 
     def segment(self, rgb_msg, depth_msg, depth_image_camera_info_msg, tf_msg):
 
-        # Get input image from input topic, and size
+        # Get input data
         self.get_logger().info('------------------------------------------------')
         self.get_logger().info('[LANG-SAM] Original image received.')
         self.original_image = rgb_msg

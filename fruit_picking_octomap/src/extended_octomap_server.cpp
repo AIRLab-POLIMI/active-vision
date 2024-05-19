@@ -11,9 +11,7 @@ namespace extended_octomap_server {
         // Initialization of the map for the additional semantic information
         extended_octomap_map = std::make_shared<ExtendedOctomapMap>();
 
-        // Initialization of the map to store the key of the voxel where there are collisio between points of different instances
-        collisionKeys = std::make_shared<CollisionOcTreeKeys>();
-
+    
 
         // Initialization of the parameters
         processFreeSpace = this->declare_parameter(
@@ -50,10 +48,13 @@ namespace extended_octomap_server {
             "set_insert_semantic_active",
             std::bind(&ExtendedOctomapServer::setInsertSemanticActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-
-
-        // Initialization of the variable to keep track of the instances
-        currentMaxInstance = 1;     
+        
+        if (semanticPointcloudsArraySubscription){
+            // Initialization of the map to store the key of the voxel where there are collisio between points of different instances
+            collisionKeys = std::make_shared<CollisionOcTreeKeys>();
+            // Initialization of the variable to keep track of the instances
+            currentMaxInstance = 1;   
+        }  
 
 
         // Initialization of the subscribers and publishers, with their callbacks
@@ -82,8 +83,8 @@ namespace extended_octomap_server {
                     this, "segmented_tf", rmw_qos_profile_sensor_data);
 
       
-            sync_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudsArraySub, *segmentedTfSub);
-            sync_->registerCallback(
+            sync_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(5), *segmentedPointcloudsArraySub, *segmentedTfSub);
+            sync_array_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertSemanticArrayCallback,
                     this,
@@ -94,21 +95,24 @@ namespace extended_octomap_server {
         }
 
         if (semanticPointcloudSubscription){
+            
             this->segmentedPointcloudSub = std::make_shared<
                 message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
                     this, "segmented_pointcloud", rmw_qos_profile_sensor_data);
             
-            this->tfSegmentedPointcloudSub = std::make_shared<tf2_ros::MessageFilter<
-                sensor_msgs::msg::PointCloud2>>(
-                    *buffer_, m_worldFrameId, messageFilterQueue,
-                    this->get_node_logging_interface(),
-                    this->get_node_clock_interface(),
-                    std::chrono::seconds(1));
-            this->tfSegmentedPointcloudSub->connectInput(*segmentedPointcloudSub);
-            this->tfSegmentedPointcloudSub->registerCallback(
-                std::bind(&ExtendedOctomapServer::insertSemanticCallback, this, ph::_1));
-
-            RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointcloud topic done.");
+            this->segmentedTfSub = std::make_shared<
+                message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
+                    this, "segmented_tf", rmw_qos_profile_sensor_data);
+            
+            sync_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudSub, *segmentedTfSub);
+            sync_->registerCallback(
+                std::bind(
+                    &ExtendedOctomapServer::insertSemanticCallback,
+                    this,
+                    std::placeholders::_1,
+                    std::placeholders::_2));
+                        
+            RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointcloud and segmented tf topic done.");
         }
 
 
@@ -311,7 +315,10 @@ namespace extended_octomap_server {
 
 
 
-    void ExtendedOctomapServer::insertSemanticCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud){
+    void ExtendedOctomapServer::insertSemanticCallback(
+        const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud, 
+        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
+    ){
 
         // If the paramter to activate the callback is false, the callback will be skipped
         if (!insertSemanticActive){
@@ -326,22 +333,19 @@ namespace extended_octomap_server {
 
         // Conversion of the pointcloud from sensor frame to world frame
         Eigen::Matrix4f sensorToWorld;
-        geometry_msgs::msg::TransformStamped sensorToWorldTf;
+        geometry_msgs::msg::TransformStamped sensorToWorldTf = *segmented_tf;
         try {
-            if (!this->buffer_->canTransform(
-                    m_worldFrameId, segmented_pointcloud->header.frame_id,
-                    segmented_pointcloud->header.stamp)) {
-                throw "Failed";
-            }
-            
-            sensorToWorldTf = this->buffer_->lookupTransform(
-                m_worldFrameId, segmented_pointcloud->header.frame_id,
-                segmented_pointcloud->header.stamp);
             sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
         } catch (tf2::TransformException &ex) {
-            RCLCPP_WARN(this->get_logger(), "%s",ex.what());
             return;
+        } catch (const std::exception& e) {
+            // This will catch standard exceptions
+            RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] %s",e.what());
+        } catch (...) {
+            // This will catch all other exceptions
+            RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Generic error.");
         }
+
         pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
 
 
@@ -392,6 +396,8 @@ namespace extended_octomap_server {
 
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticCallback] Extended octomap map updated with segmented pointcloud.");
     }
+
+
 
 
     void ExtendedOctomapServer::insertSemanticArrayCallback(

@@ -162,6 +162,9 @@ def launch_setup(context, *args, **kwargs):
         depth_image_camera_info_topic = config_yaml['topics']['gazebo_ignition_input_data']['depth_image_camera_info_topic']
 
     color_filter_rgb_image_topic = config_yaml['topics']['segmentation']['color_filter']['rgb_image_topic']
+    color_filter_depth_image_topic = config_yaml['topics']['segmentation']['color_filter']['depth_image_topic']
+    color_filter_depth_image_camera_info_topic = config_yaml['topics']['segmentation']['color_filter']['depth_image_camera_info_topic']
+    color_filter_tf_topic = config_yaml['topics']['segmentation']['color_filter']['tf_topic']
     
     pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
     segmented_pointcloud_topic = config_yaml['topics']['pointcloud']['segmented_pointcloud_topic']
@@ -207,7 +210,14 @@ def launch_setup(context, *args, **kwargs):
             **use_sim_time_dict,
             **{
                 "rgb_image_topic": rgb_image_topic,
-                "color_filter_rgb_image_topic": color_filter_rgb_image_topic
+                "depth_image_topic": depth_image_topic,
+                "depth_image_camera_info_topic": depth_image_camera_info_topic,
+                "color_filter_rgb_image_topic": color_filter_rgb_image_topic,
+                "color_filter_depth_image_topic": color_filter_depth_image_topic,
+                "color_filter_depth_image_camera_info_topic": color_filter_depth_image_camera_info_topic,
+                "color_filter_tf_topic": color_filter_tf_topic,
+                "frame_id": frame_id,
+                "base_frame_id": base_frame_id,
             },
             **config_yaml['launch']['octomap_color_filter_launch']['color_filter_segmentation_launch'],
         }.items(),
@@ -238,8 +248,8 @@ def launch_setup(context, *args, **kwargs):
             **use_sim_time_dict,
             **{
                 "rgb_image_topic": color_filter_rgb_image_topic,
-                "depth_image_topic": depth_image_topic,
-                "depth_image_camera_info_topic": depth_image_camera_info_topic,
+                "depth_image_topic": color_filter_depth_image_topic,
+                "depth_image_camera_info_topic": color_filter_depth_image_camera_info_topic,
                 "segmented_pointcloud_topic": segmented_pointcloud_topic
             },
             **config_yaml['launch']['octomap_color_filter_launch']['segmented_pointcloud_creation_launch']
@@ -256,6 +266,7 @@ def launch_setup(context, *args, **kwargs):
             **{
                 "pointcloud_topic": pointcloud_topic,
                 "segmented_pointcloud_topic": segmented_pointcloud_topic,
+                "segmented_tf_topic": color_filter_tf_topic,
                 "octomap_occupied_cells_vis_topic": octomap_occupied_cells_vis_topic,
                 "octomap_free_cells_vis_topic": octomap_free_cells_vis_topic,
                 "octomap_occupied_cells_centers_pointcloud_topic": octomap_occupied_cells_centers_pointcloud_topic,

@@ -49,38 +49,6 @@ def generate_launch_description() -> LaunchDescription:
 
     ld.add_action(
         DeclareLaunchArgument(
-            "rgb_image_topic",
-            default_value="/rgb_image",
-            description="Topic that contains the original RGB data that needs to be segmented",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
-            "lang_sam_rgb_image_topic",
-            default_value="/lang_sam/rgb_image",
-            description="Topic that contains the segmented RGB data that comes from the LANG SAM server",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
-            "lang_sam_rgb_images_array_topic",
-            default_value="/lang_sam/rgb_images_array",
-            description="Topic that contains the segmented RGB array data that comes from the LANG SAM server",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
-            "confidences_topic",
-            default_value="/lang_sam/confidences",
-            description="Topic that contains the confidences of the segmented RGB data that comes from the LANG SAM server",
-        )
-    )
-
-    ld.add_action(
-        DeclareLaunchArgument(
             "publish_masks_array",
             default_value="True",
             choices=["True", "False"],

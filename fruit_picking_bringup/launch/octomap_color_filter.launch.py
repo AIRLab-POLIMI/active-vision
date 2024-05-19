@@ -257,10 +257,10 @@ def launch_setup(context, *args, **kwargs):
     ) 
 
 
-    # Octomap creation launch
-    octomap_creation_launch_file = IncludeLaunchDescription(
+    # Extended octomap creation launch
+    extended_octomap_creation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare("fruit_picking_octomap"), '/launch', '/octomap_creation.launch.py']),
+            FindPackageShare("fruit_picking_octomap"), '/launch', '/extended_octomap_creation.launch.py']),
         launch_arguments={
             **use_sim_time_dict,
             **{
@@ -277,7 +277,7 @@ def launch_setup(context, *args, **kwargs):
                 "base_frame_id": base_frame_id,
                 "frame_id": frame_id
             },
-            **config_yaml['launch']['octomap_color_filter_launch']['octomap_creation_launch'],
+            **config_yaml['launch']['octomap_color_filter_launch']['extended_octomap_creation_launch'],
         }.items(),
     ) 
 
@@ -314,7 +314,7 @@ def launch_setup(context, *args, **kwargs):
     return_actions.append(color_filter_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
     return_actions.append(segmented_pointcloud_creation_launch_file)
-    return_actions.append(octomap_creation_launch_file)
+    return_actions.append(extended_octomap_creation_launch_file)
     return_actions.append(rviz_node)
 
 

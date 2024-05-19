@@ -7,11 +7,7 @@ namespace extended_octomap_server {
         
         RCLCPP_INFO(this->get_logger(), "Extended octomap server's constructor started.");
 
-        
-        // Initialization of the map for the additional semantic information
-        extended_octomap_map = std::make_shared<ExtendedOctomapMap>();
 
-    
 
         // Initialization of the parameters
         processFreeSpace = this->declare_parameter(
@@ -32,22 +28,31 @@ namespace extended_octomap_server {
         semanticPointcloudsArraySubscription = this->declare_parameter(
             "semantic_pointclouds_array_subscription", semanticPointcloudsArraySubscription);
 
-
-
-        // Initialize the services for the activation of the callbacks
         insertCloudActive = this->declare_parameter(
             "insert_cloud_init", insertCloudActive);
         insertSemanticActive = this->declare_parameter(
             "insert_semantic_init", insertSemanticActive);
 
+        
+        // Case when the segmentation is required
+        if (semanticPointcloudsArraySubscription or semanticPointcloudSubscription){
+
+            // Initialization of the map for the additional semantic information
+            extended_octomap_map = std::make_shared<ExtendedOctomapMap>();
+
+            // Initialize the service for the activation of the semantic callbacks
+            insertSemanticActiveService_ = this->create_service<std_srvs::srv::SetBool>(
+                "set_insert_semantic_active",
+                std::bind(&ExtendedOctomapServer::setInsertSemanticActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+        }
+    
+        // Initialize the service for the activation of the cloud callback
         insertCloudActiveService_ = this->create_service<std_srvs::srv::SetBool>(
             "set_insert_cloud_active",
             std::bind(&ExtendedOctomapServer::setInsertCloudActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-        insertSemanticActiveService_ = this->create_service<std_srvs::srv::SetBool>(
-            "set_insert_semantic_active",
-            std::bind(&ExtendedOctomapServer::setInsertSemanticActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
+        
         
         if (semanticPointcloudsArraySubscription){
             // Initialization of the map to store the key of the voxel where there are collisio between points of different instances
@@ -94,6 +99,8 @@ namespace extended_octomap_server {
             RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointclouds array and segmented tf topic done.");
         }
 
+
+
         if (semanticPointcloudSubscription){
             
             this->segmentedPointcloudSub = std::make_shared<
@@ -114,6 +121,7 @@ namespace extended_octomap_server {
                         
             RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointcloud and segmented tf topic done.");
         }
+
 
 
         rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -291,18 +299,24 @@ namespace extended_octomap_server {
             m_octree->prune();
         }
 
-        // populate the global sets. No need to check if it already exists
-        global_occupied_cells.insert(occupied_cells.begin(), occupied_cells.end());
-        if (processFreeSpace){
-            global_free_cells.insert(free_cells.begin(), free_cells.end());
-        }
 
-        // Insert into the ExtendedOctomapMap keys all the occupied OctKeys
-        // and set the class as none if the octkey does not exist yet
-        for(const auto& key : global_occupied_cells) {
-            if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
-               (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap);  
-            }                    
+
+        // Case when the segmentation is required
+        if (semanticPointcloudsArraySubscription or semanticPointcloudSubscription){
+
+            // populate the global sets. No need to check if it already exists
+            global_occupied_cells.insert(occupied_cells.begin(), occupied_cells.end());
+            if (processFreeSpace){
+                global_free_cells.insert(free_cells.begin(), free_cells.end());
+            }
+
+            // Insert into the ExtendedOctomapMap keys all the occupied OctKeys
+            // and set the class as none if the octkey does not exist yet
+            for(const auto& key : global_occupied_cells) {
+                if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
+                (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap);  
+                }                    
+            }
         }
         
 #ifdef COLOR_OCTOMAP_SERVER

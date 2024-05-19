@@ -142,6 +142,7 @@ namespace octomap_server {
         int messageFilterQueue;
 
         // new bool for binary and full octomap, centers pointcloud and 2d map
+        bool publishFreeCells;
         bool publishOctomapBinary;
         bool publishOctomapFull;
         bool publishCentersPointcloud;

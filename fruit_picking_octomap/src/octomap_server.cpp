@@ -17,6 +17,7 @@ namespace octomap_server {
         messageFilterQueue(5),
 
         // new bool for binary and full octomap, centers pointcloud and 2d map
+        publishFreeCells(false),
         publishOctomapBinary(false),
         publishOctomapFull(false),
         publishCentersPointcloud(false),
@@ -161,6 +162,8 @@ namespace octomap_server {
             "publish_free_space", m_publishFreeSpace);
 
         // definition of the bool for binary and full octomap, centers pointcloud and 2d map
+        publishFreeCells = this->declare_parameter(
+            "publish_free_cells", publishFreeCells);
         publishOctomapBinary = this->declare_parameter(
             "publish_octomap_binary", publishOctomapBinary);
         publishOctomapFull = this->declare_parameter(
@@ -211,9 +214,11 @@ namespace octomap_server {
             this->m_mapPub = this->create_publisher<
                 nav_msgs::msg::OccupancyGrid>("projected_map", qos);
         }
-        this->m_fmarkerPub = this->create_publisher<
-            visualization_msgs::msg::MarkerArray>(
-                "free_cells_vis_array", qos);
+        if (publishFreeCells){
+            this->m_fmarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "free_cells_vis_array", qos);
+        }
     }
 
     void OctomapServer::subscribe() {
@@ -581,12 +586,14 @@ namespace octomap_server {
             return;
         }
 
-        bool publishFreeMarkerArray = m_publishFreeSpace &&
-            m_fmarkerPub->get_subscription_count()  > 0;
         bool publishMarkerArray = m_markerPub->get_subscription_count() > 0;
+        bool publishFreeMarkerArray;
         bool publishPointCloud = false;
         bool publishBinaryMap = false;
         bool publishFullMap = false;
+        if (publishFreeCells){
+            publishFreeMarkerArray = m_publishFreeSpace && m_fmarkerPub->get_subscription_count()  > 0;
+        }
         if (publishCentersPointcloud){
             publishPointCloud = m_pointCloudPub->get_subscription_count() > 0;
         }

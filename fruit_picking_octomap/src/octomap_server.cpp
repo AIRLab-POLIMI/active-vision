@@ -9,19 +9,9 @@ namespace octomap_server {
         m_worldFrameId("/map"),
         m_baseFrameId("base_footprint"),
         m_useHeightMap(true),
-        m_useColoredMap(false),
         m_colorFactor(0.8),
+        m_useColoredMap(false),
         m_publishFreeSpace(false),
-
-        // new value for the message filter queue
-        messageFilterQueue(5),
-
-        // new bool for binary and full octomap, centers pointcloud and 2d map
-        publishFreeCells(false),
-        publishOctomapBinary(false),
-        publishOctomapFull(false),
-        publishCentersPointcloud(false),
-        publish2DProjectedMap(false),
         m_res(0.05),
         m_treeDepth(0),
         m_maxTreeDepth(0),
@@ -41,7 +31,16 @@ namespace octomap_server {
         m_groundFilterAngle(0.15),
         m_groundFilterPlaneDistance(0.07),
         m_compressMap(true),
-        m_incrementalUpdate(false) {
+        m_incrementalUpdate(false),
+         // new value for the message filter queue
+        messageFilterQueue(5),
+
+        // new bool for binary and full octomap, centers pointcloud and 2d map
+        publishFreeCells(false),
+        publishOctomapBinary(false),
+        publishOctomapFull(false),
+        publishCentersPointcloud(false),
+        publish2DProjectedMap(false) {
 
         rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME); // another structure to declare and define a shared pointer of type Clock
         this->buffer_ = std::make_shared<tf2_ros::Buffer>(clock);
@@ -376,7 +375,7 @@ namespace octomap_server {
             } catch (tf2::TransformException& ex) {
                 std::string msg = std::string("Transform error for ground plane filter") +
                     "You need to set the base_frame_id or disable filter_ground.";
-                RCLCPP_ERROR(this->get_logger(), "%s %", msg, ex.what());
+                RCLCPP_ERROR(this->get_logger(), "%s %s", msg.c_str(), ex.what());
                 return;
             }
 
@@ -634,17 +633,16 @@ namespace octomap_server {
             bool inUpdateBBX = isInUpdateBBX(it);
 
             // call general hook:
-            handleNode(it); // empty function, not relevant
-            if (inUpdateBBX) {
-                handleNodeInBBX(it); // empty function, not relevant
-            }
+            // handleNode(it); // empty function, not relevant
+            // if (inUpdateBBX) {
+            //     handleNodeInBBX(it); // empty function, not relevant
+            // }
 
             if (m_octree->isNodeOccupied(*it)) {
                 double z = it.getZ();
                 double half_size = it.getSize() / 2.0;
                 if (z + half_size > m_occupancyMinZ &&
                     z - half_size < m_occupancyMaxZ) {
-                    double size = it.getSize();
                     double x = it.getX();
                     double y = it.getY();
 #ifdef COLOR_OCTOMAP_SERVER
@@ -832,7 +830,7 @@ namespace octomap_server {
     }
 
     bool OctomapServer::octomapBinarySrv(
-        const std::shared_ptr<OctomapSrv::Request> req,
+        const std::shared_ptr<OctomapSrv::Request> /*req*/, // This tells the compiler that the parameter is intentionally unused.
         std::shared_ptr<OctomapSrv::Response> res) {
         // ros::WallTime startTime = ros::WallTime::now();
         RCLCPP_INFO(this->get_logger(),
@@ -851,7 +849,7 @@ namespace octomap_server {
     }
 
     bool OctomapServer::octomapFullSrv(
-        const std::shared_ptr<OctomapSrv::Request> req,
+        const std::shared_ptr<OctomapSrv::Request> /*req*/, // This tells the compiler that the parameter is intentionally unused.
         std::shared_ptr<OctomapSrv::Response> res) {
         RCLCPP_INFO(this->get_logger(),
                     "Sending full map data on service request");
@@ -866,7 +864,7 @@ namespace octomap_server {
 
     bool OctomapServer::clearBBXSrv(
         const std::shared_ptr<BBXSrv::Request> req,
-        std::shared_ptr<BBXSrv::Response> resp) {
+        std::shared_ptr<BBXSrv::Response> /*resp*/) { // This tells the compiler that the parameter is intentionally unused.
         octomap::point3d min = octomap::pointMsgToOctomap(req->min);
         octomap::point3d max = octomap::pointMsgToOctomap(req->max);
 
@@ -884,8 +882,8 @@ namespace octomap_server {
     }
 
     bool OctomapServer::resetSrv(
-        const std::shared_ptr<std_srvs::srv::Empty::Request> req,
-        std::shared_ptr<std_srvs::srv::Empty::Response> resp) {
+        const std::shared_ptr<std_srvs::srv::Empty::Request> /*req*/, // This tells the compiler that the parameter is intentionally unused.
+        std::shared_ptr<std_srvs::srv::Empty::Response> /*resp*/) { // This tells the compiler that the parameter is intentionally unused.
         visualization_msgs::msg::MarkerArray occupiedNodesVis;
         occupiedNodesVis.markers.resize(m_treeDepth + 1);
         rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>();
@@ -904,7 +902,7 @@ namespace octomap_server {
         publishAll(rostime);
 
         publishBinaryOctoMap(rostime);
-        for (auto i = 0; i < occupiedNodesVis.markers.size(); ++i){
+        for (size_t i = 0; i < occupiedNodesVis.markers.size(); ++i){
             occupiedNodesVis.markers[i].header.frame_id = m_worldFrameId;
             occupiedNodesVis.markers[i].header.stamp = rostime;
             occupiedNodesVis.markers[i].ns = "map";
@@ -920,7 +918,7 @@ namespace octomap_server {
         visualization_msgs::msg::MarkerArray freeNodesVis;
         freeNodesVis.markers.resize(m_treeDepth + 1);
 
-        for (auto i = 0; i < freeNodesVis.markers.size(); ++i) {
+        for (size_t i = 0; i < freeNodesVis.markers.size(); ++i) {
             freeNodesVis.markers[i].header.frame_id = m_worldFrameId;
             freeNodesVis.markers[i].header.stamp = rostime;
             freeNodesVis.markers[i].ns = "map";
@@ -1212,7 +1210,7 @@ namespace octomap_server {
                 }
 
                 // reset proj. 2D map in bounding box:
-                for (unsigned int j = mapUpdateBBXMinY; j <= mapUpdateBBXMaxY; ++j) {
+                for (unsigned int j = mapUpdateBBXMinY; j <= static_cast<unsigned int>(mapUpdateBBXMaxY); ++j) {
                     std::fill_n(
                         m_gridmap.data.begin() + m_gridmap.info.width*j+mapUpdateBBXMinX,
                         numCols, -1);
@@ -1222,7 +1220,7 @@ namespace octomap_server {
     }
 
     void OctomapServer::handlePostNodeTraversal(
-        const rclcpp::Time& rostime){
+        const rclcpp::Time& /*rostime*/){ // This tells the compiler that the parameter is intentionally unused.
         if (m_publish2DMap) {
             m_mapPub->publish(m_gridmap);
         }

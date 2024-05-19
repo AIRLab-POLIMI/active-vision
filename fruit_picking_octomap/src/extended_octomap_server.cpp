@@ -5,7 +5,7 @@ namespace extended_octomap_server {
     // Constructor
     ExtendedOctomapServer::ExtendedOctomapServer(const rclcpp::NodeOptions &options, const std::string node_name) : octomap_server::OctomapServer::OctomapServer(options, node_name) {
         
-        RCLCPP_INFO(this->get_logger(), "Extended constructor started.");
+        RCLCPP_INFO(this->get_logger(), "Extended octomap server's constructor started.");
 
         
         // Initialization of the map for the additional semantic information
@@ -470,7 +470,7 @@ namespace extended_octomap_server {
 
             pcl::transformPointCloud(segmented_pc, segmented_pc, sensorToWorld);
 
-            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Pointcloud before the filtering contains %d points", segmented_pc.size());
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] Pointcloud before the filtering contains %zu points", segmented_pc.size());
 
 
             // Set up filtering of the pointcloud based on the parameters related to the min and max possible values admitted of the points
@@ -512,7 +512,7 @@ namespace extended_octomap_server {
                 }
             }
 
-            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] pointcloudKeys filled with %d keys belonging to the pointcloud with %d points", pointcloudKeys.size(), segmented_pc.size());
+            RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSemanticArrayCallback] pointcloudKeys filled with %zu keys belonging to the pointcloud with %zu points", pointcloudKeys.size(), segmented_pc.size());
 
             // Save the most frequent instance value of the previous keys
             int most_frequent_instance = findMostFrequentInstance(*extended_octomap_map, pointcloudKeys);
@@ -661,7 +661,6 @@ namespace extended_octomap_server {
             double x = m_octree->keyToCoord(key[0]);
             double y = m_octree->keyToCoord(key[1]);
             double z = m_octree->keyToCoord(key[2]);
-            double size = m_octree->getNodeSize(m_maxTreeDepth);
 
             //create marker:
             if (publishConfidenceMarkers){
@@ -750,7 +749,6 @@ namespace extended_octomap_server {
             double x = m_octree->keyToCoord(key[0]);
             double y = m_octree->keyToCoord(key[1]);
             double z = m_octree->keyToCoord(key[2]);
-            double size = m_octree->getNodeSize(m_maxTreeDepth);
 
             //create marker:
             if (publishSemanticMarkers){
@@ -838,7 +836,6 @@ namespace extended_octomap_server {
             double x = m_octree->keyToCoord(key[0]);
             double y = m_octree->keyToCoord(key[1]);
             double z = m_octree->keyToCoord(key[2]);
-            double size = m_octree->getNodeSize(m_maxTreeDepth);
 
             //create marker:
             if (publishInstancesMarkers){

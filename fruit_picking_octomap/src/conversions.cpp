@@ -50,7 +50,7 @@ namespace octomap {
      * @param cloud
      */
 
-    void pointsOctomapToPointCloud2(const point3d_list& points,
+    void pointsOctomapToPointCloud2(const point3d_list& /*points*/,
                                     sensor_msgs::msg::PointCloud2& cloud) {
         // make sure the channel is valid
 

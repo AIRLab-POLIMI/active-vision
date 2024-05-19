@@ -117,6 +117,7 @@ namespace octomap_server {
         std_msgs::msg::ColorRGBA m_color;
         std_msgs::msg::ColorRGBA m_colorFree;
         double m_colorFactor;
+        bool m_useColoredMap;
         bool m_publishFreeSpace;
         double m_res;
         unsigned m_treeDepth;
@@ -137,16 +138,6 @@ namespace octomap_server {
         double m_groundFilterAngle;
         double m_groundFilterPlaneDistance;
         bool m_compressMap;
-        
-        // new value for the message filter queue
-        int messageFilterQueue;
-
-        // new bool for binary and full octomap, centers pointcloud and 2d map
-        bool publishFreeCells;
-        bool publishOctomapBinary;
-        bool publishOctomapFull;
-        bool publishCentersPointcloud;
-        bool publish2DProjectedMap;
 
         // downprojected 2D map:
         bool m_incrementalUpdate;
@@ -156,7 +147,16 @@ namespace octomap_server {
         octomap::OcTreeKey m_paddedMinKey;
         unsigned m_multires2DScale;
         bool m_projectCompleteMap;
-        bool m_useColoredMap;
+
+        // new value for the message filter queue
+        int messageFilterQueue;
+
+        // new bool for binary and full octomap, centers pointcloud and 2d map
+        bool publishFreeCells;
+        bool publishOctomapBinary;
+        bool publishOctomapFull;
+        bool publishCentersPointcloud;
+        bool publish2DProjectedMap;
         
         inline static void updateMinKey(const octomap::OcTreeKey& in,
                                         octomap::OcTreeKey& min) {
@@ -218,8 +218,8 @@ namespace octomap_server {
 
         virtual void handlePreNodeTraversal(const rclcpp::Time &);
         virtual void handlePostNodeTraversal(const rclcpp::Time &);
-        virtual void handleNode(const OcTreeT::iterator& it) {};
-        virtual void handleNodeInBBX(const OcTreeT::iterator& it) {};
+        // virtual void handleNode(const OcTreeT::iterator& it) {};
+        // virtual void handleNodeInBBX(const OcTreeT::iterator& it) {};
         virtual void handleOccupiedNode(const OcTreeT::iterator& it);
         virtual void handleOccupiedNodeInBBX(const OcTreeT::iterator& it);
         virtual void handleFreeNode(const OcTreeT::iterator& it);

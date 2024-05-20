@@ -170,25 +170,9 @@ class LANGSAMPubSub(Node):
 
 
 
-
-
     def clock_sub(self, msg):
         pass
-
-
-
-
-    def publish_image_segmentation(self, image_msg):
-        self.image_publisher.publish(image_msg)
-        self.get_logger().info('[Image-pub] Image published.')
-
-
-
-
-    def publish_image_array_segmentation(self, image_array_msg):
-        self.image_array_publisher.publish(image_array_msg)
-        self.get_logger().info('[ImageArray-pub] Image array published.')
-
+             
 
 
 
@@ -204,23 +188,9 @@ class LANGSAMPubSub(Node):
         msg_confidences.semantic_class = semantic_class
 
         self.confidences_publisher.publish(msg_confidences)
-        self.get_logger().info('[Confidences-pub] Confidences published.')   
-
-
-
-
-    def publish_original_depth_image(self, depth_msg):
-        self.depth_image_publisher.publish(depth_msg)
-        self.get_logger().info('[DepthImage-pub] Depth image published.')
-
-
+        self.get_logger().debug('[Confidences-pub] Confidences published.')           
+  
     
-
-    def publish_original_depth_image_camera_info(self, depth_image_camera_info_msg):
-        self.depth_image_camera_info_publisher.publish(depth_image_camera_info_msg)
-        self.get_logger().info('[DepthImageCameraInfo-pub] Depth image camera info published.')
-    
-
 
 
     def segmentation_wrapper(self, rgb_msg, depth_msg, depth_image_camera_info_msg):
@@ -328,7 +298,7 @@ class LANGSAMPubSub(Node):
         if masks.size(0) <= 0:
 
             # Publish confidences as empty lists
-            self.get_logger().info(f'[Confidences-pub] Publishing empty confidences...')
+            self.get_logger().debug(f'[Confidences-pub] Publishing empty confidences...')
             self.publish_confidences_segmentation(torch.empty_like(torch.tensor([])), [], 'none', self.original_image.header.frame_id, start_pub_stamp)
             
             # Create empty image
@@ -340,8 +310,8 @@ class LANGSAMPubSub(Node):
 
 
             # Publish empty image
-            self.get_logger().info(f'[Image-pub] Publishing empty image...')
-            self.publish_image_segmentation(empty_image)
+            self.image_publisher.publish(empty_image)
+            self.get_logger().debug('[Image-pub] Empty image published.')
 
 
             # Case when the array of masks need to be published
@@ -351,26 +321,26 @@ class LANGSAMPubSub(Node):
                 mask_images_array.images.append(empty_image)
                 
                  # Publish empty image array
-                self.get_logger().info(f'[ImageArray-pub] Publishing empty images array...')
-                self.publish_image_array_segmentation(mask_images_array)
+                self.image_array_publisher.publish(mask_images_array)
+                self.get_logger().debug('[ImageArray-pub] Empty image array published.')
             
             # Case when the original depth image needs to be published
             if (self._publish_original_depth_image):
                 self.depth_image.header.stamp = start_pub_stamp
-                self.get_logger().info(f'[DepthImage-pub] Publishing original depth image...')
-                self.publish_original_depth_image(self.depth_image)
+                self.depth_image_publisher.publish(self.depth_image)
+                self.get_logger().debug('[DepthImage-pub] Depth image published.')
 
             # Case when the original depth image camera info needs to be published
             if (self._publish_original_depth_image_camera_info):
                 self.depth_image_camera_info.header.stamp = start_pub_stamp
-                self.get_logger().info(f'[DepthImageCameraInfo-pub] Publishing original depth image camera info...')
-                self.publish_original_depth_image_camera_info(self.depth_image_camera_info)
+                self.depth_image_camera_info_publisher.publish(self.depth_image_camera_info)
+                self.get_logger().debug('[DepthImageCameraInfo-pub] Depth image camera info published.')
             
             # Case when the original tf needs to be published
             if (self._publish_original_tf):
                 self.tf.header.stamp = start_pub_stamp
                 self.tf_publisher.publish(self.tf)
-                self.get_logger().info('[TF-pub] TF message republished.')
+                self.get_logger().debug('[TF-pub] TF message republished.')
                 
 
                 
@@ -384,7 +354,7 @@ class LANGSAMPubSub(Node):
             masks_images = convert_masks_to_images(masks)
 
             # Publish confidences
-            self.get_logger().info(f'[Confidences-pub] Publishing confidences...')
+            self.get_logger().debug(f'[Confidences-pub] Publishing confidences...')
             self.publish_confidences_segmentation(confidences, masks_names, text_prompt_query, self.original_image.header.frame_id, start_pub_stamp)
 
             # Merged masks publication  
@@ -400,8 +370,8 @@ class LANGSAMPubSub(Node):
             merged_masks_images.header.stamp = start_pub_stamp
 
             # Define image publisher and publish
-            self.get_logger().info(f'[Image-pub] Publishing merged masks image...')
-            self.publish_image_segmentation(merged_masks_images)
+            self.image_publisher.publish(merged_masks_images)
+            self.get_logger().debug('[Image-pub] Merged masks image published.')
 
 
             # Image array publication
@@ -419,26 +389,27 @@ class LANGSAMPubSub(Node):
 
                     # Add each image in the ImageArray object
                     mask_images_array.images.append(mask_image)
-                self.get_logger().info(f'[ImageArray-pub] Publishing images array...')
-                self.publish_image_array_segmentation(mask_images_array)
+                self.image_array_publisher.publish(mask_images_array)
+                self.get_logger().debug('[ImageArray-pub] Image array published.')
+                
 
             # Case when the original depth image needs to be published
             if (self._publish_original_depth_image):
                 self.depth_image.header.stamp = start_pub_stamp
-                self.get_logger().info(f'[DepthImage-pub] Publishing original depth image...')
-                self.publish_original_depth_image(self.depth_image)
+                self.depth_image_publisher.publish(self.depth_image)
+                self.get_logger().debug('[DepthImage-pub] Depth image published.')
 
             # Case when the original depth image camera info needs to be published
             if (self._publish_original_depth_image_camera_info):
                 self.depth_image_camera_info.header.stamp = start_pub_stamp
-                self.get_logger().info(f'[DepthImageCameraInfo-pub] Publishing original depth image camera info...')
-                self.publish_original_depth_image_camera_info(self.depth_image_camera_info)
+                self.depth_image_camera_info_publisher.publish(self.depth_image_camera_info)
+                self.get_logger().debug('[DepthImageCameraInfo-pub] Depth image camera info published.')
             
             # Case when the original tf needs to be published
             if (self._publish_original_tf):
                 self.tf.header.stamp = start_pub_stamp
                 self.tf_publisher.publish(self.tf)
-                self.get_logger().info('[TF-pub] TF message republished.')
+                self.get_logger().debug('[TF-pub] TF message republished.')
 
 
         self.get_logger().info(

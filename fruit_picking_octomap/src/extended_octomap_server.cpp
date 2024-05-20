@@ -268,15 +268,6 @@ namespace extended_octomap_server {
             }
         }
 
-        auto end = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        if (processFreeSpace){
-            RCLCPP_DEBUG(this->get_logger(), "Duration of the insertion of the pointcloud in the free and occupied octree nodes: %f", elapsed_seconds.count());
-        }
-        else{
-            RCLCPP_DEBUG(this->get_logger(), "Duration of the insertion of the pointcloud in the occupied octree nodes: %f", elapsed_seconds.count());
-        }
-
 
         
         if (processFreeSpace){
@@ -321,6 +312,15 @@ namespace extended_octomap_server {
                 (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap);  
                 }                    
             }
+        }
+
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        if (processFreeSpace){
+            RCLCPP_INFO(this->get_logger(), "[INSERT-SCAN] Duration of the insertion of the PCL pointcloud in the free and occupied octree nodes: %f", elapsed_seconds.count());
+        }
+        else{
+            RCLCPP_INFO(this->get_logger(), "[INSERT-SCAN] Duration of the insertion of the PCL pointcloud in the occupied octree nodes: %f", elapsed_seconds.count());
         }
         
 #ifdef COLOR_OCTOMAP_SERVER

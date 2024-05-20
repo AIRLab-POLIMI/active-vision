@@ -184,7 +184,7 @@ namespace segmented_pointcloud{
             cloud_msg.height = 1;
             cloud_msg.width = pcl_cloud.points.size();
 
-            RCLCPP_DEBUG(this->get_logger(), "The number of points of the PCL pointcloud is %zu", pcl_cloud.points.size());
+            RCLCPP_INFO(this->get_logger(), "[CONVERT_DEPTH] The number of points of the PCL pointcloud is %zu", pcl_cloud.points.size());
 
         }
 

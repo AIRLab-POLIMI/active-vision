@@ -420,7 +420,7 @@ namespace octomap_server {
 
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
-        RCLCPP_INFO(this->get_logger(), "Time lapse [from receiving pt to final octomap insertion] %f", elapsed_seconds.count());
+        RCLCPP_INFO(this->get_logger(), "Time lapse [from receiving pointcloud sensor message to final octomap insertion] %f", elapsed_seconds.count());
         
         publishAll(cloud->header.stamp);
     }
@@ -579,7 +579,7 @@ namespace octomap_server {
         size_t octomap_size = m_octree->size();
         // TODO: estimate num occ. voxels for size of arrays (reserve)
         if (octomap_size <= 1) {
-            RCLCPP_WARN(
+            RCLCPP_DEBUG(
                 this->get_logger(),
                 "Nothing to publish, octree is empty");
             return;
@@ -970,7 +970,7 @@ namespace octomap_server {
         nonground.header = pc.header;
 
         if (pc.size() < 50){
-            RCLCPP_WARN(this->get_logger(),
+            RCLCPP_DEBUG(this->get_logger(),
                 "Pointcloud in OctomapServer too small, skipping ground plane extraction");
             nonground = pc;
         } else {
@@ -1001,7 +1001,7 @@ namespace octomap_server {
                 seg.setInputCloud(cloud_filtered.makeShared());
                 seg.segment (*inliers, *coefficients);
                 if (inliers->indices.size () == 0) {
-                    RCLCPP_INFO(this->get_logger(),
+                    RCLCPP_DEBUG(this->get_logger(),
                                 "PCL segmentation did not find any plane.");                    
                     break;
                 }
@@ -1010,7 +1010,7 @@ namespace octomap_server {
                 extract.setIndices(inliers);
 
                 if (std::abs(coefficients->values.at(3)) < m_groundFilterPlaneDistance) {
-                    RCLCPP_INFO(
+                    RCLCPP_DEBUG(
                         this->get_logger(),
                         "Ground plane found: %zu/%zu inliers. Coeff: %f %f %f %f",
                         inliers->indices.size(), cloud_filtered.size(),
@@ -1030,7 +1030,7 @@ namespace octomap_server {
                     }
                     groundPlaneFound = true;
                 } else {
-                    RCLCPP_INFO(
+                    RCLCPP_DEBUG(
                         this->get_logger(),
                         "Horizontal plane (not ground) found: %zu/%zu inliers. Coeff: %f %f %f %f",
                                 inliers->indices.size(), cloud_filtered.size(),

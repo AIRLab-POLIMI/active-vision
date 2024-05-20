@@ -329,7 +329,7 @@ void SegmentedPointcloud::imageArrayCb(
         pointcloud_array->pointclouds[i] = *pointcloud_msg;
 
         // Calculate the number of points in the point cloud
-        RCLCPP_DEBUG(this->get_logger(), "The final size of the pointcloud is %zu", pointcloud_msg->data.size());
+        RCLCPP_INFO(this->get_logger(), "The final size of the pointcloud is %zu", pointcloud_msg->data.size());
 
     }
 
@@ -340,11 +340,7 @@ void SegmentedPointcloud::imageArrayCb(
     // Publish the first pointcloud in the pointclouds array (used mostly to debug)
     if (publishSinglePointcloud){
         // Create an empty pointclouds array message that will be published at the end
-        RCLCPP_INFO(this->get_logger(), "creating single pointcloud...");  
-
         auto single_pointcloud = pointcloud_array->pointclouds[0];
-        RCLCPP_INFO(this->get_logger(), "publishing single pointcloud...");  
-
         pub_point_cloud_->publish(single_pointcloud);
         RCLCPP_INFO(this->get_logger(), "Pointcloud published.");  
     }  

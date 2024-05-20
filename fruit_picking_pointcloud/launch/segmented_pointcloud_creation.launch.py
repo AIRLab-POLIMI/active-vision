@@ -117,6 +117,10 @@ def generate_launch_description():
             namespace='',
             package='rclcpp_components',
             executable='component_container',
+            arguments= [
+                "--ros-args",
+                "--log-level", "info",
+            ],
             composable_node_descriptions=[
                 launch_ros.descriptions.ComposableNode(
                     package='fruit_picking_pointcloud',

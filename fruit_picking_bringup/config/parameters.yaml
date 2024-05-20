@@ -100,7 +100,7 @@ launch:
 
 
 
-  octomap_color_filter_launch: 
+  octomap_segmentation_color_filter_launch: 
     color_filter_segmentation_launch:
       publish_original_depth_image: "True"
       publish_original_depth_image_camera_info: "True"
@@ -153,13 +153,13 @@ launch:
       insert_semantic_init: 'True'
     
     rviz:
-      ignition: "octomap_color_filter_ignition.rviz"
-      realsense: "octomap_color_filter_realsense.rviz"
-      real: "octomap_color_filter.rviz"
+      ignition: "octomap_segmentation_color_filter_ignition.rviz"
+      realsense: "octomap_segmentation_color_filter_realsense.rviz"
+      real: "octomap_segmentation_color_filter.rviz"
   
 
 
-  octomap_segmentation_launch: 
+  octomap_segmentation_lang_sam_launch: 
     lang_sam_segmentation_launch:
       approach: "pub_sub"
       sam_model_type: "vit_b"
@@ -215,8 +215,8 @@ launch:
       insert_semantic_init: 'True'
     
     rviz:
-      ignition: "octomap_segmentation_ignition.rviz"
-      realsense: "octomap_segmentation_realsense.rviz"
-      real: "octomap_segmentation.rviz"
+      ignition: "octomap_segmentation_lang_sam_ignition.rviz"
+      realsense: "octomap_segmentation_lang_sam_realsense.rviz"
+      real: "octomap_segmentation_lang_sam.rviz"
 
 

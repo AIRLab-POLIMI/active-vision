@@ -86,7 +86,6 @@ def generate_launch_description():
         choices=["true", "false"],
         description="Whether or not only the camera is used instead of all the Igus Rebel",
     )
-
     
 
     return LaunchDescription(
@@ -109,7 +108,6 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
 
 
-    
     # Load the configuration YAML file
     config_yaml_path = os.path.join(
         get_package_share_directory("fruit_picking_bringup"), "config/parameters.yaml")
@@ -117,9 +115,9 @@ def launch_setup(context, *args, **kwargs):
         config_yaml = yaml.safe_load(file)
 
 
-
     # Array of action that will be returned at the end for execution
     return_actions = []
+
 
 
 
@@ -134,6 +132,7 @@ def launch_setup(context, *args, **kwargs):
     use_sim_time_dict = {"use_sim_time": str(use_sim_time).lower()}
 
 
+    
     # Frames
     if LaunchConfiguration("load_gazebo").perform(context) == 'true':
         frame_id = config_yaml['frames']['frame_id']
@@ -149,6 +148,7 @@ def launch_setup(context, *args, **kwargs):
 
     
 
+
     # Topics
     if LaunchConfiguration("load_gazebo").perform(context) == 'false':
         if LaunchConfiguration("camera").perform(context) == 'realsense':
@@ -161,14 +161,17 @@ def launch_setup(context, *args, **kwargs):
         depth_image_topic = config_yaml['topics']['gazebo_ignition_input_data']['depth_image_topic']
         depth_image_camera_info_topic = config_yaml['topics']['gazebo_ignition_input_data']['depth_image_camera_info_topic']
 
-    color_filter_rgb_image_topic = config_yaml['topics']['segmentation']['color_filter']['rgb_image_topic']
-    color_filter_depth_image_topic = config_yaml['topics']['segmentation']['color_filter']['depth_image_topic']
-    color_filter_depth_image_camera_info_topic = config_yaml['topics']['segmentation']['color_filter']['depth_image_camera_info_topic']
-    color_filter_tf_topic = config_yaml['topics']['segmentation']['color_filter']['tf_topic']
-    
-    pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
-    segmented_pointcloud_topic = config_yaml['topics']['pointcloud']['segmented_pointcloud_topic']
 
+    lang_sam_rgb_image_topic = config_yaml['topics']['segmentation']['lang_sam']['rgb_image_topic']
+    lang_sam_rgb_images_array_topic = config_yaml['topics']['segmentation']['lang_sam']['rgb_images_array_topic']
+    lang_sam_depth_image_topic = config_yaml['topics']['segmentation']['lang_sam']['depth_image_topic']
+    lang_sam_depth_image_camera_info_topic = config_yaml['topics']['segmentation']['lang_sam']['depth_image_camera_info_topic']
+    confidences_topic = config_yaml['topics']['segmentation']['lang_sam']['confidences_topic']
+    lang_sam_tf_topic = config_yaml['topics']['segmentation']['lang_sam']['tf_topic']
+
+
+    pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
+    segmented_pointclouds_array_topic = config_yaml['topics']['pointcloud']['segmented_pointclouds_array_topic']
 
     octomap_occupied_cells_vis_topic = config_yaml['topics']['octomap']['octomap_occupied_cells_vis_topic']
     octomap_free_cells_vis_topic = config_yaml['topics']['octomap']['octomap_free_cells_vis_topic']
@@ -176,8 +179,9 @@ def launch_setup(context, *args, **kwargs):
     octomap_binary_topic = config_yaml['topics']['octomap']['octomap_binary_topic']
     octomap_full_topic = config_yaml['topics']['octomap']['octomap_full_topic']
     octomap_projected_map_topic = config_yaml['topics']['octomap']['octomap_projected_map_topic']
-    octomap_semantic_class_cells_vis_topic = config_yaml['topics']['segmentation']['color_filter']['octomap_semantic_class_cells_vis_topic']
-
+    octomap_semantic_class_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_semantic_class_cells_vis_topic']
+    octomap_confidence_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_confidence_cells_vis_topic']
+    octomap_instances_cells_vis_topic = config_yaml['topics']['segmentation']['lang_sam']['octomap_instances_cells_vis_topic']
 
 
     # Input entity
@@ -202,24 +206,28 @@ def launch_setup(context, *args, **kwargs):
 
 
 
-    # Color filter segmentation launch
-    color_filter_segmentation_launch_file = IncludeLaunchDescription(
+
+    # LANG SAM segmentation launch
+    lang_sam_segmentation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare("fruit_picking_segmentation_color_filtering"), '/launch', '/color_filter.launch.py']),
+            FindPackageShare("fruit_picking_segmentation_lang_sam"), '/launch', '/lang_sam.launch.py']),
         launch_arguments={
             **use_sim_time_dict,
             **{
                 "rgb_image_topic": rgb_image_topic,
                 "depth_image_topic": depth_image_topic,
                 "depth_image_camera_info_topic": depth_image_camera_info_topic,
-                "color_filter_rgb_image_topic": color_filter_rgb_image_topic,
-                "color_filter_depth_image_topic": color_filter_depth_image_topic,
-                "color_filter_depth_image_camera_info_topic": color_filter_depth_image_camera_info_topic,
-                "color_filter_tf_topic": color_filter_tf_topic,
+                "lang_sam_rgb_image_topic": lang_sam_rgb_image_topic,
+                "lang_sam_rgb_images_array_topic": lang_sam_rgb_images_array_topic,
+                "lang_sam_depth_image_topic": lang_sam_depth_image_topic,
+                "lang_sam_depth_image_camera_info_topic": lang_sam_depth_image_camera_info_topic,
+                "confidences_topic": confidences_topic,
+                "lang_sam_tf_topic": lang_sam_tf_topic,
                 "frame_id": frame_id,
                 "base_frame_id": base_frame_id,
             },
-            **config_yaml['launch']['octomap_color_filter_launch']['color_filter_segmentation_launch'],
+            **config_yaml['launch']['octomap_segmentation_lang_sam_launch']['lang_sam_segmentation_launch']
+
         }.items(),
     )
     
@@ -247,15 +255,16 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             **use_sim_time_dict,
             **{
-                "rgb_image_topic": color_filter_rgb_image_topic,
-                "depth_image_topic": color_filter_depth_image_topic,
-                "depth_image_camera_info_topic": color_filter_depth_image_camera_info_topic,
-                "segmented_pointcloud_topic": segmented_pointcloud_topic
+                "depth_image_topic": lang_sam_depth_image_topic,
+                "rgb_image_topic": lang_sam_rgb_image_topic,
+                "rgb_images_array_topic": lang_sam_rgb_images_array_topic,
+                "depth_image_camera_info_topic": lang_sam_depth_image_camera_info_topic,
+                "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
+                "confidences_topic": confidences_topic,
             },
-            **config_yaml['launch']['octomap_color_filter_launch']['segmented_pointcloud_creation_launch']
+            **config_yaml['launch']['octomap_segmentation_lang_sam_launch']['segmented_pointcloud_creation_launch']
         }.items(),
     ) 
-
 
     # Extended octomap creation launch
     extended_octomap_creation_launch_file = IncludeLaunchDescription(
@@ -265,8 +274,8 @@ def launch_setup(context, *args, **kwargs):
             **use_sim_time_dict,
             **{
                 "pointcloud_topic": pointcloud_topic,
-                "segmented_pointcloud_topic": segmented_pointcloud_topic,
-                "segmented_tf_topic": color_filter_tf_topic,
+                "segmented_pointclouds_array_topic": segmented_pointclouds_array_topic,
+                "segmented_tf_topic": lang_sam_tf_topic,
                 "octomap_occupied_cells_vis_topic": octomap_occupied_cells_vis_topic,
                 "octomap_free_cells_vis_topic": octomap_free_cells_vis_topic,
                 "octomap_occupied_cells_centers_pointcloud_topic": octomap_occupied_cells_centers_pointcloud_topic,
@@ -274,23 +283,25 @@ def launch_setup(context, *args, **kwargs):
                 "octomap_full_topic": octomap_full_topic,
                 "octomap_projected_map_topic": octomap_projected_map_topic,
                 "octomap_semantic_class_cells_vis_topic": octomap_semantic_class_cells_vis_topic,
-                "base_frame_id": base_frame_id,
-                "frame_id": frame_id
+                "octomap_confidence_cells_vis_topic": octomap_confidence_cells_vis_topic,
+                "octomap_instances_cells_vis_topic": octomap_instances_cells_vis_topic,
+                "frame_id": frame_id,
+                "base_frame_id": base_frame_id
             },
-            **config_yaml['launch']['octomap_color_filter_launch']['extended_octomap_creation_launch'],
+            **config_yaml['launch']['octomap_segmentation_lang_sam_launch']['extended_octomap_creation_launch'],
         }.items(),
     ) 
 
     
     # Rviz node
     if LaunchConfiguration("load_gazebo").perform(context) == 'true':
-        rviz_config_file_name = config_yaml["launch"]["octomap_color_filter_launch"]["rviz"]["ignition"]
+        rviz_config_file_name = config_yaml["launch"]["octomap_segmentation_lang_sam_launch"]["rviz"]["ignition"]
     else:
         if LaunchConfiguration("test_camera").perform(context) == 'false':
-            rviz_config_file_name = config_yaml["launch"]["octomap_color_filter_launch"]["rviz"]["real"]
+            rviz_config_file_name = config_yaml["launch"]["octomap_segmentation_lang_sam_launch"]["rviz"]["real"]
         else:
             if LaunchConfiguration("camera").perform(context) == 'realsense':
-                rviz_config_file_name = config_yaml["launch"]["octomap_color_filter_launch"]["rviz"]["realsense"]
+                rviz_config_file_name = config_yaml["launch"]["octomap_segmentation_lang_sam_launch"]["rviz"]["realsense"]
 
 
     rviz_node = Node(
@@ -310,8 +321,10 @@ def launch_setup(context, *args, **kwargs):
 
 
 
+
+
     # Returns  
-    return_actions.append(color_filter_segmentation_launch_file)
+    return_actions.append(lang_sam_segmentation_launch_file)
     return_actions.append(pointcloud_creation_launch_file)
     return_actions.append(segmented_pointcloud_creation_launch_file)
     return_actions.append(extended_octomap_creation_launch_file)

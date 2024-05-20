@@ -62,15 +62,15 @@ namespace extended_octomap_server{
         bool publishConfidence; // tells if the confidence info isnide the extended octomap map and markers are required
         bool publishSemantic; // tells if the semantic classes inside the extended map and markers are required
         bool publishInstances; // tells if the instances markers are required
-        bool semanticPointcloudSubscription; // tells if the node needs to subscribe to the semantic pointcloud topic
-        bool semanticPointcloudsArraySubscription; // tells if the node needs to subscribe to the semantic pointclouds array topic
+        bool segmentedPointcloudSubscription; // tells if the node needs to subscribe to the segmented pointcloud topic
+        bool segmentedPointcloudsArraySubscription; // tells if the node needs to subscribe to the segmented pointclouds array topic
 
         // Bool that are used to activate or deactivate the callbacks. They are set using some services
         bool insertCloudActive;
-        bool insertSemanticActive;
+        bool insertSegmentedActive;
 
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
-        rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSemanticActiveService_;
+        rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSegmentedActiveService_;
 
         // Map to save octreekeys that contains collision points between different instances
         std::shared_ptr<CollisionOcTreeKeys> collisionKeys;
@@ -91,11 +91,11 @@ namespace extended_octomap_server{
             const PCLPointCloud& ground,
             const PCLPointCloud& nonground);
 
-        virtual void insertSemanticCallback(
+        virtual void insertSegmentedPointcloudCallback(
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud,
             const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
 
-        virtual void insertSemanticArrayCallback(
+        virtual void insertSegmentedPointcloudsArrayCallback(
             const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
             const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
 
@@ -110,7 +110,7 @@ namespace extended_octomap_server{
             const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
             std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
-        void setInsertSemanticActive(
+        void setinsertSegmentedActive(
             const std::shared_ptr<rmw_request_id_t> request_header,
             const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
             std::shared_ptr<std_srvs::srv::SetBool::Response> response);

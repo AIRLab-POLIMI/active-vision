@@ -64,11 +64,11 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_semantic', default_value='False'),
         DeclareLaunchArgument('publish_confidence', default_value='False'),
         DeclareLaunchArgument('publish_instances', default_value='False'),
-        DeclareLaunchArgument('semantic_pointcloud_subscription', default_value='False'),
-        DeclareLaunchArgument('semantic_pointclouds_array_subscription', default_value='False'),
+        DeclareLaunchArgument('segmented_pointcloud_subscription', default_value='False'),
+        DeclareLaunchArgument('segmented_pointclouds_array_subscription', default_value='False'),
         DeclareLaunchArgument('message_filter_queue', default_value='5'),
         DeclareLaunchArgument('insert_cloud_init', default_value='True'),
-        DeclareLaunchArgument('insert_semantic_init', default_value='True'),
+        DeclareLaunchArgument('insert_segmented_init', default_value='True'),
 
 
         Node(
@@ -138,11 +138,11 @@ def generate_launch_description():
                 'publish_semantic': LaunchConfiguration('publish_semantic'),
                 'publish_confidence': LaunchConfiguration('publish_confidence'),
                 'publish_instances': LaunchConfiguration('publish_instances'),
-                'semantic_pointcloud_subscription': LaunchConfiguration('semantic_pointcloud_subscription'),
-                'semantic_pointclouds_array_subscription': LaunchConfiguration('semantic_pointclouds_array_subscription'),
+                'segmented_pointcloud_subscription': LaunchConfiguration('segmented_pointcloud_subscription'),
+                'segmented_pointclouds_array_subscription': LaunchConfiguration('segmented_pointclouds_array_subscription'),
                 'message_filter_queue': LaunchConfiguration('message_filter_queue'),
                 'insert_cloud_init': LaunchConfiguration('insert_cloud_init'),
-                'insert_semantic_init': LaunchConfiguration('insert_semantic_init'),
+                'insert_segmented_init': LaunchConfiguration('insert_segmented_init'),
                 }]
         )
     ])

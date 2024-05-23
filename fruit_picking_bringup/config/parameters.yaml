@@ -32,6 +32,17 @@ topics:
       octomap_semantic_class_cells_vis_topic: &lang_sam_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/lang_sam/semantic_class_cells_vis"
       octomap_confidence_cells_vis_topic: &lang_sam_octomap_confidence_cells_vis_topic "/fruit_picking/octomap/lang_sam/confidence_cells_vis"
       octomap_instances_cells_vis_topic: &lang_sam_octomap_instances_cells_vis_topic "/fruit_picking/octomap/lang_sam/instances_cells_vis"
+    
+    yolo_world:
+      rgb_image_topic: &yolo_world_rgb_image_topic "/fruit_picking/segmentation/yolo_world/rgb_image"
+      rgb_images_array_topic: &yolo_world_rgb_images_array_topic "/fruit_picking/segmentation/yolo_world/rgb_images_array"
+      depth_image_topic: &yolo_world_depth_image_topic "/fruit_picking/segmentation/yolo_world/depth_image"
+      depth_image_camera_info_topic: &yolo_world_depth_image_camera_info_topic "/fruit_picking/segmentation/yolo_world/camera_info"
+      confidences_topic: &yolo_world_confidences_topic "/fruit_picking/segmentation/yolo_world/confidences"
+      tf_topic: &yolo_world_tf_topic "/fruit_picking/segmentation/yolo_world/tf"
+      octomap_semantic_class_cells_vis_topic: &yolo_world_octomap_semantic_class_cells_vis_topic "/fruit_picking/octomap/yolo_world/semantic_class_cells_vis"
+      octomap_confidence_cells_vis_topic: &yolo_world_octomap_confidence_cells_vis_topic "/fruit_picking/octomap/yolo_world/confidence_cells_vis"
+      octomap_instances_cells_vis_topic: &yolo_world_octomap_instances_cells_vis_topic "/fruit_picking/octomap/yolo_world/instances_cells_vis"
 
   pointcloud:
     pointcloud_topic: &pointcloud_topic "/fruit_picking/pointcloud/pointcloud"
@@ -220,3 +231,65 @@ launch:
       real: "octomap_segmentation_lang_sam.rviz"
 
 
+
+  octomap_segmentation_yolo_world_launch: 
+    yolo_world_segmentation_launch:
+      publish_masks_array: "True"
+      publish_original_depth_image: "True"
+      publish_original_depth_image_camera_info: "True"
+      publish_original_tf: "True"
+      yolo_world_model_type: "yolo_world/l"
+      efficient_SAM_model_type: "l0"
+      segmentation_prompt: "tomato"
+      confidence_threshold: "0.001"
+      nms_threshold: "0.2"
+
+    segmented_pointcloud_creation_launch:
+      publish_pointclouds_array: "True"
+      publish_single_pointcloud: "False"
+    
+    extended_octomap_creation_launch:
+      resolution: '0.006'
+      height_map: "False"
+      colored_map: "False"
+      color_factor: "0.8"
+      filter_ground: 'True'
+      filter_speckles: "False"
+      ground_filter/distance: "0.04"
+      ground_filter/angle: "0.15"
+      ground_filter/plane_distance: "0.07"
+      compress_map: "True"
+      incremental_2D_projection: "False"
+      sensor_model/max_range: "-1.0"
+      sensor_model/hit: "0.7"
+      sensor_model/miss: "0.4"
+      sensor_model/min: "0.12"
+      sensor_model/max: "0.97"
+      color/r: "1.0"
+      color/g: "1.0"
+      color/b: "1.0"
+      color/a: "1.0"
+      color_free/r: "0.0"
+      color_free/g: "0.0"
+      color_free/b: "1.0"
+      color_free/a: "1.0"
+      process_free_space: "False"
+      publish_free_space: "False"
+      publish_free_cells: "False"
+      publish_octomap_binary: "False"
+      publish_octomap_full: "False"
+      publish_centers_pointcloud: "False"
+      publish_2d_projected_map: "False"
+      publish_confidence: 'True'
+      publish_semantic: 'True'
+      publish_instances: 'True'
+      segmented_pointcloud_subscription: 'False'
+      segmented_pointclouds_array_subscription: 'True'
+      message_filter_queue: '200'
+      insert_cloud_init: 'True'
+      insert_segmented_init: 'True'
+    
+    rviz:
+      ignition: "octomap_segmentation_yolo_world_ignition.rviz"
+      realsense: "octomap_segmentation_yolo_world_realsense.rviz"
+      real: "octomap_segmentation_yolo_world.rviz"

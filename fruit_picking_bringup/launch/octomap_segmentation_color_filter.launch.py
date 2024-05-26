@@ -87,6 +87,48 @@ def generate_launch_description():
         description="Whether or not only the camera is used instead of all the Igus Rebel",
     )
 
+    run_robot_arg = DeclareLaunchArgument(
+        name="run_robot",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the igus rebel description launch or the realsense launch",
+    )
+
+    run_color_filter_arg = DeclareLaunchArgument(
+        name="run_color_filter",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the color filter launch",
+    )
+
+    run_pt_arg = DeclareLaunchArgument(
+        name="run_pt",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the pointcloud creation launch",
+    )
+
+    run_s_pt_arg = DeclareLaunchArgument(
+        name="run_s_pt",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the segmented pointcloud creation launch",
+    )
+
+    run_octomap_arg = DeclareLaunchArgument(
+        name="run_octomap",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the extended octomap creation launch",
+    )
+
+    run_rviz_arg = DeclareLaunchArgument(
+        name="run_rviz",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run rviz",
+    )
+
     
 
     return LaunchDescription(
@@ -101,6 +143,12 @@ def generate_launch_description():
             env_gazebo_package_arg,
             full_world_name_arg,
             test_camera_arg,
+            run_robot_arg,
+            run_color_filter_arg,
+            run_pt_arg,
+            run_s_pt_arg,
+            run_octomap_arg,
+            run_rviz_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -181,21 +229,22 @@ def launch_setup(context, *args, **kwargs):
 
 
     # Input entity
-    if LaunchConfiguration("test_camera").perform(context) == 'false': 
-        # Igus Rebel description launch
-        description_launch_file = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
-        )
-        return_actions.append(description_launch_file)
-    else:
-        # Realsense launch file
-        realsense_launch_file = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
-            launch_arguments = config_yaml['launch']['realsense_launch'].items(),
-        )
-        return_actions.append(realsense_launch_file)
+    if LaunchConfiguration("run_robot").perform(context) == 'true': 
+        if LaunchConfiguration("test_camera").perform(context) == 'false': 
+            # Igus Rebel description launch
+            description_launch_file = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
+            )
+            return_actions.append(description_launch_file)
+        else:
+            # Realsense launch file
+            realsense_launch_file = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
+                launch_arguments = config_yaml['launch']['realsense_launch'].items(),
+            )
+            return_actions.append(realsense_launch_file)
 
     
 
@@ -311,11 +360,11 @@ def launch_setup(context, *args, **kwargs):
 
 
     # Returns  
-    return_actions.append(color_filter_segmentation_launch_file)
-    return_actions.append(pointcloud_creation_launch_file)
-    return_actions.append(segmented_pointcloud_creation_launch_file)
-    return_actions.append(extended_octomap_creation_launch_file)
-    return_actions.append(rviz_node)
+    if LaunchConfiguration("run_color_filter").perform(context) == 'true': return_actions.append(color_filter_segmentation_launch_file)
+    if LaunchConfiguration("run_pt").perform(context) == 'true': return_actions.append(pointcloud_creation_launch_file)
+    if LaunchConfiguration("run_s_pt").perform(context) == 'true': return_actions.append(segmented_pointcloud_creation_launch_file)
+    if LaunchConfiguration("run_octomap").perform(context) == 'true': return_actions.append(extended_octomap_creation_launch_file)
+    if LaunchConfiguration("run_rviz").perform(context) == 'true': return_actions.append(rviz_node)
 
 
 

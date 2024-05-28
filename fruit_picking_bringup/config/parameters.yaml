@@ -157,6 +157,7 @@ launch:
       publish_confidence: 'False'
       publish_semantic: 'True'
       publish_instances: 'False'
+      partial_pointcloud_subscription: 'True'
       segmented_pointcloud_subscription: 'True'
       segmented_pointclouds_array_subscription: 'False'
       message_filter_queue: '100'
@@ -182,7 +183,7 @@ launch:
 
     segmented_pointcloud_creation_launch:
       publish_pointclouds_array: "True"
-      publish_single_pointcloud: "False"
+      publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
     
     extended_octomap_creation_launch:
       resolution: '0.006'
@@ -219,6 +220,7 @@ launch:
       publish_confidence: 'True'
       publish_semantic: 'True'
       publish_instances: 'True'
+      partial_pointcloud_subscription: 'True'
       segmented_pointcloud_subscription: 'False'
       segmented_pointclouds_array_subscription: 'True'
       message_filter_queue: '200'
@@ -246,7 +248,7 @@ launch:
 
     segmented_pointcloud_creation_launch:
       publish_pointclouds_array: "True"
-      publish_single_pointcloud: "False"
+      publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
     
     extended_octomap_creation_launch:
       resolution: '0.006'
@@ -283,6 +285,7 @@ launch:
       publish_confidence: 'True'
       publish_semantic: 'True'
       publish_instances: 'True'
+      partial_pointcloud_subscription: 'True'
       segmented_pointcloud_subscription: 'False'
       segmented_pointclouds_array_subscription: 'True'
       message_filter_queue: '200'

@@ -157,6 +157,9 @@ namespace octomap_server {
         bool publishOctomapFull;
         bool publishCentersPointcloud;
         bool publish2DProjectedMap;
+
+        bool partialPointcloudSubscription; // tells to use not the full pointcloud, but a partial
+
         
         inline static void updateMinKey(const octomap::OcTreeKey& in,
                                         octomap::OcTreeKey& min) {

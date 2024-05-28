@@ -61,7 +61,7 @@ SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : r
                     std::placeholders::_4));
             
         }
-        else if (publishSinglePointcloud){
+        if (publishSinglePointcloud){
             exact_sync_ = std::make_shared<ExactSynchronizer>(ExactSyncPolicy(queue_size), sub_depth_, sub_rgb_, sub_info_);
             exact_sync_->registerCallback(
                 std::bind(
@@ -85,7 +85,7 @@ SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : r
                     std::placeholders::_3,
                     std::placeholders::_4));            
         }
-        else if (publishSinglePointcloud){
+        if (publishSinglePointcloud){
             sync_ = std::make_shared<Synchronizer>(SyncPolicy(queue_size), sub_depth_, sub_rgb_, sub_info_);
             sync_->registerCallback(
                 std::bind(
@@ -121,7 +121,7 @@ void SegmentedPointcloud::connectCb()
             sub_rgb_array_.subscribe(this, "rgb_images_array");            
             sub_conf_.subscribe(this, "confidences");
         }
-        else if (publishSinglePointcloud){
+        if (publishSinglePointcloud){
             sub_rgb_.subscribe(this, "rgb_image");
         }
     }
@@ -338,12 +338,12 @@ void SegmentedPointcloud::imageArrayCb(
 
 
     // Publish the first pointcloud in the pointclouds array (used mostly to debug)
-    if (publishSinglePointcloud){
-        // Create an empty pointclouds array message that will be published at the end
-        auto single_pointcloud = pointcloud_array->pointclouds[0];
-        pub_point_cloud_->publish(single_pointcloud);
-        RCLCPP_INFO(this->get_logger(), "Pointcloud published.");  
-    }  
+    // if (publishSinglePointcloud){
+    //     // Create an empty pointclouds array message that will be published at the end
+    //     auto single_pointcloud = pointcloud_array->pointclouds[0];
+    //     pub_point_cloud_->publish(single_pointcloud);
+    //     RCLCPP_INFO(this->get_logger(), "Pointcloud published.");  
+    // }  
 }
 
 

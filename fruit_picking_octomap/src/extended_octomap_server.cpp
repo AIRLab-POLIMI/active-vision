@@ -2,7 +2,7 @@
 
 namespace extended_octomap_server {
 
-    // Constructor
+    // Constructor of extended octomap server
     ExtendedOctomapServer::ExtendedOctomapServer(const rclcpp::NodeOptions &options, const std::string node_name) : octomap_server::OctomapServer::OctomapServer(options, node_name) {
         
 
@@ -25,6 +25,7 @@ namespace extended_octomap_server {
         publishInstances = this->declare_parameter(
             "publish_instances", publishInstances);
 
+        
         segmentedPointcloudSubscription = this->declare_parameter(
             "segmented_pointcloud_subscription", segmentedPointcloudSubscription);
         segmentedPointcloudsArraySubscription = this->declare_parameter(
@@ -37,7 +38,7 @@ namespace extended_octomap_server {
 
 
         
-        // Case when the segmentation is required
+        // Case when the semantic segmentation is required
         if (segmentedPointcloudsArraySubscription or segmentedPointcloudSubscription){
 
             // Initialization of the map for the additional semantic information
@@ -65,21 +66,29 @@ namespace extended_octomap_server {
             currentMaxInstance = 1;   
         }  
 
+        RCLCPP_INFO(this->get_logger(), "Extended octomap server's parameters and variables initialized.");
+
 
         // Initialization of the subscribers and publishers, with their callbacks
         this->onInit();
     }
 
 
-
+    // Destructor of extended octomap server
     ExtendedOctomapServer::~ExtendedOctomapServer(){}
 
 
 
+
+    // Initialization of the extended octomap server elements
     void ExtendedOctomapServer::onInit() {
         
-        RCLCPP_INFO(this->get_logger(), "Initialization of extended octomap server started...");
 
+        if (partialPointcloudSubscription){
+            this->subscribe();
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Initialization of extended octomap server subscribers and publishers started...");
 
         if (segmentedPointcloudsArraySubscription){
 
@@ -87,13 +96,13 @@ namespace extended_octomap_server {
                 message_filters::Subscriber<fruit_picking_interfaces::msg::PointcloudArray>>(
                     this, "segmented_pointclouds_array", rmw_qos_profile_sensor_data);
 
-            this->segmentedTfSub = std::make_shared<
+            this->segmentedPointcloudsArrayTfSub = std::make_shared<
                 message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
-                    this, "segmented_tf", rmw_qos_profile_sensor_data);
+                    this, "segmented_pointclouds_array_tf", rmw_qos_profile_sensor_data);
 
       
-            sync_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(5), *segmentedPointcloudsArraySub, *segmentedTfSub);
-            sync_array_->registerCallback(
+            sync_segmented_pointclouds_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(5), *segmentedPointcloudsArraySub, *segmentedPointcloudsArrayTfSub);
+            sync_segmented_pointclouds_array_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertSegmentedPointcloudsArrayCallback,
                     this,
@@ -111,12 +120,12 @@ namespace extended_octomap_server {
                 message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
                     this, "segmented_pointcloud", rmw_qos_profile_sensor_data);
             
-            this->segmentedTfSub = std::make_shared<
+            this->segmentedPointcloudTfSub = std::make_shared<
                 message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
-                    this, "segmented_tf", rmw_qos_profile_sensor_data);
+                    this, "segmented_pointcloud_tf", rmw_qos_profile_sensor_data);
             
-            sync_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudSub, *segmentedTfSub);
-            sync_->registerCallback(
+            sync_segmented_pointcloud_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudSub, *segmentedPointcloudTfSub);
+            sync_segmented_pointcloud_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertSegmentedPointcloudCallback,
                     this,
@@ -151,6 +160,53 @@ namespace extended_octomap_server {
 
 
 
+    // Overridden version of the octomap server fucntion, since if partial pointcloud is required the tf of it is taken from a topic,
+    // and not using a tf listener
+    void ExtendedOctomapServer::subscribe() {
+
+        RCLCPP_INFO(this->get_logger(), "Initialization of some octomap server subscribers and publishers started...");
+
+        this->m_pointCloudSub = std::make_shared<
+            message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
+                this, "cloud_in", rmw_qos_profile_sensor_data);
+            
+        this->partialTfSub = std::make_shared<
+            message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
+                this, "partial_tf", rmw_qos_profile_sensor_data);
+        
+        // This synchronizer synchronizes the pointcloud coming from /cloud_in (that is not a complete but a partial pointcloud) and the segmented tf
+        sync_partial_pointcloud_ = std::make_shared<Synchronizer>(SyncPolicy(5), *m_pointCloudSub, *partialTfSub);
+        sync_partial_pointcloud_->registerCallback(
+            std::bind(
+                &ExtendedOctomapServer::insertPartialCloudCallback,
+                this,
+                std::placeholders::_1,
+                std::placeholders::_2));
+                    
+        RCLCPP_INFO(this->get_logger(), "Subscription to partial pointcloud and partial tf topic done.");
+    
+        
+        if (publishOctomapBinary){
+            this->m_octomapBinaryService = this->create_service<OctomapSrv>(
+                "octomap_binary",
+                std::bind(&OctomapServer::octomapBinarySrv, this, ph::_1, ph::_2));
+        }
+        if (publishOctomapFull){
+            this->m_octomapFullService = this->create_service<OctomapSrv>(
+                "octomap_full",
+                std::bind(&OctomapServer::octomapFullSrv, this, ph::_1, ph::_2));
+        }
+        this->m_clearBBXService = this->create_service<BBXSrv>(
+            "clear_bbx",
+            std::bind(&OctomapServer::clearBBXSrv, this, ph::_1, ph::_2));
+        this->m_resetService = this->create_service<std_srvs::srv::Empty>(
+            "reset", std::bind(&OctomapServer::resetSrv, this, ph::_1, ph::_2));
+        
+    }
+
+
+
+    // Callback called when the pointcloud is the whole scan
     void ExtendedOctomapServer::insertCloudCallback(
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud){
 
@@ -170,6 +226,87 @@ namespace extended_octomap_server {
                 publishInstancesMarkers(cloud->header.stamp);
             }
         }
+    }
+
+    // Callback called when the pointcloud is the partial one
+    void ExtendedOctomapServer::insertPartialCloudCallback(
+        const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud,
+        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
+        ){
+
+        if (!insertCloudActive){
+            return;
+        }
+
+        //
+        // ground filtering in base frame
+        //
+        auto start = std::chrono::steady_clock::now();
+        PCLPointCloud pc; // input cloud for filtering and ground-detection
+        pcl::fromROSMsg(*cloud, pc);
+        
+        Eigen::Matrix4f sensorToWorld; // matrix of size 4 composed of float
+        geometry_msgs::msg::TransformStamped sensorToWorldTf = *segmented_tf;
+        try {
+            sensorToWorld = pcl_ros::transformAsMatrix(sensorToWorldTf);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "%s",ex.what());
+            return;
+        }
+
+        // set up filter for height range, also removes NANs:
+        pcl::PassThrough<PCLPoint> pass_x;
+        pass_x.setFilterFieldName("x");
+        pass_x.setFilterLimits(m_pointcloudMinX, m_pointcloudMaxX);
+        pcl::PassThrough<PCLPoint> pass_y;
+        pass_y.setFilterFieldName("y");
+        pass_y.setFilterLimits(m_pointcloudMinY, m_pointcloudMaxY);
+        pcl::PassThrough<PCLPoint> pass_z;
+        pass_z.setFilterFieldName("z");
+        pass_z.setFilterLimits(m_pointcloudMinZ, m_pointcloudMaxZ);
+
+        PCLPointCloud pc_ground; // segmented ground plane
+        PCLPointCloud pc_nonground; // everything else
+        
+        
+        // directly transform to map frame (TODO: redo the same procedures of the octomap server when filter ground is true)
+        pcl::transformPointCloud(pc, pc, sensorToWorld);
+        
+        // just filter height range:
+        pass_x.setInputCloud(pc.makeShared());
+        pass_x.filter(pc);
+        pass_y.setInputCloud(pc.makeShared());
+        pass_y.filter(pc);
+        pass_z.setInputCloud(pc.makeShared());
+        pass_z.filter(pc);
+
+        pc_nonground = pc;
+        // pc_nonground is empty without ground segmentation
+        pc_ground.header = pc.header;
+        pc_nonground.header = pc.header;
+        
+        
+        ExtendedOctomapServer::insertScan(sensorToWorldTf.transform.translation,
+                   pc_ground, pc_nonground);
+
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        RCLCPP_INFO(this->get_logger(), "Time lapse [from receiving pointcloud sensor message to final octomap insertion] %f", elapsed_seconds.count());
+        
+        publishAll(cloud->header.stamp);
+
+        if (publishConfidence){        
+            publishConfidenceMarkers(cloud->header.stamp);
+        }
+
+        if (publishSemantic){
+            publishSemanticClassMarkers(cloud->header.stamp);
+        }
+
+        if (publishInstances){
+            publishInstancesMarkers(cloud->header.stamp);
+        }
+        
     }
 
 
@@ -398,9 +535,11 @@ namespace extended_octomap_server {
             octomap::OcTreeKey key;
 
             if (m_octree->coordToKeyChecked(point, key)) {
-                if (extended_octomap_map->find(key) != extended_octomap_map->end()) {
-                    (*extended_octomap_map)[key].setSemanticClass("mask", colorMap);
+                if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
+                    // if the key does not exists yet in the extended octomap map, initialize at zero
+                   (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap); 
                 }
+                (*extended_octomap_map)[key].setSemanticClass("mask", colorMap);
             }
         }
 
@@ -460,7 +599,7 @@ namespace extended_octomap_server {
             auto& segmented_pointcloud = segmented_pointclouds_array->pointclouds[i];
             float confidence = confidences[i];
 
-            // For debug save old confidence and new confidence
+            // // For debug save old confidence and new confidence
             // float old_confidence;
             // float new_confidence;
             // bool debug_var_filled = false;
@@ -524,12 +663,17 @@ namespace extended_octomap_server {
 
 
 
-            // Save the octreekeys into the data structure, if it exist, skip, since more points can be in the same key
+            // Save the octreekeys into the data structure. If they dont exists yet in the extended octomap map, insert and initialize at zero
+            // If one exists into the pointcloudKeys, skip, since more points can be in the same key
             for (auto it = segmented_pc.begin(); it != segmented_pc.end(); ++it) {
                 octomap::point3d point(it->x, it->y, it->z);                
                 octomap::OcTreeKey key;
 
                 if (m_octree->coordToKeyChecked(point, key)) { // find the key of the point
+                    if (extended_octomap_map->find(key) == extended_octomap_map->end()) {
+                        // if the key does not exists yet in the extended octomap map, initialize at zero
+                       (*extended_octomap_map)[key] = ExtendedOctomapData(colorMap); 
+                    }
                     // Try to insert the key. If the key is already present, the insertion will fail, but it's fine since we don't want duplicates.
                     pointcloudKeys.insert(key);
                 }
@@ -561,7 +705,7 @@ namespace extended_octomap_server {
                 // Case when the key has the same value as the major instance value of the entire pointcloud
                 if (pt_key_instance == most_frequent_instance){
 
-                    // Debug: print the old confidence (only for the first key in the set)
+                    // // Debug: print the old confidence (only for the first key in the set)
                     // if (!debug_var_filled){
                     //     old_confidence = (*extended_octomap_map)[pt_key].getConfidence();
                     // }
@@ -576,10 +720,10 @@ namespace extended_octomap_server {
                         current_max_instance_used = true; // flag to say that this instance value has been used
                     }
 
-                    // Debug: print the old confidence (only for the first key in the set)
+                    // // Debug: print the old confidence (only for the first key in the set)
                     // if (!debug_var_filled){
                     //     new_confidence = (*extended_octomap_map)[pt_key].getConfidence();
-                    //     RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Instance %d: Old conf=%f, Current conf=%f, New conf=%f", (*extended_octomap_map)[pt_key].getInstance(), old_confidence, confidence, new_confidence);
+                    //     RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Instance %d: Old conf=%f, Current conf=%f, New conf=%f", (*extended_octomap_map)[pt_key].getInstance(), old_confidence, confidence, new_confidence);
                     //     debug_var_filled = true;
                     // }
                 }

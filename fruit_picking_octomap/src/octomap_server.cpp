@@ -175,6 +175,9 @@ namespace octomap_server {
         messageFilterQueue = this->declare_parameter(
             "message_filter_queue", messageFilterQueue);
 
+        partialPointcloudSubscription = this->declare_parameter(
+            "partial_pointcloud_subscription", partialPointcloudSubscription); 
+
         std::string msg = std::string("Publishing non-latched (topics are only)") +
                     "prepared as needed, will only be re-published on map change";
         RCLCPP_INFO(this->get_logger(), msg.c_str());
@@ -190,7 +193,9 @@ namespace octomap_server {
     }
 
     void OctomapServer::onInit() {
-        this->subscribe();
+        if (!partialPointcloudSubscription){
+            this->subscribe();
+        }
 
         rclcpp::QoS qos(rclcpp::KeepLast(3));
         this->m_markerPub = this->create_publisher<

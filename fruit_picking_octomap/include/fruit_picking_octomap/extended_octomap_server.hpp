@@ -34,15 +34,29 @@ namespace extended_octomap_server{
 
         // Variables
 
+        // Subscriber related to the segmented pointcloud (pointcloud containing all the segmented instances)
         std::shared_ptr<message_filters::Subscriber<
                             sensor_msgs::msg::PointCloud2>> segmentedPointcloudSub;
+        // Subscriber related to the array of segmented pointclouds (each pointcloud refers to a single instance)
         std::shared_ptr<message_filters::Subscriber<
                             fruit_picking_interfaces::msg::PointcloudArray>> segmentedPointcloudsArraySub;
+        // Subscriber for the tf related to the segmented pointcloud (tf related to the segmented pointcloud used in the segmented pointcloud callbacks)
         std::shared_ptr<message_filters::Subscriber<
-                            geometry_msgs::msg::TransformStamped>> segmentedTfSub;
+                            geometry_msgs::msg::TransformStamped>> segmentedPointcloudTfSub;
+        // Subscriber for the tf related to the segmented pointclouds array (tf related to the segmented pointcloud used in the segmented pointclouds array callbacks)
+        std::shared_ptr<message_filters::Subscriber<
+                            geometry_msgs::msg::TransformStamped>> segmentedPointcloudsArrayTfSub;
+        // Subscriber for the tf related to the partial pointcloud (tf related to the segmented pointcloud used in the insert cloud callback
+        // The segmented pointcloud is used instead of the full pointcloud to ease the computation of the octomap)
+        std::shared_ptr<message_filters::Subscriber<
+                            geometry_msgs::msg::TransformStamped>> partialTfSub;
         
-        std::shared_ptr<SynchronizerArray> sync_array_;
-        std::shared_ptr<Synchronizer> sync_;
+        // Synchronizer for the segmented pointclouds array and segmented tf
+        std::shared_ptr<SynchronizerArray> sync_segmented_pointclouds_array_;
+        // Synchronizer for the segmented pointcloud and segmented tf
+        std::shared_ptr<Synchronizer> sync_segmented_pointcloud_;
+        // Synchronizer for the partial pointcloud and partial tf
+        std::shared_ptr<Synchronizer> sync_partial_pointcloud_;
 
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
@@ -62,10 +76,11 @@ namespace extended_octomap_server{
         bool publishConfidence; // tells if the confidence info isnide the extended octomap map and markers are required
         bool publishSemantic; // tells if the semantic classes inside the extended map and markers are required
         bool publishInstances; // tells if the instances markers are required
-        bool segmentedPointcloudSubscription; // tells if the node needs to subscribe to the segmented pointcloud topic
         bool segmentedPointcloudsArraySubscription; // tells if the node needs to subscribe to the segmented pointclouds array topic
+        bool segmentedPointcloudSubscription; // tells if the node needs to subscribe to the segmented pointcloud topic
 
-        // Bool that are used to activate or deactivate the callbacks. They are set using some services
+
+        // Bool that are used to activate or deactivate the insert semantic and insert cloud callbacks. They are set using some services
         bool insertCloudActive;
         bool insertSegmentedActive;
 
@@ -84,7 +99,11 @@ namespace extended_octomap_server{
 
         // Methods
 
-        virtual void onInit();       
+        virtual void onInit();   
+
+        // If the subscription to the pointcloud need to obtain a partial (or segmented) pointcloud
+        virtual void subscribe();
+    
 
         virtual void insertScan(
             const geometry_msgs::msg::Vector3  &sensorOrigin,
@@ -130,8 +149,16 @@ namespace extended_octomap_server{
 
         virtual ~ExtendedOctomapServer();
 
+        // Callback to insert the full pointcloud, using as tf the one obtained from the tf listerer connected directly to the pointcloud subscriber
         virtual void insertCloudCallback(
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &);
+        
+        // Callback to insert a segmented pointcloud (for complexity reasons), using as tf the one obtained from a /partial_tf topic coming from the 
+        // segmentation node
+        virtual void insertPartialCloudCallback(
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &,
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &
+            );
         
     };
 

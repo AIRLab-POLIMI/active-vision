@@ -214,7 +214,11 @@ def launch_setup(context, *args, **kwargs):
     color_filter_depth_image_camera_info_topic = config_yaml['topics']['segmentation']['color_filter']['depth_image_camera_info_topic']
     color_filter_tf_topic = config_yaml['topics']['segmentation']['color_filter']['tf_topic']
     
-    pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
+    # If the partial pointcloud is required, the main pointcloud is not the full one but the segmented one
+    if config_yaml['launch']['octomap_segmentation_color_filter_launch']['extended_octomap_creation_launch']['partial_pointcloud_subscription'] == "False":
+        pointcloud_topic = config_yaml['topics']['pointcloud']['pointcloud_topic']
+    else:
+        pointcloud_topic = config_yaml['topics']['pointcloud']['segmented_pointcloud_topic']
     segmented_pointcloud_topic = config_yaml['topics']['pointcloud']['segmented_pointcloud_topic']
 
 
@@ -306,6 +310,8 @@ def launch_setup(context, *args, **kwargs):
     ) 
 
 
+
+
     # Extended octomap creation launch
     extended_octomap_creation_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -314,8 +320,9 @@ def launch_setup(context, *args, **kwargs):
             **use_sim_time_dict,
             **{
                 "pointcloud_topic": pointcloud_topic,
+                "partial_tf_topic": color_filter_tf_topic,
                 "segmented_pointcloud_topic": segmented_pointcloud_topic,
-                "segmented_tf_topic": color_filter_tf_topic,
+                "segmented_pointcloud_tf_topic": color_filter_tf_topic,
                 "octomap_occupied_cells_vis_topic": octomap_occupied_cells_vis_topic,
                 "octomap_free_cells_vis_topic": octomap_free_cells_vis_topic,
                 "octomap_occupied_cells_centers_pointcloud_topic": octomap_occupied_cells_centers_pointcloud_topic,
@@ -331,6 +338,8 @@ def launch_setup(context, *args, **kwargs):
     ) 
 
     
+
+
     # Rviz node
     if LaunchConfiguration("load_gazebo").perform(context) == 'true':
         rviz_config_file_name = config_yaml["launch"]["octomap_segmentation_color_filter_launch"]["rviz"]["ignition"]
@@ -359,12 +368,27 @@ def launch_setup(context, *args, **kwargs):
 
 
 
-    # Returns  
-    if LaunchConfiguration("run_color_filter").perform(context) == 'true': return_actions.append(color_filter_segmentation_launch_file)
-    if LaunchConfiguration("run_pt").perform(context) == 'true': return_actions.append(pointcloud_creation_launch_file)
-    if LaunchConfiguration("run_s_pt").perform(context) == 'true': return_actions.append(segmented_pointcloud_creation_launch_file)
-    if LaunchConfiguration("run_octomap").perform(context) == 'true': return_actions.append(extended_octomap_creation_launch_file)
-    if LaunchConfiguration("run_rviz").perform(context) == 'true': return_actions.append(rviz_node)
+    # Execute the nodes
+
+    # Run this node only if the launch argument to run it is true
+    if LaunchConfiguration("run_color_filter").perform(context) == 'true': 
+        return_actions.append(color_filter_segmentation_launch_file)
+
+    # Run this node only if the launch argument to run it is true and if the partial pointcloud is not needed
+    if LaunchConfiguration("run_pt").perform(context) == 'true' and config_yaml['launch']['octomap_segmentation_color_filter_launch']['extended_octomap_creation_launch']['partial_pointcloud_subscription'] == "False": 
+        return_actions.append(pointcloud_creation_launch_file)
+
+    # Run this node only if the launch argument to run it is true
+    if LaunchConfiguration("run_s_pt").perform(context) == 'true': 
+        return_actions.append(segmented_pointcloud_creation_launch_file)
+
+    # Run this node only if the launch argument to run it is true
+    if LaunchConfiguration("run_octomap").perform(context) == 'true': 
+        return_actions.append(extended_octomap_creation_launch_file)
+
+    # Run this node only if the launch argument to run it is true
+    if LaunchConfiguration("run_rviz").perform(context) == 'true': 
+        return_actions.append(rviz_node)
 
 
 

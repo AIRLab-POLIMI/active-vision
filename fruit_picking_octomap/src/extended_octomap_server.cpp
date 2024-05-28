@@ -730,14 +730,28 @@ namespace extended_octomap_server {
 
                 
 
-                // Case when the key has not the same value as the major instance value of the entire pointcloud, and the 
-                // major instance value is zero, meaning that the instance has not been initialized
-                else if (pt_key_instance != most_frequent_instance && most_frequent_instance == 0){
-                    int pt_key_current_count = countPointsInVoxel(segmented_pc, pt_key, m_octree); 
-                    std::list<std::tuple<int, std::string, int, float>> tuplesList;
-                    tuplesList.push_back(std::make_tuple(pt_key_instance, pt_key_class, pt_key_points_count, pt_key_confidence));
-                    tuplesList.push_back(std::make_tuple(currentMaxInstance, semantic_class, pt_key_current_count, confidence));
-                    (*collisionKeys)[pt_key] = tuplesList;
+                // Case when the key has not the same value as the major instance value of the entire pointcloud 
+                else if (pt_key_instance != most_frequent_instance){
+                    
+                    // If the major instance value is zero, it means that the instance has not been initialized 
+                    // and the voxel has already an instance, so it goes to the collision map
+                    if(most_frequent_instance == 0){
+                        int pt_key_current_count = countPointsInVoxel(segmented_pc, pt_key, m_octree); 
+                        std::list<std::tuple<int, std::string, int, float>> tuplesList;
+                        tuplesList.push_back(std::make_tuple(pt_key_instance, pt_key_class, pt_key_points_count, pt_key_confidence));
+                        tuplesList.push_back(std::make_tuple(currentMaxInstance, semantic_class, pt_key_current_count, confidence));
+                        (*collisionKeys)[pt_key] = tuplesList;
+                    }
+                    
+                    // If there is already an instance but the current key has instance zero, means that the key is new
+                    // and needs to be set with instance equal to the major one
+                    // next pt can have this voxel also, and the collision will be handle well even for these keys
+                    else if (most_frequent_instance != 0 && pt_key_instance == 0){
+                        (*extended_octomap_map)[pt_key].setConfidenceMaxFusion(semantic_class, colorMap, confidence);
+                        int pt_key_count = countPointsInVoxel(segmented_pc, pt_key, m_octree);
+                        (*extended_octomap_map)[pt_key].setPointsCount(pt_key_count);
+                        (*extended_octomap_map)[pt_key].setInstance(most_frequent_instance);
+                    }
                 }
             }
 

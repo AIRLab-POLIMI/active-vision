@@ -193,7 +193,7 @@ def launch_setup(context, *args, **kwargs):
         else:
             if LaunchConfiguration("camera").perform(context) == 'realsense':
                 frame_id = config_yaml['frames']['realsense_frame_id']
-                base_frame_id = config_yaml['frames']['realsense_frame_id']
+                base_frame_id = config_yaml['frames']['realsense_base_frame_id']
 
     
 
@@ -245,8 +245,10 @@ def launch_setup(context, *args, **kwargs):
             # Realsense launch file
             realsense_launch_file = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([
-                    FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
-                launch_arguments = config_yaml['launch']['realsense_launch'].items(),
+                    FindPackageShare("fruit_picking_bringup"), '/launch', '/realsense.launch.py']),
+                launch_arguments={
+                    **use_sim_time_dict,
+                }.items(),
             )
             return_actions.append(realsense_launch_file)
 
@@ -270,7 +272,6 @@ def launch_setup(context, *args, **kwargs):
                 "color_filter_depth_image_camera_info_topic": color_filter_depth_image_camera_info_topic,
                 "color_filter_tf_topic": color_filter_tf_topic,
                 "frame_id": frame_id,
-                "base_frame_id": base_frame_id,
             },
             **config_yaml['launch']['octomap_segmentation_color_filter_launch']['color_filter_segmentation_launch'],
         }.items(),

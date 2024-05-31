@@ -53,7 +53,6 @@ class YOLOWorldNode(Node):
                 ("confidences_topic", "/yolo_world/confidences"),
                 ("yolo_world_tf_topic", "/yolo_world/tf"),
                 ("frame_id", "world"),
-                ("base_frame_id", "igus_rebel_base_link"), 
                 ("publish_masks_array", True),
                 ("publish_original_depth_image", True),
                 ("publish_original_depth_image_camera_info", True),
@@ -76,7 +75,6 @@ class YOLOWorldNode(Node):
         self._confidences_topic = self.get_parameter("confidences_topic").value
         self._yolo_world_tf_topic = self.get_parameter("yolo_world_tf_topic").value
         self._frame_id = self.get_parameter("frame_id").value
-        self._base_frame_id = self.get_parameter("base_frame_id").value
         self._publish_masks_array = self.get_parameter("publish_masks_array").value
         self._publish_original_depth_image = self.get_parameter("publish_original_depth_image").value
         self._publish_original_depth_image_camera_info = self.get_parameter("publish_original_depth_image_camera_info").value
@@ -216,13 +214,15 @@ class YOLOWorldNode(Node):
     def segmentation_wrapper(self, rgb_msg, depth_msg, depth_image_camera_info_msg):
         if (self.lock == True):
             try:
+                # Wait for the transform to become available
+                self.tf_buffer.can_transform(self._frame_id, depth_image_camera_info_msg.header.frame_id, depth_image_camera_info_msg.header.stamp, timeout=rclpy.duration.Duration(seconds=2.0))
                 t = self.tf_buffer.lookup_transform(
                     self._frame_id,
                     depth_image_camera_info_msg.header.frame_id,
                     depth_image_camera_info_msg.header.stamp)
             except TransformException as ex:
                 self.get_logger().warn(
-                    f'Could not transform {self._frame_id} to {rgb_msg.header.frame_id}: {ex}')
+                    f'Could not transform {self._frame_id} to {depth_image_camera_info_msg.header.frame_id}: {ex}')
                 return
             # Put the synchronized messages and the transform into the queue
             self.get_logger().debug(f'[YOLOWorld] [segmentation_wrapper] Before the put the queue size is {self.segmentation_queue.qsize()}')

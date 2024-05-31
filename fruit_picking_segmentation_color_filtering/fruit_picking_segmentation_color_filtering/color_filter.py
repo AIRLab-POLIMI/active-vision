@@ -41,7 +41,6 @@ class ColorFilter(Node):
                 ("color_filter_depth_image_camera_info_topic", "/color_filter/camera_info"),
                 ("color_filter_tf_topic", "/color_filter/tf"),
                 ("frame_id", "world"),
-                ("base_frame_id", "igus_rebel_base_link"), 
                 ("publish_original_depth_image", True),
                 ("publish_original_depth_image_camera_info", True),
                 ("publish_original_tf", True),
@@ -58,7 +57,6 @@ class ColorFilter(Node):
         self._color_filter_depth_image_camera_info_topic = self.get_parameter("color_filter_depth_image_camera_info_topic").value
         self._color_filter_tf_topic = self.get_parameter("color_filter_tf_topic").value
         self._frame_id = self.get_parameter("frame_id").value
-        self._base_frame_id = self.get_parameter("base_frame_id").value
         self._publish_original_depth_image = self.get_parameter("publish_original_depth_image").value
         self._publish_original_depth_image_camera_info = self.get_parameter("publish_original_depth_image_camera_info").value
         self._publish_original_tf = self.get_parameter("publish_original_tf").value
@@ -140,13 +138,15 @@ class ColorFilter(Node):
     def color_filtering_wrapper(self, rgb_msg, depth_msg, depth_image_camera_info_msg):
         if (self.lock == True):
             try:
+                # Wait for the transform to become available
+                self.tf_buffer.can_transform(self._frame_id, depth_image_camera_info_msg.header.frame_id, depth_image_camera_info_msg.header.stamp, timeout=rclpy.duration.Duration(seconds=2.0))
                 t = self.tf_buffer.lookup_transform(
                     self._frame_id,
                     depth_image_camera_info_msg.header.frame_id,
                     depth_image_camera_info_msg.header.stamp)
             except TransformException as ex:
                 self.get_logger().warn(
-                    f'Could not transform {self._frame_id} to {rgb_msg.header.frame_id}: {ex}')
+                    f'Could not transform {self._frame_id} to {depth_image_camera_info_msg.header.frame_id}: {ex}')
                 return
             # Put the synchronized messages and the transform into the queue
             self.get_logger().debug(f'[ColorFilter] [color_filtering_wrapper] Before the put the queue size is {self.queue.qsize()}')

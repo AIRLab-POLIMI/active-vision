@@ -1,7 +1,8 @@
 frames:
   frame_id: "world"
   base_frame_id: "igus_rebel_base_link"
-  realsense_frame_id: "camera_color_optical_frame"
+  realsense_frame_id: "container_realsense_link"
+  realsense_base_frame_id: "camera_color_optical_frame"
 
 topics:
   gazebo_ignition_input_data:
@@ -65,6 +66,15 @@ launch:
     align_depth.enable: "true"
     enable_color: "true"
     enable_depth: "true"
+    pointcloud.enable: "false"
+    clip_distance: "0.3"
+    publish_tf: "true"
+    tf_publish_rate: "30.00"
+    rgb_camera.color_profile: "640x480x30"
+    depth_module.depth_profile: "640x480x30"
+    unite_imu_method: "1"
+    enable_gyro: "true"
+    enable_accel: "true"
 
   
   octomap_normal_launch:     
@@ -242,9 +252,9 @@ launch:
       publish_original_tf: "True"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
-      segmentation_prompt: "tomato"
-      confidence_threshold: "0.001"
-      nms_threshold: "0.2"
+      segmentation_prompt: "tomato" 
+      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
+      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
 
     segmented_pointcloud_creation_launch:
       publish_pointclouds_array: "True"

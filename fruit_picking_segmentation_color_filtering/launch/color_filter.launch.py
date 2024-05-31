@@ -55,7 +55,6 @@ def generate_launch_description() -> LaunchDescription:
                     "color_filter_depth_image_camera_info_topic": LaunchConfiguration("color_filter_depth_image_camera_info_topic"),
                     "color_filter_tf_topic": LaunchConfiguration("color_filter_tf_topic"),
                     "frame_id": LaunchConfiguration("frame_id"),
-                    "base_frame_id": LaunchConfiguration("base_frame_id"),
                     "publish_original_depth_image": LaunchConfiguration("publish_original_depth_image"),
                     "publish_original_depth_image_camera_info": LaunchConfiguration("publish_original_depth_image_camera_info"),
                     "publish_original_tf": LaunchConfiguration("publish_original_tf"),

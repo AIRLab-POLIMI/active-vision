@@ -82,10 +82,12 @@ using BBXSrv =  octomap_msgs::srv::BoundingBoxQuery;
 
 using ExtendedOctomapData = extended_octomap_data::ExtendedOctomapData;
 
-using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<fruit_picking_interfaces::msg::PointcloudArray, geometry_msgs::msg::TransformStamped>;
+using SyncPolicyArray = message_filters::sync_policies::ApproximateTime<fruit_picking_interfaces::msg::PointcloudArray, geometry_msgs::msg::TransformStamped, sensor_msgs::msg::PointCloud2>;
 using SynchronizerArray= message_filters::Synchronizer<SyncPolicyArray>;
-using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::PointCloud2, geometry_msgs::msg::TransformStamped>;
+using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::PointCloud2, geometry_msgs::msg::TransformStamped, sensor_msgs::msg::PointCloud2>;
 using Synchronizer= message_filters::Synchronizer<SyncPolicy>;
+using SyncPolicyPartial = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::PointCloud2, geometry_msgs::msg::TransformStamped>;
+using SynchronizerPartial= message_filters::Synchronizer<SyncPolicyPartial>;
 
 typedef octomap::unordered_ns::unordered_map<octomap::OcTreeKey, ExtendedOctomapData, octomap::OcTreeKey::KeyHash> ExtendedOctomapMap;
 
@@ -209,13 +211,16 @@ namespace extended_octomap_server{
         // The segmented pointcloud is used instead of the full pointcloud to ease the computation of the octomap)
         std::shared_ptr<message_filters::Subscriber<
                             geometry_msgs::msg::TransformStamped>> partialTfSub;
+        // Subscriber related to the pointcloud (pointcloud containing all the scan)
+        std::shared_ptr<message_filters::Subscriber<
+                            sensor_msgs::msg::PointCloud2>> fullPointcloudSub;
         
         // Synchronizer for the segmented pointclouds array and segmented tf
         std::shared_ptr<SynchronizerArray> sync_segmented_pointclouds_array_;
         // Synchronizer for the segmented pointcloud and segmented tf
         std::shared_ptr<Synchronizer> sync_segmented_pointcloud_;
         // Synchronizer for the partial pointcloud and partial tf
-        std::shared_ptr<Synchronizer> sync_partial_pointcloud_;
+        std::shared_ptr<SynchronizerPartial> sync_partial_pointcloud_;
 
 
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray
@@ -340,11 +345,13 @@ namespace extended_octomap_server{
 
         virtual void insertSegmentedPointcloudCallback(
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud,
-            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
 
         virtual void insertSegmentedPointcloudsArrayCallback(
             const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
-            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf);
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 

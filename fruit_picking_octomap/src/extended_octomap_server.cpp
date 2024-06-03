@@ -329,6 +329,9 @@ namespace extended_octomap_server {
         this->m_pointCloudSub = std::make_shared<
             message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
                 this, "cloud_in", rmw_qos_profile_sensor_data);
+        this->fullPointcloudSub = std::make_shared<
+            message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
+                this, "cloud_in", rmw_qos_profile_sensor_data);
 
         if (!partialPointcloudSubscription){
             auto create_timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
@@ -355,7 +358,7 @@ namespace extended_octomap_server {
                     this, "partial_tf", rmw_qos_profile_sensor_data);
             
             // This synchronizer synchronizes the pointcloud coming from /cloud_in (that is not a complete but a partial pointcloud) and the segmented tf
-            sync_partial_pointcloud_ = std::make_shared<Synchronizer>(SyncPolicy(5), *m_pointCloudSub, *partialTfSub);
+            sync_partial_pointcloud_ = std::make_shared<SynchronizerPartial>(SyncPolicyPartial(5), *m_pointCloudSub, *partialTfSub); 
             sync_partial_pointcloud_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertPartialCloudCallback,
@@ -393,14 +396,15 @@ namespace extended_octomap_server {
                 message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
                     this, "segmented_pointclouds_array_tf", rmw_qos_profile_sensor_data);
 
-      
-            sync_segmented_pointclouds_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(5), *segmentedPointcloudsArraySub, *segmentedPointcloudsArrayTfSub);
+            sync_segmented_pointclouds_array_ = std::make_shared<SynchronizerArray>(SyncPolicyArray(5), *segmentedPointcloudsArraySub, *segmentedPointcloudsArrayTfSub, *fullPointcloudSub);
             sync_segmented_pointclouds_array_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertSegmentedPointcloudsArrayCallback,
                     this,
                     std::placeholders::_1,
-                    std::placeholders::_2));
+                    std::placeholders::_2,
+                    std::placeholders::_3
+                    ));
                         
             RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointclouds array and segmented tf topic done.");
         }
@@ -417,13 +421,15 @@ namespace extended_octomap_server {
                 message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
                     this, "segmented_pointcloud_tf", rmw_qos_profile_sensor_data);
             
-            sync_segmented_pointcloud_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudSub, *segmentedPointcloudTfSub);
+            sync_segmented_pointcloud_ = std::make_shared<Synchronizer>(SyncPolicy(5), *segmentedPointcloudSub, *segmentedPointcloudTfSub, *fullPointcloudSub);
             sync_segmented_pointcloud_->registerCallback(
                 std::bind(
                     &ExtendedOctomapServer::insertSegmentedPointcloudCallback,
                     this,
                     std::placeholders::_1,
-                    std::placeholders::_2));
+                    std::placeholders::_2,
+                    std::placeholders::_3
+                    ));
                         
             RCLCPP_INFO(this->get_logger(), "Subscription to segmented pointcloud and segmented tf topic done.");
         }
@@ -474,6 +480,8 @@ namespace extended_octomap_server {
         
 
         auto start = std::chrono::steady_clock::now();
+        
+        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertCloudCallback] Pointcloud callback started.");
 
 
         //
@@ -609,6 +617,8 @@ namespace extended_octomap_server {
         if (!insertCloudActive){
             return;
         }
+
+        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertPartialPointcloudCallback] Partial pointcloud callback started.");
 
         //
         // ground filtering in base frame
@@ -844,7 +854,8 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::insertSegmentedPointcloudCallback(
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud, 
-        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
+        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+        const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud
     ){
 
         // If the paramter to activate the callback is false, the callback will be skipped
@@ -857,6 +868,10 @@ namespace extended_octomap_server {
         // From pointcloud message to Pointcloud data structure
         PCLPointCloud segmented_pc;
         pcl::fromROSMsg(*segmented_pointcloud, segmented_pc);
+
+        // From pointcloud message to Pointcloud data structure
+        PCLPointCloud pc;
+        pcl::fromROSMsg(*cloud, pc);
 
         // Conversion of the pointcloud from sensor frame to world frame
         Eigen::Matrix4f sensorToWorld;
@@ -931,7 +946,8 @@ namespace extended_octomap_server {
 
     void ExtendedOctomapServer::insertSegmentedPointcloudsArrayCallback(
         const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
-        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
+        const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+        const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud
     ){
 
 
@@ -949,6 +965,10 @@ namespace extended_octomap_server {
             RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Segmented pointclouds array callback finished with no effect.");    
             return;   
         }
+
+        // From pointcloud message to Pointcloud data structure
+        PCLPointCloud pc;
+        pcl::fromROSMsg(*cloud, pc);
 
 
         // If it is not empty, save confidence vector

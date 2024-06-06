@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(fruit_picking_pointcloud)
+project(fruit_picking_nbv)
 
 
 # Compiler
@@ -25,54 +25,64 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(PCL 1.10 REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(octomap REQUIRED)
+find_package(octomap_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(fruit_picking_interfaces REQUIRED)
+find_package(fruit_picking_octomap REQUIRED)
+find_package(fruit_picking_pointcloud REQUIRED)
 find_package(depth_image_proc REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(fruit_picking_interfaces REQUIRED)
-find_package(PCL 1.10 REQUIRED)
-find_package(pcl_conversions REQUIRED)
-
 
 include_directories(include)
 
 
-# In order to add the executable that can be used by ros2
-add_executable(segmented_pointcloud
-  src/main_segmented_pointcloud.cpp
-  src/segmented_pointcloud.cpp 
-
-)
-ament_target_dependencies(segmented_pointcloud
-  rclcpp
-  rclcpp_components
-  depth_image_proc
-  cv_bridge
-  fruit_picking_interfaces
-  PCL
-  pcl_conversions
-)
-
 
 # In order to add the executable that can be used by ros2
-add_executable(pointcloud
-  src/main_pointcloud.cpp
-)
-ament_target_dependencies(pointcloud
+add_executable(main_pipeline src/main_pipeline.cpp)
+ament_target_dependencies(main_pipeline
   rclcpp
-  rclcpp_components
-  depth_image_proc
-  cv_bridge
-  fruit_picking_interfaces
   PCL
   pcl_conversions
-)
+  sensor_msgs
+  std_msgs
+  std_srvs
+  nav_msgs
+  visualization_msgs
+  geometry_msgs
+  std_srvs
+  octomap
+  octomap_msgs
+  message_filters
+  tf2_ros
+  tf2_msgs
+  tf2
+  tf2_geometry_msgs
+  rclcpp_components
+  fruit_picking_interfaces
+  fruit_picking_octomap
+  fruit_picking_pointcloud
+  depth_image_proc
+  cv_bridge
+  )
 
 # In order to let ros2 find the executable
 install(TARGETS 
-  pointcloud
-	DESTINATION lib/${PROJECT_NAME}
-)
-install(TARGETS 
-  segmented_pointcloud
+  main_pipeline
 	DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -81,17 +91,6 @@ install(
   DIRECTORY include launch src
   DESTINATION share/${PROJECT_NAME}
 )
-
-
-# In order to let the library be visible from other packages
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
-
-ament_export_include_directories(include)
-
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

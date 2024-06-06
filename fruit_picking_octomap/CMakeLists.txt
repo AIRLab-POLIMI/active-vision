@@ -49,18 +49,12 @@ find_package(fruit_picking_interfaces REQUIRED)
 include_directories(include)
 
 
-include_directories(${PCL_INCLUDE_DIRS} ${OCTOMAP_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS} ${OCTOMAP_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS} ${OCTOMAP_DEFINITIONS})
-
+# In order to add the executable that can be used by ros2
 add_executable(extended_octomap_server
 	src/main_extended_octomap_server.cpp
 	src/extended_octomap_server.cpp
 	src/extended_octomap_data.cpp
 )
-target_link_libraries(extended_octomap_server ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES})
-
-
 ament_target_dependencies(extended_octomap_server
   rclcpp rclcpp_components
   PCL pcl_conversions
@@ -74,16 +68,34 @@ ament_target_dependencies(extended_octomap_server
 
 
 
-install(TARGETS
+# In order to let ros2 find the executable
+install(TARGETS 
   extended_octomap_server
 	DESTINATION lib/${PROJECT_NAME}
 )
 
-
-install(
+# In order to let ros2 find the folders
+install( 
   DIRECTORY include launch src
   DESTINATION share/${PROJECT_NAME}
 )
+
+
+# In order to link some needed libraries into this package
+target_link_libraries(extended_octomap_server
+  ${PCL_LIBRARIES}
+  ${OCTOMAP_LIBRARIES}
+)
+
+
+
+# In order to let the library be visible from other packages
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+ament_export_include_directories(include)
 
 
 

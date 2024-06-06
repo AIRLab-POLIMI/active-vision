@@ -306,3 +306,62 @@ launch:
       ignition: "octomap_segmentation_yolo_world_ignition.rviz"
       realsense: "octomap_segmentation_yolo_world_realsense.rviz"
       real: "octomap_segmentation_yolo_world.rviz"
+
+
+  nbv:
+    yolo_world_server:
+      publish_masks_array: "True"
+      publish_original_depth_image: "True"
+      publish_original_depth_image_camera_info: "True"
+      publish_original_tf: "True"
+      yolo_world_model_type: "yolo_world/l"
+      efficient_SAM_model_type: "l0"
+      segmentation_prompt: "tomato" 
+      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
+      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
+
+    main_pipeline_launch:
+      # For segmented pointcloud
+      publish_pointclouds_array: "True"
+      publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
+      # For extended octomap server
+      resolution: '0.006'
+      height_map: "False"
+      colored_map: "False"
+      color_factor: "0.8"
+      filter_ground: 'True'
+      filter_speckles: "False"
+      ground_filter/distance: "0.04"
+      ground_filter/angle: "0.15"
+      ground_filter/plane_distance: "0.07"
+      compress_map: "True"
+      incremental_2D_projection: "False"
+      sensor_model/max_range: "-1.0"
+      sensor_model/hit: "0.7"
+      sensor_model/miss: "0.4"
+      sensor_model/min: "0.12"
+      sensor_model/max: "0.97"
+      color/r: "1.0"
+      color/g: "1.0"
+      color/b: "1.0"
+      color/a: "1.0"
+      color_free/r: "0.0"
+      color_free/g: "0.0"
+      color_free/b: "1.0"
+      color_free/a: "1.0"
+      process_free_space: "False"
+      publish_free_space: "False"
+      publish_free_cells: "False"
+      publish_octomap_binary: "False"
+      publish_octomap_full: "False"
+      publish_centers_pointcloud: "False"
+      publish_2d_projected_map: "False"
+      publish_confidence: 'True'
+      publish_semantic: 'True'
+      publish_instances: 'True'
+      partial_pointcloud_subscription: 'True'
+      segmented_pointcloud_subscription: 'False'
+      segmented_pointclouds_array_subscription: 'True'
+      message_filter_queue: '200'
+      insert_cloud_init: 'True'
+      insert_segmented_init: 'True'

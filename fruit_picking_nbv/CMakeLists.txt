@@ -53,8 +53,8 @@ include_directories(include)
 
 
 # In order to add the executable that can be used by ros2
-add_executable(main_pipeline src/main_pipeline.cpp)
-ament_target_dependencies(main_pipeline
+add_executable(main_nbv_pipeline src/main_nbv_pipeline.cpp src/nbv_pipeline.cpp)
+ament_target_dependencies(main_nbv_pipeline
   rclcpp
   PCL
   pcl_conversions
@@ -82,7 +82,7 @@ ament_target_dependencies(main_pipeline
 
 # In order to let ros2 find the executable
 install(TARGETS 
-  main_pipeline
+  main_nbv_pipeline
 	DESTINATION lib/${PROJECT_NAME}
 )
 

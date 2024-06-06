@@ -80,11 +80,11 @@ def generate_launch_description():
         description="Whether or not run the igus rebel moveit launch",
     )
 
-    run_main_pipeline_arg = DeclareLaunchArgument(
-        name="run_main_pipeline",
+    run_nbv_pipeline_arg = DeclareLaunchArgument(
+        name="run_nbv_pipeline",
         default_value="false",
         choices=["true", "false"],
-        description="Whether or not run the main NBV pipeline",
+        description="Whether or not run the NBV pipeline",
     )
     
 
@@ -99,7 +99,7 @@ def generate_launch_description():
             env_gazebo_package_arg,
             full_world_name_arg,
             run_robot_moveit_arg,
-            run_main_pipeline_arg,
+            run_nbv_pipeline_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -176,11 +176,11 @@ def launch_setup(context, *args, **kwargs):
     
 
     # Main NBV planning pipeline
-    if LaunchConfiguration("run_main_pipeline").perform(context) == 'true': 
+    if LaunchConfiguration("run_nbv_pipeline").perform(context) == 'true': 
         # Igus Rebel moveit launch
-        main_pipeline_launch_file = IncludeLaunchDescription(
+        nbv_pipeline_launch_file = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
-                FindPackageShare("fruit_picking_nbv"), '/launch', '/main_pipeline.launch.py']),
+                FindPackageShare("fruit_picking_nbv"), '/launch', '/nbv_pipeline.launch.py']),
             launch_arguments={
                 **use_sim_time_dict,
                 **{
@@ -190,11 +190,11 @@ def launch_setup(context, *args, **kwargs):
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
                 },
-                **config_yaml['launch']['nbv']['main_pipeline_launch']
+                **config_yaml['launch']['nbv']['nbv_pipeline_launch']
 
             }.items(),
         )
-        return_actions.append(main_pipeline_launch_file)
+        return_actions.append(nbv_pipeline_launch_file)
 
 
 

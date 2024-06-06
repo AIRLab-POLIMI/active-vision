@@ -1,14 +1,14 @@
 #pragma once
-#ifndef _MAIN_PIPELINE_HPP_
-#define _MAIN_PIPELINE_HPP_
+#ifndef _NBV_PIPELINE_HPP_
+#define _NBV_PIPELINE_HPP_
 
 #include <fruit_picking_pointcloud/segmented_pointcloud.hpp>
 #include <fruit_picking_octomap/extended_octomap_server.hpp>
 #include <depth_image_proc/point_cloud_xyzrgb.hpp>
 
-namespace main_pipeline{
+namespace nbv_pipeline{
 
-    class MainPipeline: public rclcpp::Node {
+    class NBVPipeline: public rclcpp::Node {
 
     protected:
 
@@ -17,9 +17,9 @@ namespace main_pipeline{
 
     public:
 
-        explicit MainPipeline(
+        explicit NBVPipeline(
             const rclcpp::NodeOptions &,
-            const std::string = "main_pipeline");
+            const std::string = "nbv_pipeline");
         
     };
     

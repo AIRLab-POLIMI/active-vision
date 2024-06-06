@@ -320,7 +320,7 @@ launch:
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
       nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
 
-    main_pipeline_launch:
+    nbv_pipeline_launch:
       # For segmented pointcloud
       publish_pointclouds_array: "True"
       publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed

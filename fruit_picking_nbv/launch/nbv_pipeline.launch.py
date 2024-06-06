@@ -76,12 +76,12 @@ def generate_launch_description():
     # Main NBV pipeline node
     Node(
         package='fruit_picking_nbv',
-        executable='main_pipeline',
+        executable='main_nbv_pipeline',
         output='screen',
         arguments= [
             "--ros-args",
             "--log-level",
-            "main_pipeline:=debug",
+            "main_nbv_pipeline:=debug",
         ],
         remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
                     ('depth_image', LaunchConfiguration('depth_image_topic')),

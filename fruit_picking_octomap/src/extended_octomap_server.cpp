@@ -2486,5 +2486,3 @@ namespace extended_octomap_server {
 
 }
 
-
-RCLCPP_COMPONENTS_REGISTER_NODE(extended_octomap_server::ExtendedOctomapServer)

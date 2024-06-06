@@ -23,11 +23,14 @@ find_package(pcl_conversions REQUIRED)
 
 include_directories(include)
 
-add_library(${PROJECT_NAME} SHARED
-  src/segmented_pointcloud.cpp
+
+add_executable(segmented_pointcloud
+	src/main_segmented_pointcloud.cpp
+	src/segmented_pointcloud.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME}
+
+ament_target_dependencies(segmented_pointcloud
   rclcpp
   rclcpp_components
   depth_image_proc
@@ -37,18 +40,36 @@ ament_target_dependencies(${PROJECT_NAME}
   pcl_conversions
 )
 
-rclcpp_components_register_nodes(${PROJECT_NAME} "segmented_pointcloud::SegmentedPointcloud")
 
-install(TARGETS
-  ${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+add_executable(pointcloud
+	src/main_pointcloud.cpp
 )
 
 
-install(DIRECTORY
-  launch
+ament_target_dependencies(pointcloud
+  rclcpp
+  rclcpp_components
+  depth_image_proc
+  cv_bridge
+  fruit_picking_interfaces
+  PCL
+  pcl_conversions
+)
+
+
+install(TARGETS
+  segmented_pointcloud
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS
+  pointcloud
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
+install(
+  DIRECTORY include launch src
   DESTINATION share/${PROJECT_NAME}/
 )
 

@@ -33,8 +33,7 @@
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 
-import launch_ros.actions
-import launch_ros.descriptions
+from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 
 
@@ -112,33 +111,24 @@ def generate_launch_description():
         publish_single_pointcloud_arg,
         
 
-        launch_ros.actions.ComposableNodeContainer(
-            name='segmented_pointcloud_container',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
+        Node(
+            package='fruit_picking_pointcloud',
+            executable='segmented_pointcloud',
+            output='screen',
             arguments= [
                 "--ros-args",
-                "--log-level", "info",
+                "--log-level",
+                "segmented_pointcloud:=debug",
             ],
-            composable_node_descriptions=[
-                launch_ros.descriptions.ComposableNode(
-                    package='fruit_picking_pointcloud',
-                    plugin='segmented_pointcloud::SegmentedPointcloud',
-                    name='segmented_pointcloud',
-                    remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
-                                ('rgb_images_array', LaunchConfiguration('rgb_images_array_topic')),
-                                ('depth_image', LaunchConfiguration('depth_image_topic')),
-                                ('depth_image_camera_info', LaunchConfiguration('depth_image_camera_info_topic')),
-                                ('segmented_pointcloud', LaunchConfiguration('segmented_pointcloud_topic')),
-                                ('segmented_pointclouds_array', LaunchConfiguration('segmented_pointclouds_array_topic')),
-                                ('confidences', LaunchConfiguration('confidences_topic'))],
-                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time'),
-                                 'publish_pointclouds_array': LaunchConfiguration('publish_pointclouds_array'),
-                                 'publish_single_pointcloud': LaunchConfiguration('publish_single_pointcloud')
-                                }],
-                ),
-            ],
-            output='screen',
-        ),
-    ])
+            remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
+                        ('rgb_images_array', LaunchConfiguration('rgb_images_array_topic')),
+                        ('depth_image', LaunchConfiguration('depth_image_topic')),
+                        ('depth_image_camera_info', LaunchConfiguration('depth_image_camera_info_topic')),
+                        ('segmented_pointcloud', LaunchConfiguration('segmented_pointcloud_topic')),
+                        ('segmented_pointclouds_array', LaunchConfiguration('segmented_pointclouds_array_topic')),
+                        ('confidences', LaunchConfiguration('confidences_topic'))],
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time'),
+                        'publish_pointclouds_array': LaunchConfiguration('publish_pointclouds_array'),
+                        'publish_single_pointcloud': LaunchConfiguration('publish_single_pointcloud')
+                    }],
+    )])

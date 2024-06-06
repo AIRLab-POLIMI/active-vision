@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 project(fruit_picking_octomap)
 
+
+# Compiler
+
 # Default to C99 (added)
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -16,13 +19,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 
-# added
+
+# Find dependencies
+
+find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(PCL 1.10 REQUIRED)
@@ -44,61 +45,47 @@ find_package(tf2_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(fruit_picking_interfaces REQUIRED)
 
-# added
-link_directories(${PCL_LIBRARY_DIRS})
-include_directories(${PCL_INCLUDE_DIRS})
+
 include_directories(include)
 
-# added
-add_library(fruit_picking_octomap SHARED
-  src/extended_octomap_server.cpp
-  src/extended_octomap_data.cpp
-  )
 
-# added
-ament_target_dependencies(fruit_picking_octomap
-  rclcpp
-  PCL
-  pcl_conversions
-  sensor_msgs
-  std_msgs
+include_directories(${PCL_INCLUDE_DIRS} ${OCTOMAP_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS} ${OCTOMAP_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS} ${OCTOMAP_DEFINITIONS})
+
+add_executable(extended_octomap_server
+	src/main_extended_octomap_server.cpp
+	src/extended_octomap_server.cpp
+	src/extended_octomap_data.cpp
+)
+target_link_libraries(extended_octomap_server ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES})
+
+
+ament_target_dependencies(extended_octomap_server
+  rclcpp rclcpp_components
+  PCL pcl_conversions
+  sensor_msgs std_msgs nav_msgs visualization_msgs geometry_msgs
   std_srvs
-  nav_msgs
-  visualization_msgs
-  geometry_msgs
-  std_srvs
-  octomap
-  octomap_msgs
+  octomap octomap_msgs
   message_filters
-  tf2_ros
-  tf2_msgs
-  tf2
-  tf2_geometry_msgs
-  rclcpp_components
+  tf2_ros tf2_msgs tf2 tf2_geometry_msgs
   fruit_picking_interfaces
-  )
-
-# added
-target_link_libraries(fruit_picking_octomap ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES})
+)
 
 
-# added
-rclcpp_components_register_node(fruit_picking_octomap
-  PLUGIN "extended_octomap_server::ExtendedOctomapServer"
-  EXECUTABLE extended_octomap_server)
 
-#added
 install(TARGETS
-  fruit_picking_octomap
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
+  extended_octomap_server
+	DESTINATION lib/${PROJECT_NAME}
+)
 
 
 install(
   DIRECTORY include launch src
   DESTINATION share/${PROJECT_NAME}
 )
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

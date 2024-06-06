@@ -33,8 +33,7 @@
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 
-import launch_ros.actions
-import launch_ros.descriptions
+from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 
 
@@ -72,27 +71,19 @@ def generate_launch_description():
         depth_image_camera_info_topic_arg,
         pointcloud_topic_arg,
 
-        launch_ros.actions.ComposableNodeContainer(
-            name='pointcloud_container',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
+        Node(
+            package='fruit_picking_pointcloud',
+            executable='pointcloud',
+            output='screen',
             arguments= [
                 "--ros-args",
-                "--log-level", "info",
+                "--log-level",
+                "pointcloud:=debug",
             ],
-            composable_node_descriptions=[
-                launch_ros.descriptions.ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyzrgbNode',
-                    name='point_cloud_xyzrgb_node',
-                    remappings=[('depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
-                                ('rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
-                                ('rgb/camera_info', LaunchConfiguration('depth_image_camera_info_topic')),
-                                ('points', LaunchConfiguration('pointcloud_topic'))],
-                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
-                ),
-            ],
-            output='screen',
+            remappings=[('depth_registered/image_rect', LaunchConfiguration('depth_image_topic')),
+                        ('rgb/image_rect_color', LaunchConfiguration('rgb_image_topic')),
+                        ('rgb/camera_info', LaunchConfiguration('depth_image_camera_info_topic')),
+                        ('points', LaunchConfiguration('pointcloud_topic'))],
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
         ),
     ])

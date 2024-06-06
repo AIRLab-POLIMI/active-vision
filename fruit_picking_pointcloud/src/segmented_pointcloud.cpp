@@ -346,12 +346,5 @@ void SegmentedPointcloud::imageArrayCb(
     // }  
 }
 
-
-
-
     
 } // namespace
-
-
-// Register the component with class_loader.
-RCLCPP_COMPONENTS_REGISTER_NODE(segmented_pointcloud::SegmentedPointcloud)

@@ -6,7 +6,6 @@
 #include <chrono>
 
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_components/register_node_macro.hpp>
 #include <rmw/qos_profiles.h>
 
 #include <visualization_msgs/msg/marker_array.hpp>

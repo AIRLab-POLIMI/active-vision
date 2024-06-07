@@ -66,6 +66,23 @@ ament_target_dependencies(pointcloud
   pcl_conversions
 )
 
+
+# In order to add the library that can be used by ros2
+set(library_name fruit_picking_pointcloud)
+add_library(${library_name} SHARED
+  src/segmented_pointcloud.cpp
+)
+ament_target_dependencies(${library_name}
+  rclcpp
+  rclcpp_components
+  depth_image_proc
+  cv_bridge
+  fruit_picking_interfaces
+  PCL
+  pcl_conversions
+)
+
+
 # In order to let ros2 find the executable
 install(TARGETS 
   pointcloud
@@ -74,6 +91,13 @@ install(TARGETS
 install(TARGETS 
   segmented_pointcloud
 	DESTINATION lib/${PROJECT_NAME}
+)
+
+# In order to let ros2 find the library
+install(TARGETS ${library_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # In order to let ros2 find the folders
@@ -90,6 +114,7 @@ install(
 )
 
 ament_export_include_directories(include)
+ament_export_libraries(${library_name})
 
 
 

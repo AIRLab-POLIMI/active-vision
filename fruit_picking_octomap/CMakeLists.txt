@@ -66,12 +66,37 @@ ament_target_dependencies(extended_octomap_server
   fruit_picking_interfaces
 )
 
+# In order to add the library that can be used by ros2
+set(library_name fruit_picking_octomap)
+add_library(${library_name} SHARED
+  src/extended_octomap_server.cpp
+  src/extended_octomap_data.cpp
+)
+ament_target_dependencies(${library_name}
+  rclcpp rclcpp_components
+  PCL pcl_conversions
+  sensor_msgs std_msgs nav_msgs visualization_msgs geometry_msgs
+  std_srvs
+  octomap octomap_msgs
+  message_filters
+  tf2_ros tf2_msgs tf2 tf2_geometry_msgs
+  fruit_picking_interfaces
+)
+
+
 
 
 # In order to let ros2 find the executable
 install(TARGETS 
   extended_octomap_server
 	DESTINATION lib/${PROJECT_NAME}
+)
+
+# In order to let ros2 find the library
+install(TARGETS ${library_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # In order to let ros2 find the folders
@@ -87,6 +112,10 @@ target_link_libraries(extended_octomap_server
   ${OCTOMAP_LIBRARIES}
 )
 
+target_link_libraries(${library_name}
+  ${PCL_LIBRARIES}
+  ${OCTOMAP_LIBRARIES}
+)
 
 
 # In order to let the library be visible from other packages
@@ -96,6 +125,8 @@ install(
 )
 
 ament_export_include_directories(include)
+ament_export_libraries(${library_name})
+
 
 
 

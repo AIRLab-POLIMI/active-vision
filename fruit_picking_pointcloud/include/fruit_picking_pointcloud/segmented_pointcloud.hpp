@@ -76,9 +76,6 @@ namespace segmented_pointcloud{
     
     class SegmentedPointcloud : public rclcpp::Node{
 
-    public:
-        SegmentedPointcloud(const rclcpp::NodeOptions& options);
-
     protected:
 
         using PointCloud2 = sensor_msgs::msg::PointCloud2;
@@ -107,7 +104,8 @@ namespace segmented_pointcloud{
         std::shared_ptr<ExactSynchronizerArray> exact_sync_array_;
 
         // Publications
-        std::mutex connect_mutex_;
+        int queue_size;
+        bool use_exact_sync;
         rclcpp::Publisher<PointCloud2Array>::SharedPtr pub_point_cloud_array_;
         rclcpp::Publisher<PointCloud2>::SharedPtr pub_point_cloud_;
 
@@ -116,18 +114,6 @@ namespace segmented_pointcloud{
         bool publishPointcloudsArray;
         bool publishSinglePointcloud;
 
-        void connectCb();
-
-        void imageArrayCb(
-            const Image::ConstSharedPtr & depth_msg,
-            const ImageArray::ConstSharedPtr & rgb_msg,
-            const CameraInfo::ConstSharedPtr & info_msg,
-            const std::shared_ptr<const Confidence> & conf_msg);
-
-        void imageCb(
-            const Image::ConstSharedPtr & depth_msg,
-            const Image::ConstSharedPtr & rgb_msg_in,
-            const CameraInfo::ConstSharedPtr & info_msg);
         
         template<typename T>
         void convertDepth(
@@ -187,6 +173,23 @@ namespace segmented_pointcloud{
             RCLCPP_INFO(this->get_logger(), "[CONVERT_DEPTH] The number of points of the PCL pointcloud is %zu", pcl_cloud.points.size());
 
         }
+    
+    public:
+        
+        SegmentedPointcloud(const rclcpp::NodeOptions& options);
+
+        void createPubSub();
+
+        void imageArrayCb(
+            const Image::ConstSharedPtr & depth_msg,
+            const ImageArray::ConstSharedPtr & rgb_msg,
+            const CameraInfo::ConstSharedPtr & info_msg,
+            const std::shared_ptr<const Confidence> & conf_msg);
+
+        void imageCb(
+            const Image::ConstSharedPtr & depth_msg,
+            const Image::ConstSharedPtr & rgb_msg_in,
+            const CameraInfo::ConstSharedPtr & info_msg);
 
     };
     

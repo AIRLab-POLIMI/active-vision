@@ -37,14 +37,22 @@ namespace segmented_pointcloud{
 SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : rclcpp::Node("SegmentedPointcloud", options){
 
     // Read parameters
-    int queue_size = this->declare_parameter<int>("queue_size", 5);
-    bool use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
+    queue_size = this->declare_parameter<int>("queue_size", 5);
+    use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
 
     // used to specify if a single segmented pointcloud of an array of segmented pointclouds have to be published
     publishPointcloudsArray = this->declare_parameter("publish_pointclouds_array", publishPointcloudsArray);
     publishSinglePointcloud = this->declare_parameter("publish_single_pointcloud", publishSinglePointcloud);
 
     
+    RCLCPP_INFO(this->get_logger(), "Segmented pointcloud parameters and variables initialized.");
+
+}
+
+void SegmentedPointcloud::createPubSub()
+{
+
+    RCLCPP_INFO(this->get_logger(), "Creating segmented pointcloud subscribers...");
 
     // Synchronize inputs. Topic subscriptions happen on demand in the connection callback.
     // Each case has a case for the pointclouds array and one for a single pointcloud
@@ -97,21 +105,8 @@ SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : r
         }
     }
 
-    connectCb();
-    std::lock_guard<std::mutex> lock(connect_mutex_);
-    if (publishPointcloudsArray){
-        pub_point_cloud_array_ = create_publisher<PointCloud2Array>("segmented_pointclouds_array", rclcpp::SensorDataQoS());
-    }
-    if (publishSinglePointcloud){
-        pub_point_cloud_ = create_publisher<PointCloud2>("segmented_pointcloud", rclcpp::SensorDataQoS());
-    }
-    RCLCPP_INFO(this->get_logger(), "Setup completed.");
+    // Subscribers
 
-}
-
-void SegmentedPointcloud::connectCb()
-{
-    std::lock_guard<std::mutex> lock(connect_mutex_);
     if (!sub_depth_.getSubscriber()) {
 
         sub_depth_.subscribe(this, "depth_image");
@@ -125,6 +120,23 @@ void SegmentedPointcloud::connectCb()
             sub_rgb_.subscribe(this, "rgb_image");
         }
     }
+
+    RCLCPP_INFO(this->get_logger(), "Segmented pointcloud subscribers created.");
+
+    RCLCPP_INFO(this->get_logger(), "Creating segmented pointcloud publishers...");
+
+
+    // Publishers
+
+    if (publishPointcloudsArray){
+        pub_point_cloud_array_ = create_publisher<PointCloud2Array>("segmented_pointclouds_array", rclcpp::SensorDataQoS());
+    }
+    if (publishSinglePointcloud){
+        pub_point_cloud_ = create_publisher<PointCloud2>("segmented_pointcloud", rclcpp::SensorDataQoS());
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Segmented pointcloud publishers created.");
+
 }
 
 void SegmentedPointcloud::imageCb(

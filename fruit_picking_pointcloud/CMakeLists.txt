@@ -54,7 +54,8 @@ ament_target_dependencies(segmented_pointcloud
 
 # In order to add the executable that can be used by ros2
 add_executable(pointcloud
-  src/main_pointcloud.cpp
+  src/main_full_pointcloud.cpp
+  src/full_pointcloud.cpp
 )
 ament_target_dependencies(pointcloud
   rclcpp
@@ -71,6 +72,7 @@ ament_target_dependencies(pointcloud
 set(library_name fruit_picking_pointcloud)
 add_library(${library_name} SHARED
   src/segmented_pointcloud.cpp
+  src/full_pointcloud.cpp
 )
 ament_target_dependencies(${library_name}
   rclcpp

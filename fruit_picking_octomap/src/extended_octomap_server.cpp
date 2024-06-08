@@ -245,8 +245,6 @@ namespace extended_octomap_server {
         RCLCPP_INFO(this->get_logger(), "Extended octomap server's parameters and variables initialized.");
 
 
-        // Initialization of the subscribers and publishers, with their callbacks
-        this->createPubSub();
     }
 
 
@@ -467,6 +465,43 @@ namespace extended_octomap_server {
 
 
     }
+
+
+
+
+    void ExtendedOctomapServer::createVisualizations(){
+
+        // Visualization publishers
+
+        RCLCPP_INFO(this->get_logger(), "Creating extended octomap server visualization publishers...");
+
+
+        rclcpp::QoS qos(rclcpp::KeepLast(3));
+        if (publishConfidence){
+            this->confidenceMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "confidence_cells_vis", qos);
+            RCLCPP_INFO(this->get_logger(), "Publisher of confidence markers created.");
+        }
+        if (publishSemantic){
+            this->semanticClassMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "semantic_class_cells_vis", qos);
+            RCLCPP_INFO(this->get_logger(), "Publisher of semantic classes markers created.");
+        }
+        if (publishInstances){
+            this->instancesMarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "instances_cells_vis", qos);
+            RCLCPP_INFO(this->get_logger(), "Publisher of instances markers created.");
+        }
+        
+
+        RCLCPP_INFO(this->get_logger(), "The initialization of the visualization tools is completed.");
+
+
+    }
+
 
 
 

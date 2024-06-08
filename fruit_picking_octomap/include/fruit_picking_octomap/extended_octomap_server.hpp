@@ -330,8 +330,6 @@ namespace extended_octomap_server{
         virtual void handleFreeNode(const OcTreeT::iterator& it);
         virtual void handleFreeNodeInBBX(const OcTreeT::iterator& it);
         virtual void update2DMap(const OcTreeT::iterator&, bool);
-
-        virtual void createPubSub();        
         
         void adjustMapData(nav_msgs::msg::OccupancyGrid& map,
                            const nav_msgs::msg::MapMetaData& oldMapInfo) const;
@@ -341,16 +339,6 @@ namespace extended_octomap_server{
 
         // Extended Octomap Methods
 
-
-        virtual void insertSegmentedPointcloudCallback(
-            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud,
-            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
-            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
-
-        virtual void insertSegmentedPointcloudsArrayCallback(
-            const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
-            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
-            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
 
         void publishConfidenceMarkers(const rclcpp::Time &) const;
 
@@ -498,7 +486,7 @@ namespace extended_octomap_server{
 
     public:
 
-        // Octomap Server Methods     
+        // Services 
         virtual bool octomapBinarySrv(
             const std::shared_ptr<OctomapSrv::Request> ,
             std::shared_ptr<OctomapSrv::Response>);
@@ -513,23 +501,42 @@ namespace extended_octomap_server{
             const std::shared_ptr<std_srvs::srv::Empty::Request>,
             std::shared_ptr<std_srvs::srv::Empty::Response>);
 
-        virtual void insertCloudCallback(
-            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &);
+        
+        // Initialization
+        virtual void createPubSub();
+        virtual void createVisualizations();        
 
 
-        // Extended Octomap Server Methods
+        // Extended Octomap Server constructor and destructor
         explicit ExtendedOctomapServer(
             const rclcpp::NodeOptions &,
             const std::string = "extended_octomap_server");
 
         virtual ~ExtendedOctomapServer();
+
+
+        // Callback to insert the pointcloud into the octomap
+        virtual void insertCloudCallback(
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &);
+
         
-        // Callback to insert a segmented pointcloud (for complexity reasons), using as tf the one obtained from a /partial_tf topic coming from the 
+        // Callback to insert a partial pointcloud (for complexity reasons) into the octomap, using as tf the one obtained from a /partial_tf topic coming from the 
         // segmentation node
         virtual void insertPartialCloudCallback(
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &,
             const geometry_msgs::msg::TransformStamped::ConstSharedPtr &
             );
+
+        // Callbacks to insert semantic information into the octomap
+        virtual void insertSegmentedPointcloudCallback(
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud,
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
+
+        virtual void insertSegmentedPointcloudsArrayCallback(
+            const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
+            const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
+            const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
         
     };
 

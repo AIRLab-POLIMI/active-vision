@@ -19,10 +19,6 @@ import os
 
 def generate_launch_description():
     return LaunchDescription([
-        # Pointcloud arguments
-        DeclareLaunchArgument('publish_pointclouds_array', default_value='False'),
-        DeclareLaunchArgument('publish_single_pointcloud', default_value='False'),
-        # Octomap parameters arguments
         DeclareLaunchArgument('resolution', default_value='0.02'),
         DeclareLaunchArgument('frame_id', default_value='igus_rebel_base_link'),
         DeclareLaunchArgument('base_frame_id', default_value='igus_rebel_base_link'),
@@ -71,6 +67,7 @@ def generate_launch_description():
         DeclareLaunchArgument('message_filter_queue', default_value='5'),
         DeclareLaunchArgument('insert_cloud_init', default_value='True'),
         DeclareLaunchArgument('insert_segmented_init', default_value='True'),
+        DeclareLaunchArgument('centralized_architecture', default_value='False'),
 
 
     # Main NBV pipeline node
@@ -89,10 +86,6 @@ def generate_launch_description():
                 ],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
-             # Segmented pointcloud 
-            'publish_pointclouds_array': LaunchConfiguration('publish_pointclouds_array'),
-            'publish_single_pointcloud': LaunchConfiguration('publish_single_pointcloud'),
-             # Extended octomap server
             'resolution': LaunchConfiguration('resolution'),
             'frame_id': LaunchConfiguration('frame_id'),
             'base_frame_id': LaunchConfiguration('base_frame_id'),
@@ -141,6 +134,7 @@ def generate_launch_description():
             'message_filter_queue': LaunchConfiguration('message_filter_queue'),
             'insert_cloud_init': LaunchConfiguration('insert_cloud_init'),
             'insert_segmented_init': LaunchConfiguration('insert_segmented_init'),
+            'centralized_architecture': LaunchConfiguration('centralized_architecture'),
             }]
         )
     ])

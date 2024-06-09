@@ -48,12 +48,13 @@
 namespace full_pointcloud {
 
 
-FullPointcloud::FullPointcloud(const rclcpp::NodeOptions & options): rclcpp::Node("FullPointcloud", options){
+FullPointcloud::FullPointcloud(const rclcpp::NodeOptions & options): 
+    rclcpp::Node("FullPointcloud", options),
+    centralizedArchitecture(false)
+{
     
-    // Read parameters
-    queue_size = this->declare_parameter<int>("queue_size", 5);
-    use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
-
+    centralizedArchitecture = this->declare_parameter("centralized_architecture", centralizedArchitecture);
+    
     RCLCPP_INFO(this->get_logger(), "Full pointcloud parameters and variables initialized.");
 
 }
@@ -62,6 +63,10 @@ FullPointcloud::FullPointcloud(const rclcpp::NodeOptions & options): rclcpp::Nod
 
 void FullPointcloud::createPubSub()
 {
+
+    // Read parameters
+    queue_size = this->declare_parameter<int>("queue_size", 5);
+    use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
 
     RCLCPP_INFO(this->get_logger(), "Creating full pointcloud subscribers...");
 
@@ -289,7 +294,9 @@ void FullPointcloud::imageCb(
         return;
     }
 
-    pub_point_cloud_->publish(*cloud_msg);
+    if (!centralizedArchitecture){
+        pub_point_cloud_->publish(*cloud_msg);
+    }
 }
 
 

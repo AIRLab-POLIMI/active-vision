@@ -263,9 +263,6 @@ namespace extended_octomap_server {
 
 
         rclcpp::QoS qos(rclcpp::KeepLast(3));
-        this->m_markerPub = this->create_publisher<
-            visualization_msgs::msg::MarkerArray>(
-                "occupied_cells_vis_array", qos);
         if (publishOctomapBinary){
             this->m_binaryMapPub = this->create_publisher<
                 octomap_msgs::msg::Octomap>("octomap_binary", qos);
@@ -283,11 +280,7 @@ namespace extended_octomap_server {
             this->m_mapPub = this->create_publisher<
                 nav_msgs::msg::OccupancyGrid>("projected_map", qos);
         }
-        if (publishFreeCells){
-            this->m_fmarkerPub = this->create_publisher<
-                visualization_msgs::msg::MarkerArray>(
-                    "free_cells_vis_array", qos);
-        }
+        
         
         RCLCPP_INFO(this->get_logger(), "Octomap server publishers created.");
 
@@ -477,6 +470,18 @@ namespace extended_octomap_server {
 
 
         rclcpp::QoS qos(rclcpp::KeepLast(3));
+        this->m_markerPub = this->create_publisher<
+            visualization_msgs::msg::MarkerArray>(
+                "occupied_cells_vis_array", qos);
+        RCLCPP_INFO(this->get_logger(), "Publisher of occupied markers created.");
+
+        if (publishFreeCells){
+            this->m_fmarkerPub = this->create_publisher<
+                visualization_msgs::msg::MarkerArray>(
+                    "free_cells_vis_array", qos);
+            RCLCPP_INFO(this->get_logger(), "Publisher of unoccupied markers created.");
+        }
+
         if (publishConfidence){
             this->confidenceMarkerPub = this->create_publisher<
                 visualization_msgs::msg::MarkerArray>(
@@ -516,7 +521,7 @@ namespace extended_octomap_server {
 
         auto start = std::chrono::steady_clock::now();
         
-        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertCloudCallback] Pointcloud callback started.");
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertCloudCallback] Pointcloud callback started.");
 
 
         //
@@ -653,7 +658,7 @@ namespace extended_octomap_server {
             return;
         }
 
-        RCLCPP_ERROR(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertPartialPointcloudCallback] Partial pointcloud callback started.");
+        RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertPartialPointcloudCallback] Partial pointcloud callback started.");
 
         //
         // ground filtering in base frame

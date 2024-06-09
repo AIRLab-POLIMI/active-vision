@@ -114,6 +114,8 @@ namespace segmented_pointcloud{
         bool publishPointcloudsArray;
         bool publishSinglePointcloud;
 
+        bool centralizedArchitecture;
+
         
         template<typename T>
         void convertDepth(

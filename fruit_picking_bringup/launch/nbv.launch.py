@@ -190,7 +190,8 @@ def launch_setup(context, *args, **kwargs):
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
                 },
-                **config_yaml['launch']['nbv']['nbv_pipeline_launch']
+                **config_yaml['launch']['nbv']['nbv_pipeline_launch'],
+                **config_yaml['launch']['nbv']['centralized_architecture']
 
             }.items(),
         )

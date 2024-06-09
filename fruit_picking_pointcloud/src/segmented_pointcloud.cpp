@@ -34,17 +34,12 @@
 
 namespace segmented_pointcloud{
 
-SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options) : rclcpp::Node("SegmentedPointcloud", options){
+SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options):
+    rclcpp::Node("SegmentedPointcloud", options),
+    centralizedArchitecture(false)
+{
+    centralizedArchitecture = this->declare_parameter("centralized_architecture", centralizedArchitecture);
 
-    // Read parameters
-    queue_size = this->declare_parameter<int>("queue_size", 5);
-    use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
-
-    // used to specify if a single segmented pointcloud of an array of segmented pointclouds have to be published
-    publishPointcloudsArray = this->declare_parameter("publish_pointclouds_array", publishPointcloudsArray);
-    publishSinglePointcloud = this->declare_parameter("publish_single_pointcloud", publishSinglePointcloud);
-
-    
     RCLCPP_INFO(this->get_logger(), "Segmented pointcloud parameters and variables initialized.");
 
 }
@@ -53,6 +48,14 @@ void SegmentedPointcloud::createPubSub()
 {
 
     RCLCPP_INFO(this->get_logger(), "Creating segmented pointcloud subscribers...");
+
+    // Read parameters
+    queue_size = this->declare_parameter<int>("queue_size", 5);
+    use_exact_sync = this->declare_parameter<bool>("exact_sync", false);
+
+    // used to specify if a single segmented pointcloud of an array of segmented pointclouds have to be published
+    publishPointcloudsArray = this->declare_parameter("publish_pointclouds_array", publishPointcloudsArray);
+    publishSinglePointcloud = this->declare_parameter("publish_single_pointcloud", publishSinglePointcloud);
 
     // Synchronize inputs. Topic subscriptions happen on demand in the connection callback.
     // Each case has a case for the pointclouds array and one for a single pointcloud
@@ -229,8 +232,10 @@ void SegmentedPointcloud::imageCb(
     pointcloud_msg->is_dense = false;
     pointcloud_msg->is_bigendian = false;
 
-    pub_point_cloud_->publish(*pointcloud_msg);
-    RCLCPP_INFO(this->get_logger(), "Pointcloud published.");
+    if (!centralizedArchitecture){
+        pub_point_cloud_->publish(*pointcloud_msg);
+        RCLCPP_INFO(this->get_logger(), "Pointcloud published.");
+    }
 
 }
 
@@ -345,8 +350,11 @@ void SegmentedPointcloud::imageArrayCb(
 
     }
 
-    pub_point_cloud_array_->publish(*pointcloud_array);
-    RCLCPP_INFO(this->get_logger(), "Pointcloud array published.");  
+
+    if (!centralizedArchitecture){
+        pub_point_cloud_array_->publish(*pointcloud_array);
+        RCLCPP_INFO(this->get_logger(), "Pointcloud array published.");  
+    }
 
 
     // Publish the first pointcloud in the pointclouds array (used mostly to debug)

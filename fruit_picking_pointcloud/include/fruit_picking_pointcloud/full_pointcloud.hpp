@@ -80,6 +80,8 @@ protected:
 
   image_geometry::PinholeCameraModel model_;
 
+  bool centralizedArchitecture;
+
 public:
   FullPointcloud(const rclcpp::NodeOptions & options);
 

@@ -309,6 +309,7 @@ launch:
 
 
   nbv:
+    centralized_architecture: "True"  
     yolo_world_server:
       publish_masks_array: "True"
       publish_original_depth_image: "True"
@@ -321,10 +322,6 @@ launch:
       nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
 
     nbv_pipeline_launch:
-      # For segmented pointcloud
-      publish_pointclouds_array: "True"
-      publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
-      # For extended octomap server
       resolution: '0.006'
       height_map: "False"
       colored_map: "False"

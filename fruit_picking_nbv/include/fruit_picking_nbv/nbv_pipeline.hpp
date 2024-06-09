@@ -17,9 +17,14 @@ namespace nbv_pipeline{
 
     public:
 
-        explicit NBVPipeline(
+        NBVPipeline(
+            std::shared_ptr<depth_image_proc::PointCloudXyzrgbNode> pointcloud_creator,
+            std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
+            std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
             const rclcpp::NodeOptions &,
             const std::string = "nbv_pipeline");
+
+        void NBVPipelineThread();
         
     };
     

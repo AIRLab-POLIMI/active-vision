@@ -189,9 +189,9 @@ def launch_setup(context, *args, **kwargs):
                     "depth_image_camera_info_topic": depth_image_camera_info_topic,
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
+                    "centralized_architecture": config_yaml['launch']['nbv']['centralized_architecture']
                 },
                 **config_yaml['launch']['nbv']['nbv_pipeline_launch'],
-                **config_yaml['launch']['nbv']['centralized_architecture']
 
             }.items(),
         )

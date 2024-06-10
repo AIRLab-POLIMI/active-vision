@@ -21,10 +21,12 @@ int main(int argc, char * argv[])
 	auto main_thread = std::make_unique<std::thread>([&executor,
 													  &PointcloudCreator,
 													  &SegmentedPointcloudCreator,
-													  &ExtendedOctomapCreator]() {
+													  &ExtendedOctomapCreator,
+													  &Pipeline]() {
 		executor.add_node(PointcloudCreator->get_node_base_interface());
 		executor.add_node(SegmentedPointcloudCreator->get_node_base_interface());
 		executor.add_node(ExtendedOctomapCreator->get_node_base_interface());
+		executor.add_node(Pipeline->get_node_base_interface());
 		executor.spin();
 	});
 

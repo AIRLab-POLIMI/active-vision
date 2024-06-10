@@ -78,7 +78,7 @@ def generate_launch_description():
         arguments= [
             "--ros-args",
             "--log-level",
-            "main_nbv_pipeline:=debug",
+            "nbv_pipeline:=info",
         ],
         remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
                     ('depth_image', LaunchConfiguration('depth_image_topic')),

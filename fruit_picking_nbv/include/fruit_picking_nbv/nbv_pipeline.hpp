@@ -5,6 +5,7 @@
 #include <fruit_picking_pointcloud/segmented_pointcloud.hpp>
 #include <fruit_picking_octomap/extended_octomap_server.hpp>
 #include <depth_image_proc/point_cloud_xyzrgb.hpp>
+#include <fruit_picking_interfaces/srv/yolo_world_segmentation.hpp>
 
 // Definitions
 using Image = sensor_msgs::msg::Image;
@@ -21,6 +22,13 @@ namespace nbv_pipeline{
     class NBVPipeline: public rclcpp::Node {
 
     protected:
+
+        // Variables for contructor arguments
+        std::shared_ptr<depth_image_proc::PointCloudXyzrgbNode> pointcloud_;
+        std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_;
+        std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_;
+        std::shared_ptr<rclcpp::Node> client_node_;
+        rclcpp::Client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>::SharedPtr client_;
 
         // Data subscribers elements
         message_filters::Subscriber<Image> sub_depth_, sub_rgb_;
@@ -43,6 +51,14 @@ namespace nbv_pipeline{
         std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
         geometry_msgs::msg::TransformStamped current_tf_;
 
+        // Variables for segmentation
+        std::string prompt_;
+        float confidence_threshold_;
+        float nms_confidence_threshold_;
+
+        // Segmentation client
+        // rclcpp::Client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>::SharedPtr client_;
+
 
         // Function that create the data subscriber
         void createDataSub();
@@ -60,6 +76,7 @@ namespace nbv_pipeline{
             std::shared_ptr<depth_image_proc::PointCloudXyzrgbNode> pointcloud_creator,
             std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
             std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
+            std::shared_ptr<rclcpp::Node> segmentationClientNode,
             const rclcpp::NodeOptions &,
             const std::string = "nbv_pipeline");
 

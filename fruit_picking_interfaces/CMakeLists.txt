@@ -18,6 +18,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LANGSAMSegmentation.srv"
+  "srv/YOLOWorldSegmentation.srv"
   "msg/ImageArray.msg"
   "msg/PointcloudArray.msg"
   "msg/Confidence.msg"

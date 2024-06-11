@@ -32,6 +32,7 @@ setup(
         'console_scripts': [
             "yolo_world = fruit_picking_segmentation_yolo_world.yolo_world:main",
             "yolo_world_test = fruit_picking_segmentation_yolo_world.yolo_world_test:main",
+            "yolo_world_server = fruit_picking_segmentation_yolo_world.yolo_world_server:main"
         ],
     },
 )

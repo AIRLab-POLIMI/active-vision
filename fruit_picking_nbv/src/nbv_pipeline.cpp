@@ -7,18 +7,29 @@ namespace nbv_pipeline{
         std::shared_ptr<depth_image_proc::PointCloudXyzrgbNode> pointcloud_creator,
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
         std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
+        std::shared_ptr<rclcpp::Node> segmentationClientNode,
         const rclcpp::NodeOptions &options, 
         const std::string node_name): 
         Node(node_name, options)
     {
         RCLCPP_INFO(this->get_logger(), "NBV pipeline constructor started.");
 
+        // Read arguments
+        pointcloud_ = pointcloud_creator;
+        segmented_pointcloud_ = segmented_pointcloud_creator;
+        extended_octomap_ = extended_octomap_creator;
+        client_node_ = segmentationClientNode;
+
         // Read parameters
         frame_id_ = this->declare_parameter("frame_id", "world");
         queue_size_ = this->declare_parameter<int>("queue_size", 5);
+        prompt_ = this->declare_parameter("segmentation_prompt", "tomato");
+        confidence_threshold_ = this->declare_parameter<float>("confidence_threshold", 0.001);
+        nms_confidence_threshold_ = this->declare_parameter<float>("nms_threshold", 0.2);
 
 
         // Initialize segmentation service
+        this->client_ = client_node_->create_client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>("/yolo_world_service");
 
     }
 
@@ -26,7 +37,7 @@ namespace nbv_pipeline{
 
     void NBVPipeline::createDataSub(){
         try {
-            data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_depth_, sub_rgb_, sub_camera_info_);
+            data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_rgb_, sub_depth_, sub_camera_info_);
             data_sync_->registerCallback(
                 std::bind(
                     &NBVPipeline::saveData,
@@ -103,7 +114,8 @@ namespace nbv_pipeline{
     void NBVPipeline::NBVPipelineThread(){
         
         RCLCPP_INFO(this->get_logger(), "NBV pipeline started.");
-
+        // set the rate for the main thread
+	    rclcpp::Rate rate(15);
 
 
         // Wait for user input to start the pipeline with a service
@@ -116,7 +128,7 @@ namespace nbv_pipeline{
         RCLCPP_INFO(this->get_logger(), "Data subscriber created");
 
 
-        while (true){
+        while (rclcpp::ok()){
 
             // Obtain data from the robot
 
@@ -139,6 +151,44 @@ namespace nbv_pipeline{
                 current_rgb_msg_, current_depth_msg_, current_camera_info_msg_, current_tf_);
 
             RCLCPP_INFO(this->get_logger(), "Data obtained.");
+
+
+
+
+            // Create segmentation request for the server
+
+            auto request = std::make_shared<fruit_picking_interfaces::srv::YOLOWorldSegmentation::Request>();
+            request->image = working_rgb_msg;
+            request->text_prompt = this->prompt_;
+            request->confidence_threshold = this->confidence_threshold_;
+            request->nms_threshold = this->nms_confidence_threshold_;
+
+
+
+
+            // Wait for the server to be active
+
+            while (!this->client_->wait_for_service(std::chrono::seconds(1))) {
+                if (!rclcpp::ok()) {
+                    RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
+                    return;
+                }
+                RCLCPP_WARN(this->get_logger(), "Service not available, waiting again...");
+            }
+
+            auto result = client_->async_send_request(request);
+
+
+
+
+            // Wait for the response
+
+            if (rclcpp::spin_until_future_complete(client_node_, result) ==
+                rclcpp::FutureReturnCode::SUCCESS)
+            {
+                RCLCPP_INFO(this->get_logger(), "Response obtained.");
+            
+            }
 
         }
 

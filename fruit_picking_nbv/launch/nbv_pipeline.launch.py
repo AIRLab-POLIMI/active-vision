@@ -19,6 +19,9 @@ import os
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument('segmentation_prompt', default_value='tomato'),
+        DeclareLaunchArgument('confidence_threshold', default_value='0.001'),
+        DeclareLaunchArgument('nms_threshold', default_value='0.2'),
         DeclareLaunchArgument('resolution', default_value='0.02'),
         DeclareLaunchArgument('frame_id', default_value='igus_rebel_base_link'),
         DeclareLaunchArgument('base_frame_id', default_value='igus_rebel_base_link'),
@@ -86,6 +89,9 @@ def generate_launch_description():
                 ],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
+            "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),
+            "confidence_threshold": LaunchConfiguration("confidence_threshold"),
+            "nms_threshold": LaunchConfiguration("nms_threshold"),
             'resolution': LaunchConfiguration('resolution'),
             'frame_id': LaunchConfiguration('frame_id'),
             'base_frame_id': LaunchConfiguration('base_frame_id'),

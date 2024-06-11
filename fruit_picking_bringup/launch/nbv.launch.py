@@ -80,6 +80,13 @@ def generate_launch_description():
         description="Whether or not run the igus rebel moveit launch",
     )
 
+    run_yolo_world_arg = DeclareLaunchArgument(
+        name="run_yolo_world",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not run the yolo world server for segmentation",
+    )
+
     run_nbv_pipeline_arg = DeclareLaunchArgument(
         name="run_nbv_pipeline",
         default_value="false",
@@ -99,6 +106,7 @@ def generate_launch_description():
             env_gazebo_package_arg,
             full_world_name_arg,
             run_robot_moveit_arg,
+            run_yolo_world_arg,
             run_nbv_pipeline_arg,
             OpaqueFunction(function=launch_setup),
         ]
@@ -172,6 +180,25 @@ def launch_setup(context, *args, **kwargs):
                 FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py'])
         )
         return_actions.append(moveit_launch_file)
+
+
+
+
+    # YOLO World server segmentation launch
+    if LaunchConfiguration("run_yolo_world").perform(context) == 'true': 
+        yolo_world_server_segmentation_launch_file = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                FindPackageShare("fruit_picking_segmentation_yolo_world"), '/launch', '/yolo_world_server.launch.py']),
+            launch_arguments={
+                **use_sim_time_dict,
+                **{
+                    "frame_id": frame_id,
+                },
+                **config_yaml['launch']['nbv']['yolo_world_server']
+
+            }.items(),
+        )
+        return_actions.append(yolo_world_server_segmentation_launch_file)
 
     
 

@@ -7,11 +7,16 @@ int main(int argc, char * argv[])
     auto PointcloudCreator = std::make_shared<depth_image_proc::PointCloudXyzrgbNode>(rclcpp::NodeOptions());
     auto SegmentedPointcloudCreator = std::make_shared<segmented_pointcloud::SegmentedPointcloud>(rclcpp::NodeOptions());
     auto ExtendedOctomapCreator = std::make_shared<extended_octomap_server::ExtendedOctomapServer>(rclcpp::NodeOptions());
+
+	// Segmentation client node
+	auto SegmentationClientNode = rclcpp::Node::make_shared("yolo_world_client");
+
     // Create NBV pipeline object
     auto Pipeline = std::make_shared<nbv_pipeline::NBVPipeline>(
         PointcloudCreator, 
         SegmentedPointcloudCreator, 
         ExtendedOctomapCreator, 
+		SegmentationClientNode,
         rclcpp::NodeOptions()
     );
 

@@ -312,16 +312,15 @@ launch:
     centralized_architecture: "True"  
     yolo_world_server:
       publish_masks_array: "True"
-      publish_original_depth_image: "True"
-      publish_original_depth_image_camera_info: "True"
-      publish_original_tf: "True"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
+
+    nbv_pipeline_launch:
+      # Segmentation
       segmentation_prompt: "tomato" 
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
       nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
-
-    nbv_pipeline_launch:
+      # Pipeline
       resolution: '0.006'
       height_map: "False"
       colored_map: "False"

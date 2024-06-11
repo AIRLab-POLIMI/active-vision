@@ -1,0 +1,8 @@
+sensor_msgs/Image           image                   # Image to segment
+string                      text_prompt             # Text for the segmentation
+float32                     confidence_threshold    # Confidence confidence_threshold
+float32                     nms_threshold           # NMS confidence threshold 
+---
+ImageArray                  masks_images_array      # Array of masks generated from the model
+sensor_msgs/Image           merged_masks_images     # Merged image of the masks generated from the model
+Confidence                  confidences             # Confidences of the masks

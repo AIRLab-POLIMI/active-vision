@@ -182,13 +182,13 @@ namespace segmented_pointcloud{
 
         void createPubSub();
 
-        void imageArrayCb(
+        std::shared_ptr<fruit_picking_interfaces::msg::PointcloudArray> imageArrayCb(
             const Image::ConstSharedPtr & depth_msg,
             const ImageArray::ConstSharedPtr & rgb_msg,
             const CameraInfo::ConstSharedPtr & info_msg,
             const std::shared_ptr<const Confidence> & conf_msg);
 
-        void imageCb(
+        std::shared_ptr<sensor_msgs::msg::PointCloud2> imageCb(
             const Image::ConstSharedPtr & depth_msg,
             const Image::ConstSharedPtr & rgb_msg_in,
             const CameraInfo::ConstSharedPtr & info_msg);

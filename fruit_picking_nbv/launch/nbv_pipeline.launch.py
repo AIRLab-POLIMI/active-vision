@@ -86,6 +86,11 @@ def generate_launch_description():
         remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
                     ('depth_image', LaunchConfiguration('depth_image_topic')),
                     ('depth_image_camera_info', LaunchConfiguration('depth_image_camera_info_topic')),
+                    ('occupied_cells_vis_array', 'visualization/occupied_cells_vis_array'),
+                    ('free_cells_vis_array', 'visualization/free_cells_vis_array'),
+                    ('confidence_cells_vis', 'visualization/confidence_cells_vis'),
+                    ('semantic_class_cells_vis', 'visualization/semantic_class_cells_vis'),
+                    ('instances_cells_vis', 'visualization/instances_cells_vis'),
                 ],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time'),

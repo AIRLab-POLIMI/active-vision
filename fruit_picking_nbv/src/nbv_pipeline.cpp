@@ -4,7 +4,7 @@ namespace nbv_pipeline{
     
     // Constructor
     NBVPipeline::NBVPipeline(
-        std::shared_ptr<depth_image_proc::PointCloudXyzrgbNode> pointcloud_creator,
+        std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
         std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
         std::shared_ptr<rclcpp::Node> segmentationClientNode,
@@ -12,12 +12,13 @@ namespace nbv_pipeline{
         const std::string node_name): 
         Node(node_name, options)
     {
+        RCLCPP_INFO(this->get_logger(), "---------------------------------------");
         RCLCPP_INFO(this->get_logger(), "NBV pipeline constructor started.");
 
-        // Read arguments
-        pointcloud_ = pointcloud_creator;
-        segmented_pointcloud_ = segmented_pointcloud_creator;
-        extended_octomap_ = extended_octomap_creator;
+        // Read arguments and save the node into some variables
+        pointcloud_node_ = pointcloud_creator;
+        segmented_pointcloud_node_ = segmented_pointcloud_creator;
+        extended_octomap_node_ = extended_octomap_creator;
         client_node_ = segmentationClientNode;
 
         // Read parameters
@@ -26,10 +27,14 @@ namespace nbv_pipeline{
         prompt_ = this->declare_parameter("segmentation_prompt", "tomato");
         confidence_threshold_ = this->declare_parameter<float>("confidence_threshold", 0.001);
         nms_confidence_threshold_ = this->declare_parameter<float>("nms_threshold", 0.2);
+        usePartialPointcloud_ = this->declare_parameter("partial_pointcloud_subscription", true); 
 
 
         // Initialize segmentation service
         this->client_ = client_node_->create_client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>("/yolo_world_service");
+
+        // Initialize extended octomap visualization publishers
+        extended_octomap_node_->createVisualizations();
 
     }
 
@@ -74,19 +79,20 @@ namespace nbv_pipeline{
 
         RCLCPP_DEBUG(this->get_logger(), "Saving data...");
 
-        current_rgb_msg_ = *rgb_msg;
-        current_depth_msg_ = *depth_msg;
-        current_camera_info_msg_ = *camera_info_msg;
+        current_rgb_msg_ = rgb_msg;
+        current_depth_msg_ = depth_msg;
+        current_camera_info_msg_ = camera_info_msg;
 
         // Wait for the transform to become available
         std::string target_frame = this->frame_id_;
 
         try {
             if (this->tf_buffer_->canTransform(
-                target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp)) 
+                target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp, rclcpp::Duration::from_seconds(2.0))) 
             {
-                current_tf_ = this->tf_buffer_->lookupTransform(
-                    target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp);
+                current_tf_ = std::make_shared<geometry_msgs::msg::TransformStamped>(
+                    this->tf_buffer_->lookupTransform(
+                        target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp));
             }
             
         } catch (tf2::TransformException &ex) {
@@ -113,6 +119,7 @@ namespace nbv_pipeline{
 
     void NBVPipeline::NBVPipelineThread(){
         
+        RCLCPP_INFO(this->get_logger(), "---------------------------------------");
         RCLCPP_INFO(this->get_logger(), "NBV pipeline started.");
         // set the rate for the main thread
 	    rclcpp::Rate rate(15);
@@ -130,6 +137,9 @@ namespace nbv_pipeline{
 
         while (rclcpp::ok()){
 
+            RCLCPP_INFO(this->get_logger(), "---------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "NBV pipeline step started.");
+
             // Obtain data from the robot
 
             // Lock the variables till the function terminates, locking also the subsciber to save the current data
@@ -141,10 +151,10 @@ namespace nbv_pipeline{
             // Ontain data to send it to the segmentation server
             RCLCPP_INFO(this->get_logger(), "Getting data from subscriber...");
 
-            Image working_rgb_msg;
-            Image working_depth_msg;
-            CameraInfo working_camera_info_msg;
-            geometry_msgs::msg::TransformStamped working_tf;
+            Image::ConstSharedPtr working_rgb_msg;
+            Image::ConstSharedPtr working_depth_msg;
+            CameraInfo::ConstSharedPtr working_camera_info_msg;
+            geometry_msgs::msg::TransformStamped::ConstSharedPtr working_tf;
 
             std::tie(
                 working_rgb_msg, working_depth_msg, working_camera_info_msg, working_tf) = std::make_tuple(
@@ -158,7 +168,7 @@ namespace nbv_pipeline{
             // Create segmentation request for the server
 
             auto request = std::make_shared<fruit_picking_interfaces::srv::YOLOWorldSegmentation::Request>();
-            request->image = working_rgb_msg;
+            request->image = *working_rgb_msg;
             request->text_prompt = this->prompt_;
             request->confidence_threshold = this->confidence_threshold_;
             request->nms_threshold = this->nms_confidence_threshold_;
@@ -181,14 +191,64 @@ namespace nbv_pipeline{
 
 
 
-            // Wait for the response
+            // Wait for the response, and save them once received
 
             if (rclcpp::spin_until_future_complete(client_node_, result) ==
                 rclcpp::FutureReturnCode::SUCCESS)
             {
+                auto response = result.get();
+                masks_images_array_ = std::make_shared<const ImageArray>(response->masks_images_array);
+                merged_masks_image_ = std::make_shared<const Image>(response->merged_masks_images);
+                confidences_ = std::make_shared<const Confidence>(response->confidences);
+
                 RCLCPP_INFO(this->get_logger(), "Response obtained.");
             
             }
+
+
+
+
+            // Create full and segmented pointcloud
+            if (usePartialPointcloud_){
+                RCLCPP_INFO(this->get_logger(), "Creating partial pointcloud...");
+                partialPointcloud_ = segmented_pointcloud_node_->imageCb(
+                    working_depth_msg, 
+                    merged_masks_image_, 
+                    working_camera_info_msg);
+            } 
+            else {
+                RCLCPP_INFO(this->get_logger(), "Creating full pointcloud...");
+                fullPointcloud_ = pointcloud_node_->imageCb(
+                    working_depth_msg, 
+                    working_rgb_msg, 
+                    working_camera_info_msg);
+            }
+            RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
+            segmentedPointcloudArray_ = segmented_pointcloud_node_->imageArrayCb(
+                working_depth_msg,
+                masks_images_array_,
+                working_camera_info_msg,
+                confidences_);
+            RCLCPP_INFO(this->get_logger(), "Pointclouds created.");
+
+            
+
+
+            // Update octomap and publish visualization
+            RCLCPP_INFO(this->get_logger(), "Updating octomap...");
+            if (usePartialPointcloud_){
+                extended_octomap_node_->insertPartialCloudCallback(partialPointcloud_, working_tf);
+                extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, partialPointcloud_);
+            }
+            else {
+                extended_octomap_node_->insertCloudCallback(fullPointcloud_);
+                extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
+            }
+            RCLCPP_INFO(this->get_logger(), "Octomap updated.");
+
+
+            RCLCPP_WARN(this->get_logger(), "NBV pipeline step terminated.");
+
 
         }
 

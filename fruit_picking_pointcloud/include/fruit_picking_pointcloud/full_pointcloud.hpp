@@ -87,7 +87,7 @@ public:
 
   void createPubSub();
 
-  void imageCb(
+  std::shared_ptr<sensor_msgs::msg::PointCloud2> imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg,
     const CameraInfo::ConstSharedPtr & info_msg);

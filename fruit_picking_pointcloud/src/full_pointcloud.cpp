@@ -148,7 +148,7 @@ void FullPointcloud::createPubSub()
 
 
 
-void FullPointcloud::imageCb(
+std::shared_ptr<sensor_msgs::msg::PointCloud2> FullPointcloud::imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg_in,
     const CameraInfo::ConstSharedPtr & info_msg)
@@ -189,7 +189,7 @@ void FullPointcloud::imageCb(
         } 
         catch (cv_bridge::Exception & e) {
                 RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
-                return;
+                return nullptr;
         }
         cv_bridge::CvImage cv_rsz;
         cv_rsz.header = cv_ptr->header;
@@ -208,7 +208,7 @@ void FullPointcloud::imageCb(
 
         RCLCPP_ERROR(get_logger(), "Depth resolution (%ux%u) does not match RGB resolution (%ux%u)",
             depth_msg->width, depth_msg->height, rgb_msg->width, rgb_msg->height);
-        return;
+        return nullptr;
     } 
     else {
         rgb_msg = rgb_msg_in;
@@ -248,7 +248,7 @@ void FullPointcloud::imageCb(
         catch (cv_bridge::Exception & e) {
             RCLCPP_ERROR(
                 get_logger(), "Unsupported encoding [%s]: %s", rgb_msg->encoding.c_str(), e.what());
-            return;
+            return nullptr;
         }
         red_offset = 0;
         green_offset = 1;
@@ -274,7 +274,7 @@ void FullPointcloud::imageCb(
     } else {
         RCLCPP_ERROR(
         get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());
-        return;
+        return nullptr;
     }
 
     // Convert RGB
@@ -291,12 +291,14 @@ void FullPointcloud::imageCb(
     } else {
         RCLCPP_ERROR(
         get_logger(), "RGB image has unsupported encoding [%s]", rgb_msg->encoding.c_str());
-        return;
+        return nullptr;
     }
 
     if (!centralizedArchitecture){
         pub_point_cloud_->publish(*cloud_msg);
     }
+
+    return cloud_msg;
 }
 
 

@@ -142,7 +142,7 @@ void SegmentedPointcloud::createPubSub()
 
 }
 
-void SegmentedPointcloud::imageCb(
+std::shared_ptr<sensor_msgs::msg::PointCloud2> SegmentedPointcloud::imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg_in,
     const CameraInfo::ConstSharedPtr & info_msg)
@@ -183,7 +183,7 @@ void SegmentedPointcloud::imageCb(
         } 
         catch (cv_bridge::Exception & e) {
             RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
-            return;
+            return nullptr;
         }
         cv_bridge::CvImage cv_rsz;
         cv_rsz.header = cv_ptr->header;
@@ -205,7 +205,7 @@ void SegmentedPointcloud::imageCb(
         RCLCPP_ERROR(
             get_logger(), "Depth resolution (%ux%u) does not match RGB resolution (%ux%u)",
                 depth_msg->width, depth_msg->height, rgb_msg->width, rgb_msg->height);
-        return;
+        return nullptr;
     } 
     else {
         rgb_msg = rgb_msg_in;
@@ -224,7 +224,7 @@ void SegmentedPointcloud::imageCb(
     else {
         RCLCPP_ERROR(
             get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());
-        return;
+        return nullptr;
     }
 
     // Fill header of pointcloud message
@@ -237,9 +237,11 @@ void SegmentedPointcloud::imageCb(
         RCLCPP_INFO(this->get_logger(), "Pointcloud published.");
     }
 
+    return pointcloud_msg;
+
 }
 
-void SegmentedPointcloud::imageArrayCb(
+std::shared_ptr<fruit_picking_interfaces::msg::PointcloudArray> SegmentedPointcloud::imageArrayCb(
     const Image::ConstSharedPtr & depth_msg,
     const ImageArray::ConstSharedPtr & rgb_array_in,
     const CameraInfo::ConstSharedPtr & info_msg,
@@ -299,7 +301,7 @@ void SegmentedPointcloud::imageArrayCb(
             } 
             catch (cv_bridge::Exception & e) {
                 RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
-                return;
+                return nullptr;
             }
             cv_bridge::CvImage cv_rsz;
             cv_rsz.header = cv_ptr->header;
@@ -320,7 +322,7 @@ void SegmentedPointcloud::imageArrayCb(
             RCLCPP_ERROR(
                 get_logger(), "Depth resolution (%ux%u) does not match RGB resolution (%ux%u)",
                 depth_msg->width, depth_msg->height, rgb_msg.width, rgb_msg.height);
-                return;
+                return nullptr;
         } 
         else{
             rgb_msg = rgb_msg_in;
@@ -335,7 +337,7 @@ void SegmentedPointcloud::imageArrayCb(
         } 
         else {
             RCLCPP_ERROR(get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());
-            return;
+            return nullptr;
         }
 
         // Fill header of pointcloud message
@@ -363,7 +365,9 @@ void SegmentedPointcloud::imageArrayCb(
     //     auto single_pointcloud = pointcloud_array->pointclouds[0];
     //     pub_point_cloud_->publish(single_pointcloud);
     //     RCLCPP_INFO(this->get_logger(), "Pointcloud published.");  
-    // }  
+    // }
+
+    return pointcloud_array;  
 }
 
     

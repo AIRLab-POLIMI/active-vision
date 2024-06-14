@@ -4,7 +4,7 @@ int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
 
-    auto PointcloudCreator = std::make_shared<depth_image_proc::PointCloudXyzrgbNode>(rclcpp::NodeOptions());
+    auto PointcloudCreator = std::make_shared<full_pointcloud::FullPointcloud>(rclcpp::NodeOptions());
     auto SegmentedPointcloudCreator = std::make_shared<segmented_pointcloud::SegmentedPointcloud>(rclcpp::NodeOptions());
     auto ExtendedOctomapCreator = std::make_shared<extended_octomap_server::ExtendedOctomapServer>(rclcpp::NodeOptions());
 

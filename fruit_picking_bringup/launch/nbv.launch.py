@@ -177,7 +177,11 @@ def launch_setup(context, *args, **kwargs):
         # Igus Rebel moveit launch
         moveit_launch_file = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
-                FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py'])
+                FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py']),
+            launch_arguments={
+                "rviz_file": os.path.join(
+                    get_package_share_directory("fruit_picking_bringup"), "rviz/nbv_pipeline.rviz"),
+            }.items(),
         )
         return_actions.append(moveit_launch_file)
 

@@ -33,6 +33,14 @@ namespace nbv_pipeline{
         // Initialize segmentation service
         this->client_ = client_node_->create_client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>("/yolo_world_service");
 
+        // Initialize segmented image visualization publisher
+        segmentedImagePub_ = create_publisher<Image>("/visualization/yolo_world_segmented_image", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
+
+        // Initialize full and segmented pointcloud visualization publisherrclcpp::SensorDataQoS()
+        fullPointcloudPub_ = create_publisher<PointCloud2>("/visualization/pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
+        segmentedPointcloudPub_ = create_publisher<PointCloud2>("/visualization/segmented_pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
+
+
         // Initialize extended octomap visualization publishers
         extended_octomap_node_->createVisualizations();
 
@@ -206,6 +214,10 @@ namespace nbv_pipeline{
             }
 
 
+            // Publish segmented image
+            segmentedImagePub_->publish(*merged_masks_image_);
+
+
 
 
             // Create full and segmented pointcloud
@@ -224,12 +236,27 @@ namespace nbv_pipeline{
                     working_camera_info_msg);
             }
             RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
+            segmentedPointcloud_ = segmented_pointcloud_node_->imageCb(
+                working_depth_msg, 
+                merged_masks_image_, 
+                working_camera_info_msg);
             segmentedPointcloudArray_ = segmented_pointcloud_node_->imageArrayCb(
                 working_depth_msg,
                 masks_images_array_,
                 working_camera_info_msg,
                 confidences_);
             RCLCPP_INFO(this->get_logger(), "Pointclouds created.");
+
+
+
+            // Publish full and segmented pointclouds for visualization
+            if (usePartialPointcloud_){
+                fullPointcloudPub_->publish(*partialPointcloud_);
+            }
+            else {
+                fullPointcloudPub_->publish(*fullPointcloud_);
+            }
+            segmentedPointcloudPub_->publish(*segmentedPointcloud_);
 
             
 

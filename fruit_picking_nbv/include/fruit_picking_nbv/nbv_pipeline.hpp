@@ -67,10 +67,23 @@ namespace nbv_pipeline{
         Confidence::ConstSharedPtr confidences_;
 
 
+        // Segmented image visualization publisher
+        rclcpp::Publisher<Image>::SharedPtr segmentedImagePub_;
+
+        // Full and segmented pointcloud visualization publihser
+        rclcpp::Publisher<PointCloud2>::SharedPtr fullPointcloudPub_;
+        rclcpp::Publisher<PointCloud2>::SharedPtr segmentedPointcloudPub_;
+
+
+
+
         // Variable specifing to use the full pointcloud or a partial
         bool usePartialPointcloud_;
+
+        // Variables containing pointclouds
         std::shared_ptr<PointCloud2> fullPointcloud_;
         std::shared_ptr<PointCloud2> partialPointcloud_;
+        std::shared_ptr<PointCloud2> segmentedPointcloud_;
         std::shared_ptr<PointcloudArray> segmentedPointcloudArray_;
 
 

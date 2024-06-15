@@ -37,7 +37,6 @@ namespace nbv_pipeline{
         segmentedImagePub_ = create_publisher<Image>("/visualization/yolo_world_segmented_image", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
 
         // Initialize full and segmented pointcloud visualization publisherrclcpp::SensorDataQoS()
-        fullPointcloudPub_ = create_publisher<PointCloud2>("/visualization/pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
         segmentedPointcloudPub_ = create_publisher<PointCloud2>("/visualization/segmented_pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
 
 
@@ -236,10 +235,7 @@ namespace nbv_pipeline{
                     working_camera_info_msg);
             }
             RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
-            segmentedPointcloud_ = segmented_pointcloud_node_->imageCb(
-                working_depth_msg, 
-                merged_masks_image_, 
-                working_camera_info_msg);
+            
             segmentedPointcloudArray_ = segmented_pointcloud_node_->imageArrayCb(
                 working_depth_msg,
                 masks_images_array_,
@@ -250,12 +246,10 @@ namespace nbv_pipeline{
 
 
             // Publish full and segmented pointclouds for visualization
-            if (usePartialPointcloud_){
-                fullPointcloudPub_->publish(*partialPointcloud_);
-            }
-            else {
-                fullPointcloudPub_->publish(*fullPointcloud_);
-            }
+            segmentedPointcloud_ = segmented_pointcloud_node_->imageCb(
+                working_depth_msg, 
+                merged_masks_image_, 
+                working_camera_info_msg);
             segmentedPointcloudPub_->publish(*segmentedPointcloud_);
 
             

@@ -71,7 +71,6 @@ namespace nbv_pipeline{
         rclcpp::Publisher<Image>::SharedPtr segmentedImagePub_;
 
         // Full and segmented pointcloud visualization publihser
-        rclcpp::Publisher<PointCloud2>::SharedPtr fullPointcloudPub_;
         rclcpp::Publisher<PointCloud2>::SharedPtr segmentedPointcloudPub_;
 
 

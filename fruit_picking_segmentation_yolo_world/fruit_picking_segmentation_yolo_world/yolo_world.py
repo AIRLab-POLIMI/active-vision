@@ -103,7 +103,7 @@ class YOLOWorldNode(Node):
         )
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
         self._sam = EfficientViTSamPredictor(
-            create_sam_model(name=self._efficient_SAM_model_type, weight_url=f"../michelelagreca/Documents/robotics/models/efficient_SAM_{self._efficient_SAM_model_type}.pt").to(self._device).eval()
+            create_sam_model(name=self._efficient_SAM_model_type, weight_url=f"../models/efficient_SAM_{self._efficient_SAM_model_type}.pt").to(self._device).eval()
         )
 
         self._MASK_ANNOTATOR = sv.MaskAnnotator()

@@ -28,8 +28,8 @@ def generate_launch_description():
 
     mount_arg = DeclareLaunchArgument(
         name="mount",
-        default_value="mount_v1",
-        choices=["none", "mount_v1"],
+        default_value="mount_v2",
+        choices=["none", "mount_v1", "mount_v2"],
         description="Which mount to attach to the flange",
     )
 
@@ -42,8 +42,8 @@ def generate_launch_description():
 
     end_effector_arg = DeclareLaunchArgument(
         name="end_effector",
-        default_value="toucher_v1",
-        choices=["toucher_v1", "none"],
+        default_value="soft_gripper",
+        choices=["toucher_v1", "none", "soft_gripper"],
         description="Which end_effector to attach to the mount",
     )
 

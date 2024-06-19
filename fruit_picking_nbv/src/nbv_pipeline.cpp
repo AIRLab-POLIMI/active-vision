@@ -43,6 +43,10 @@ namespace nbv_pipeline{
         // Initialize extended octomap visualization publishers
         extended_octomap_node_->createVisualizations();
 
+
+        // Move to initial position
+        
+
     }
 
 

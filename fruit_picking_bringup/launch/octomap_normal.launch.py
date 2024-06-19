@@ -28,8 +28,8 @@ def generate_launch_description():
 
     mount_arg = DeclareLaunchArgument(
         name="mount",
-        default_value="mount_v1",
-        choices=["none", "mount_v1"],
+        default_value="mount_v2",
+        choices=["none", "mount_v1", "mount_v2"],
         description="Which mount to attach to the flange",
     )
 
@@ -42,8 +42,8 @@ def generate_launch_description():
 
     end_effector_arg = DeclareLaunchArgument(
         name="end_effector",
-        default_value="toucher_v1",
-        choices=["toucher_v1", "none"],
+        default_value="soft_gripper",
+        choices=["toucher_v1", "none", "soft_gripper"],
         description="Which end_effector to attach to the mount",
     )
 
@@ -66,6 +66,13 @@ def generate_launch_description():
         default_value="false",
         choices=["true", "false"],
         description="Whether or not Rviz is used in the Igus Rebel description launch",
+    )
+
+    moveit_arg = DeclareLaunchArgument(
+        name="moveit",
+        default_value="false",
+        choices=["true", "false"],
+        description="Whether or not Moveit2 is used",
     )
 
     env_gazebo_package_arg = DeclareLaunchArgument(
@@ -97,6 +104,7 @@ def generate_launch_description():
             hardware_protocol_arg,
             load_gazebo_arg,
             load_rviz_arg,
+            moveit_arg,
             env_gazebo_package_arg,
             full_world_name_arg,
             test_camera_arg,

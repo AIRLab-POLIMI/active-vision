@@ -3,6 +3,8 @@ frames:
   base_frame_id: "igus_rebel_base_link"
   realsense_frame_id: "container_realsense_link"
   realsense_base_frame_id: "camera_color_optical_frame"
+  gazebo_ignition_camera_frame_id: "igus_rebel/link_8/depth_camera"
+  realsense_camera_frame_id: "camera_color_optical_frame"
 
 topics:
   gazebo_ignition_input_data:
@@ -11,9 +13,9 @@ topics:
     rgb_image_topic: "/virtual_camera_link/rgbd_camera/image_raw"
 
   realsense_input_data:
-    depth_image_topic: "/camera/aligned_depth_to_color/image_raw"
-    depth_image_camera_info_topic: "/camera/aligned_depth_to_color/camera_info"
-    rgb_image_topic: "/camera/color/image_raw"
+    depth_image_topic: "/camera/camera/aligned_depth_to_color/image_raw"
+    depth_image_camera_info_topic: "/camera/camera/aligned_depth_to_color/camera_info"
+    rgb_image_topic: "/camera/camera/color/image_raw"
   
   segmentation:
     color_filter:

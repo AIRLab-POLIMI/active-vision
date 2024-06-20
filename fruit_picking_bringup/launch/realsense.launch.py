@@ -119,7 +119,7 @@ def launch_setup(context, *args, **kwargs):
                 "-p", "optional_imu_frame:=realsense_optical_link",
                 "-p", "fixed_frame:=container_realsense_link",
                 "-p", "world_frame:=ned", # enu , ned
-                "-r", "/imu/data_raw:=/camera/imu"
+                "-r", "/imu/data_raw:=/camera/camera/imu"
 
         ],
     )

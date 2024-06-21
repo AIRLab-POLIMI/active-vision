@@ -26,15 +26,23 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(PCL 1.10 REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(moveit_core REQUIRED)
+find_package(moveit_kinematics REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(moveit_visual_tools REQUIRED)
+find_package(mobile_manipulation_interfaces REQUIRED)
+find_package(igus_rebel_gripper_controller REQUIRED)
+find_package(moveit2_api REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(pcl_conversions REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(octomap REQUIRED)
 find_package(octomap_msgs REQUIRED)
@@ -46,7 +54,6 @@ find_package(fruit_picking_interfaces REQUIRED)
 find_package(fruit_picking_octomap REQUIRED)
 find_package(fruit_picking_pointcloud REQUIRED)
 find_package(depth_image_proc REQUIRED)
-find_package(cv_bridge REQUIRED)
 
 include_directories(include)
 
@@ -56,6 +63,7 @@ include_directories(include)
 add_executable(main_nbv_pipeline src/main_nbv_pipeline.cpp src/nbv_pipeline.cpp)
 ament_target_dependencies(main_nbv_pipeline
   rclcpp
+  rclcpp_components
   PCL
   pcl_conversions
   sensor_msgs
@@ -64,20 +72,28 @@ ament_target_dependencies(main_nbv_pipeline
   nav_msgs
   visualization_msgs
   geometry_msgs
-  std_srvs
+  cv_bridge
+  pluginlib
+  moveit_core
+  moveit_kinematics
+  moveit_ros_planning_interface
+  moveit_visual_tools
+  mobile_manipulation_interfaces
+  igus_rebel_gripper_controller
+  moveit2_api
+  OPENMP
+  message_filters
   octomap
   octomap_msgs
-  message_filters
+  tf2
   tf2_ros
   tf2_msgs
-  tf2
   tf2_geometry_msgs
   rclcpp_components
   fruit_picking_interfaces
   fruit_picking_octomap
   fruit_picking_pointcloud
   depth_image_proc
-  cv_bridge
   )
 
 # In order to let ros2 find the executable

@@ -61,6 +61,13 @@ def generate_launch_description():
         description="Whether or not Gazebo Ignition is used",
     )
 
+    moveit_arg = DeclareLaunchArgument(
+        name="moveit",
+        default_value="true",
+        choices=["true", "false"],
+        description="Whether or not Moveit need to be executed",
+    )
+
     env_gazebo_package_arg = DeclareLaunchArgument(
         name="env_gazebo_package",
         default_value="fruit_picking_gazebo_ignition",
@@ -103,6 +110,7 @@ def generate_launch_description():
             end_effector_arg,
             hardware_protocol_arg,
             load_gazebo_arg,
+            moveit_arg,
             env_gazebo_package_arg,
             full_world_name_arg,
             run_robot_moveit_arg,
@@ -146,8 +154,12 @@ def launch_setup(context, *args, **kwargs):
     if LaunchConfiguration("load_gazebo").perform(context) == 'true':
         frame_id = config_yaml['frames']['frame_id']
         base_frame_id = config_yaml['frames']['base_frame_id']
+        camera_frame_id = config_yaml['frames']['gazebo_ignition_camera_frame_id']
+
     else:
         if LaunchConfiguration("test_camera").perform(context) == 'false':
+            if LaunchConfiguration("camera").perform(context) == 'realsense':
+                camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
             frame_id = config_yaml['frames']['base_frame_id']
             base_frame_id = config_yaml['frames']['base_frame_id']
         else:
@@ -220,6 +232,7 @@ def launch_setup(context, *args, **kwargs):
                     "depth_image_camera_info_topic": depth_image_camera_info_topic,
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
+                    "camera_frame": camera_frame_id,
                     "centralized_architecture": config_yaml['launch']['nbv']['centralized_architecture']
                 },
                 **config_yaml['launch']['nbv']['nbv_pipeline_launch'],

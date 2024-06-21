@@ -2,10 +2,13 @@
 #ifndef _NBV_PIPELINE_HPP_
 #define _NBV_PIPELINE_HPP_
 
+#include <moveit2_apis.hpp>
 #include <fruit_picking_pointcloud/full_pointcloud.hpp>
 #include <fruit_picking_pointcloud/segmented_pointcloud.hpp>
 #include <fruit_picking_octomap/extended_octomap_server.hpp>
 #include <fruit_picking_interfaces/srv/yolo_world_segmentation.hpp>
+
+
 
 // Definitions
 using Image = sensor_msgs::msg::Image;
@@ -28,6 +31,7 @@ namespace nbv_pipeline{
     protected:
 
         // Variables for saving nodes
+        std::shared_ptr<MoveIt2APIs> MoveIt2API_node_;
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_node_;
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_node_;
         std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_node_;
@@ -99,6 +103,7 @@ namespace nbv_pipeline{
     public:
 
         NBVPipeline(
+            std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
             std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
             std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
             std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,

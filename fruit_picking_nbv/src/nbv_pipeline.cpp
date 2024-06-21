@@ -4,6 +4,7 @@ namespace nbv_pipeline{
     
     // Constructor
     NBVPipeline::NBVPipeline(
+        std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
         std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
@@ -16,6 +17,7 @@ namespace nbv_pipeline{
         RCLCPP_INFO(this->get_logger(), "NBV pipeline constructor started.");
 
         // Read arguments and save the node into some variables
+        MoveIt2API_node_ = MoveIt2API_creator;
         pointcloud_node_ = pointcloud_creator;
         segmented_pointcloud_node_ = segmented_pointcloud_creator;
         extended_octomap_node_ = extended_octomap_creator;
@@ -29,9 +31,14 @@ namespace nbv_pipeline{
         nms_confidence_threshold_ = this->declare_parameter<float>("nms_threshold", 0.2);
         usePartialPointcloud_ = this->declare_parameter("partial_pointcloud_subscription", true); 
 
+        RCLCPP_INFO(this->get_logger(), "Parameters and arguments initialized..");
+
+
 
         // Initialize segmentation service
         this->client_ = client_node_->create_client<fruit_picking_interfaces::srv::YOLOWorldSegmentation>("/yolo_world_service");
+        RCLCPP_INFO(this->get_logger(), "Segmentation client initialized..");
+
 
         // Initialize segmented image visualization publisher
         segmentedImagePub_ = create_publisher<Image>("/visualization/yolo_world_segmented_image", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
@@ -39,14 +46,12 @@ namespace nbv_pipeline{
         // Initialize full and segmented pointcloud visualization publisherrclcpp::SensorDataQoS()
         segmentedPointcloudPub_ = create_publisher<PointCloud2>("/visualization/segmented_pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
 
-
         // Initialize extended octomap visualization publishers
         extended_octomap_node_->createVisualizations();
 
+        RCLCPP_INFO(this->get_logger(), "Segmented and octomap visual tools initialized.");
 
-        // Move to initial position
         
-
     }
 
 
@@ -134,6 +139,13 @@ namespace nbv_pipeline{
         RCLCPP_INFO(this->get_logger(), "NBV pipeline started.");
         // set the rate for the main thread
 	    rclcpp::Rate rate(15);
+
+
+        // Move to the initial position
+        RCLCPP_INFO(this->get_logger(), "Moving to initial position..");
+        const std::array<double, 6> initial_pose = {M_PI / 3.0, -M_PI / 3.0, 90.0 * M_PI / 180.0, 0.0, M_PI_2, 0.0};
+	    MoveIt2API_node_->robotPlanAndMove(initial_pose);
+        RCLCPP_INFO(this->get_logger(), "Initial position reached.");
 
 
         // Wait for user input to start the pipeline with a service

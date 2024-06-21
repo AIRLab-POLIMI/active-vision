@@ -16,9 +16,14 @@ import yaml
 from ament_index_python.packages import get_package_share_directory
 import os
 
+from moveit_launch import moveit_loader
+
+
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument('camera_frame', default_value='igus_rebel/link_8/depth_camera'), # for moveit2_api
+        DeclareLaunchArgument('load_base', default_value='False'), # for moveit2_api
         DeclareLaunchArgument('segmentation_prompt', default_value='tomato'),
         DeclareLaunchArgument('confidence_threshold', default_value='0.001'),
         DeclareLaunchArgument('nms_threshold', default_value='0.2'),
@@ -92,8 +97,10 @@ def generate_launch_description():
                     ('semantic_class_cells_vis', 'visualization/semantic_class_cells_vis'),
                     ('instances_cells_vis', 'visualization/instances_cells_vis'),
                 ],
-        parameters=[
+        parameters=moveit_loader.load_moveit(with_sensors3d=False) + [
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
+            "camera_frame": LaunchConfiguration("camera_frame"),
+            "load_base": LaunchConfiguration("load_base"),
             "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),
             "confidence_threshold": LaunchConfiguration("confidence_threshold"),
             "nms_threshold": LaunchConfiguration("nms_threshold"),

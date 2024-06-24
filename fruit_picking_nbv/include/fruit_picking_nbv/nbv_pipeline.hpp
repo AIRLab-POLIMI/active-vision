@@ -7,6 +7,7 @@
 #include <fruit_picking_pointcloud/segmented_pointcloud.hpp>
 #include <fruit_picking_octomap/extended_octomap_server.hpp>
 #include <fruit_picking_interfaces/srv/yolo_world_segmentation.hpp>
+#include <yaml-cpp/yaml.h>
 
 
 
@@ -55,6 +56,7 @@ namespace nbv_pipeline{
         Image::ConstSharedPtr current_depth_msg_;
         CameraInfo::ConstSharedPtr current_camera_info_msg_;
         std::string frame_id_;
+        std::string base_frame_id_;
         std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
         std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
         geometry_msgs::msg::TransformStamped::ConstSharedPtr current_tf_;
@@ -78,8 +80,6 @@ namespace nbv_pipeline{
         rclcpp::Publisher<PointCloud2>::SharedPtr segmentedPointcloudPub_;
 
 
-
-
         // Variable specifing to use the full pointcloud or a partial
         bool usePartialPointcloud_;
 
@@ -90,6 +90,12 @@ namespace nbv_pipeline{
         std::shared_ptr<PointcloudArray> segmentedPointcloudArray_;
 
 
+        // Moveit2 variables
+
+        // Vector containing the inital pose and the planning poses, in joint and cartesian space
+        std::vector<std::array<double, 6>> ZigZagPlanningPoses_;
+        std::vector<Eigen::Isometry3d> ZigZagCartesianPlanningPoses_;
+
         // Function that create the data subscriber
         void createDataSub();
 
@@ -98,6 +104,9 @@ namespace nbv_pipeline{
             const Image::ConstSharedPtr & rgb_msg,
             const Image::ConstSharedPtr & depth_msg,
             const CameraInfo::ConstSharedPtr & camera_info_msg);
+
+        // Function that creates a vector of planned positions
+        std::vector<std::array<double, 6>> createZigZagPlanningPoses();
 
 
     public:

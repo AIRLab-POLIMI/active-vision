@@ -104,7 +104,7 @@ install(TARGETS
 
 # In order to let ros2 find the folders
 install( 
-  DIRECTORY include launch src
+  DIRECTORY include launch src config
   DESTINATION share/${PROJECT_NAME}
 )
 

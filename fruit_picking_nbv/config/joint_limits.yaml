@@ -1,0 +1,18 @@
+joint_1:
+  min: -180.0
+  max: 180.0
+joint_2:
+  min: -80.0
+  max: 140.0
+joint_3:
+  min: -80.0 
+  max: 140.0
+joint_4:
+  min: -180.0 
+  max: 180.0
+joint_5:
+  min: -90.0 
+  max: 90.0
+joint_6:
+  min: -180.0 
+  max: 180.0

@@ -98,13 +98,28 @@ class YOLOWorldNode(Node):
 
 
         # Load Efficient SAM model and annotators
+        efficient_sam_path = f"../michelelagreca/Documents/robotics/models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
+        efficient_sam_path_alternative = f"../models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
+
         self.get_logger().info(
-            f"[INIT] Loading Efficient SAM model ({self._efficient_SAM_model_type}) and annotators. This may take some time..."
+            f"[INIT] Loading Efficient SAM model ({self._efficient_SAM_model_type}) and annotators from folder {efficient_sam_path} This may take some time..."
         )
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
-        self._sam = EfficientViTSamPredictor(
-            create_sam_model(name=self._efficient_SAM_model_type, weight_url=f"../models/efficient_SAM_{self._efficient_SAM_model_type}.pt").to(self._device).eval()
-        )
+        try:
+            self._sam = EfficientViTSamPredictor(
+                create_sam_model(name=self._efficient_SAM_model_type, weight_url=efficient_sam_path).to(self._device).eval()
+            )
+        except Exception as e:
+            self.get_logger().warn(f"{e}")           
+            self.get_logger().warn(f"[INIT] Failed to load the model. Trying from folder {efficient_sam_path_alternative}")
+            try:
+                # Attempt with an alternative path or retry the operation
+                self._sam = EfficientViTSamPredictor(
+                    create_sam_model(name=self._efficient_SAM_model_type, weight_url=efficient_sam_path_alternative).to(self._device).eval()
+                )
+            except Exception as e:
+                self.get_logger().warn(f"{e}")           
+                raise RuntimeError("[INIT] Failed to load the model.")
 
         self._MASK_ANNOTATOR = sv.MaskAnnotator()
 

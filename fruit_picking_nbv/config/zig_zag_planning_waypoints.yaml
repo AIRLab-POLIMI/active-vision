@@ -1,3 +1,5 @@
+# This file contains 8 planning waypoints that create a zig zag trajectory with a wide exploration area
+
 pose_1:
   joint_1: -75.0
   joint_2: 30.0

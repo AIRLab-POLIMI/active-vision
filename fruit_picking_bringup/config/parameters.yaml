@@ -319,7 +319,7 @@ launch:
 
     nbv_pipeline_launch:
       # Planning
-      predefined_planning: "zig_zag_planning_narrow" #zig_zag_planning_narrow, zig_zag_planning_wide, square_planning_wide, square_planning_narrow
+      predefined_planning: "square_plane_narrow_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
       # Segmentation
       segmentation_prompt: "tomato" 
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001

@@ -374,16 +374,11 @@ namespace nbv_pipeline{
 
         // Load yaml configuration files
         std::string package_path = ament_index_cpp::get_package_share_directory("fruit_picking_nbv");
-        std::string predefined_planning_yaml_config_file_path = "/config/" + predefinedPlanning_ + "_waypoints.yaml";
-        YAML::Node initial_position = YAML::LoadFile(package_path + "/config/initial_position.yaml");
         YAML::Node joint_limits = YAML::LoadFile(package_path + "/config/joint_limits.yaml");
-        YAML::Node planning_waypoints = YAML::LoadFile(package_path + predefined_planning_yaml_config_file_path);
+        YAML::Node planning_waypoints = YAML::LoadFile(package_path + "/config/predefined_planning_waypoints.yaml");
 
 
         // Check if the file was loaded successfully
-        if (initial_position.IsNull()) {
-            throw std::runtime_error("Failed to load initial position config file.");
-        }
         if (joint_limits.IsNull()) {
             throw std::runtime_error("Failed to load joint limits config file.");
         }
@@ -407,22 +402,8 @@ namespace nbv_pipeline{
         }
 
 
-        // Calculate initial pose based on the initial_position configuration
-        std::array<double, 6> initial_pose;
-        for (int i = 0; i < 6; ++i) {
-            std::string joint_key = "joint_" + std::to_string(i + 1);
-            float joint_value = initial_position[predefinedPlanning_][joint_key].as<float>();
-            if (joint_value < 0) {
-                initial_pose[i] = min_rad[i] * joint_value / min_deg[i];
-            } else {
-                initial_pose[i] = max_rad[i] * joint_value / max_deg[i];
-            }
-        }
-        poses.push_back(initial_pose);
-
-
         // Calculate all the planning position based in the planning_waypoints configuration
-        for (auto it = planning_waypoints.begin(); it != planning_waypoints.end(); ++it) {
+        for (auto it = planning_waypoints[predefinedPlanning_].begin(); it != planning_waypoints[predefinedPlanning_].end(); ++it) {
             // Each position now refers to one of the positions in the YAML
             auto future_position = it->second; // Assuming the structure is a map or similar
 

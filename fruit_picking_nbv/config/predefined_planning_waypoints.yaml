@@ -1,0 +1,377 @@
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+
+zig_zag_plane_wide_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0
+  
+  pose_1:
+    joint_1: -75.0
+    joint_2: 30.0
+    joint_3: 4.0
+    joint_4: 77.0
+    joint_5: 81.0
+    joint_6: -33.0
+
+  pose_2:
+    joint_1: 73
+    joint_2: 5.0
+    joint_3: 56.0
+    joint_4: -83.0
+    joint_5: 76.0
+    joint_6: 61.0
+
+  pose_3:
+    joint_1: -75.0
+    joint_2: 1.0
+    joint_3: 70.0
+    joint_4: 85.0
+    joint_5: 75.0
+    joint_6: -70.0
+
+  pose_4:
+    joint_1: 72.0
+    joint_2: -4.0
+    joint_3: 86.0
+    joint_4: -88.0
+    joint_5: 74.0
+    joint_6: 82.0
+
+  pose_5:
+    joint_1: -75.0
+    joint_2: -3.0
+    joint_3: 97.0
+    joint_4: 92.0
+    joint_5: 74.0
+    joint_6: -94.0
+
+  pose_6:
+    joint_1: 72.0
+    joint_2: -3.0
+    joint_3: 106.0
+    joint_4: -94.0
+    joint_5: 74.0
+    joint_6: 104.0
+
+  pose_7:
+    joint_1: -75.0
+    joint_2: 5.0
+    joint_3: 113.0
+    joint_4: 98.0
+    joint_5: 76.0
+    joint_6: -119.0
+
+  pose_8:
+    joint_1: 72.0
+    joint_2: 10.0
+    joint_3: 116.0
+    joint_4: -100.0
+    joint_5: 77.0
+    joint_6: 128.0
+
+
+
+zig_zag_plane_narrow_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0
+  
+  pose_1:
+    joint_1: -65.0
+    joint_2: 19.0
+    joint_3: 1.0
+    joint_4: 66.0
+    joint_5: 82.0
+    joint_6: -18.0
+
+  pose_2:
+    joint_1: 64.0
+    joint_2: -7.0
+    joint_3: 50.0
+    joint_4: -70.0
+    joint_5: 73.0
+    joint_6: 40.0
+
+  pose_3:
+    joint_1: -65.0
+    joint_2: -14.0
+    joint_3: 66.0
+    joint_4: 74.0
+    joint_5: 70.0
+    joint_6: -49.0
+
+  pose_4:
+    joint_1: 64.0
+    joint_2: -23.0
+    joint_3: 87.0
+    joint_4: -78.0
+    joint_5: 68.0
+    joint_6: 61.0
+
+  pose_5:
+    joint_1: -65.0
+    joint_2: -26.0
+    joint_3: 96.0
+    joint_4: 81.0
+    joint_5: 66.0
+    joint_6: -68.0
+
+  pose_6:
+    joint_1: 64.0
+    joint_2: -31.0
+    joint_3: 113.0
+    joint_4: -86.0
+    joint_5: 65.0
+    joint_6: 81.0
+
+  pose_7:
+    joint_1: -65.0
+    joint_2: -30.0
+    joint_3: 118.0
+    joint_4: 89.0
+    joint_5: 65.0
+    joint_6: -87.0
+
+  pose_8:
+    joint_1: 65.0
+    joint_2: -30.0
+    joint_3: 133.0
+    joint_4: -96.0
+    joint_5: 66.0
+    joint_6: 105.0
+
+
+
+zig_zag_curve_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0
+
+  pose_1:
+    joint_1: -63.0
+    joint_2: 32.0
+    joint_3: 4.0
+    joint_4: 89.0
+    joint_5: 89.0
+    joint_6: -36.0
+
+  pose_2:
+    joint_1: 0.0
+    joint_2: -44.0
+    joint_3: 75.0
+    joint_4: 0.0
+    joint_5: 59.0
+    joint_6: 0.0
+
+  pose_3:
+    joint_1: 63.0
+    joint_2: 13.0
+    joint_3: 41.0
+    joint_4: -89.0
+    joint_5: 89.0
+    joint_6: 55.0
+
+  pose_4:
+    joint_1: 0.0
+    joint_2: -53.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 53.0
+    joint_6: 0.0
+
+  pose_5:
+    joint_1: -63.0
+    joint_2: 7.0
+    joint_3: 60.0
+    joint_4: 89.0
+    joint_5: 89.0
+    joint_6: -67.0
+
+  pose_6:
+    joint_1: 0.0
+    joint_2: -63.0
+    joint_3: 105.0
+    joint_4: 0.0
+    joint_5: 47.0
+    joint_6: 0.0
+
+  pose_7:
+    joint_1: 63.0
+    joint_2: 3.0
+    joint_3: 73.0
+    joint_4: -90.0
+    joint_5: 89.0
+    joint_6: 75.0
+
+  pose_8:
+    joint_1: 0.0
+    joint_2: -71.0
+    joint_3: 117.0
+    joint_4: 0.0
+    joint_5: 44.0
+    joint_6: 0.0
+
+  pose_9:
+    joint_1: -63.0
+    joint_2: 2.0
+    joint_3: 84.0
+    joint_4: 90.0
+    joint_5: 89.0
+    joint_6: -86.0
+
+  pose_10:
+    joint_1: 0.0
+    joint_2: -79.0
+    joint_3: 128.0
+    joint_4: 0.0
+    joint_5: 41.0
+    joint_6: 0.0
+
+  pose_11:
+    joint_1: 63.0
+    joint_2: 0.0
+    joint_3: 93.0
+    joint_4: -90.0
+    joint_5: 89.0
+    joint_6: 93.0
+
+  pose_12:
+    joint_1: 0.0
+    joint_2: -79.0
+    joint_3: 128.0
+    joint_4: 0.0
+    joint_5: 41.0
+    joint_6: 0.0
+
+  pose_13:
+    joint_1: -63.0
+    joint_2: 4.0
+    joint_3: 101.0
+    joint_4: 90.0
+    joint_5: 89.0
+    joint_6: -104.0
+
+  pose_14:
+    joint_1: 0.0
+    joint_2: -79.0
+    joint_3: 128.0
+    joint_4: 0.0
+    joint_5: 41.0
+    joint_6: 0.0
+
+  pose_15:
+    joint_1: 63.0
+    joint_2: 5.0
+    joint_3: 107.0
+    joint_4: -90.0
+    joint_5: 89.0
+    joint_6: 112.0
+
+
+
+square_plane_wide_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0
+
+  pose_1:
+    joint_1: -75.0
+    joint_2: 30.0
+    joint_3: 4.0
+    joint_4: 77.0
+    joint_5: 81.0
+    joint_6: -33.0
+
+  pose_2:
+    joint_1: -75.0
+    joint_2: 5.0
+    joint_3: 113.0
+    joint_4: 98.0
+    joint_5: 76.0
+    joint_6: -119.0
+
+  pose_3:
+    joint_1: 73.0
+    joint_2: 4.0
+    joint_3: 115.0
+    joint_4: 81.0
+    joint_5: -76.0
+    joint_6: -61.0
+
+  pose_4:
+    joint_1: 73.0
+    joint_2: 24.0
+    joint_3: 14.0
+    joint_4: -77.0
+    joint_5: 80.0
+    joint_6: 37.0
+
+
+
+square_plane_narrow_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0
+
+  pose_1:
+    joint_1: -64.0
+    joint_2: -8.0
+    joint_3: 51.0
+    joint_4: 70.0
+    joint_5: 72.0
+    joint_6: -40.0
+
+  pose_2:
+    joint_1: -64.0
+    joint_2: -32.0
+    joint_3: 123.0
+    joint_4: 91.0
+    joint_5: 63.0
+    joint_6: -92.0
+
+  pose_3:
+    joint_1: 64.0
+    joint_2: -31.0
+    joint_3: 122.0
+    joint_4: -90.0
+    joint_5: 65.0
+    joint_6: 92.0
+
+  pose_4:
+    joint_1: 64.0
+    joint_2: -7.0
+    joint_3: 51.0
+    joint_4: -71.0
+    joint_5: 73.0
+    joint_6: 41.0
+    
+
+
+nbv_waypoints:
+  initial_position:
+    joint_1: 0.0
+    joint_2: -40.0
+    joint_3: 90.0
+    joint_4: 0.0
+    joint_5: 40.0
+    joint_6: 0.0

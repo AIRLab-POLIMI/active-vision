@@ -44,8 +44,14 @@
 
         
         <include>
-            <uri>tomato_0</uri>
-            <name>tomato_0</name>
+            <uri>tomato_obfuscated</uri>
+            <name>tomato_obfuscated</name>
+            <pose>0.0 -0.9 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>tomato_obfuscated_small_green</uri>
+            <name>tomato_obfuscated_small_green</name>
             <pose>0.0 0.0 0 0 0 0</pose>
         </include>
         

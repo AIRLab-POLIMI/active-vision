@@ -13,8 +13,8 @@ namespace nbv_pipeline{
         const std::string node_name): 
         Node(node_name, options)
     {
-        RCLCPP_INFO(this->get_logger(), "---------------------------------------");
-        RCLCPP_INFO(this->get_logger(), "NBV pipeline constructor started.");
+        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+        RCLCPP_INFO(this->get_logger(), "Predefined planning pipeline constructor started.");
 
 
         // Read arguments and save the node into some variables
@@ -32,6 +32,7 @@ namespace nbv_pipeline{
         confidence_threshold_ = this->declare_parameter<float>("confidence_threshold", 0.001);
         nms_confidence_threshold_ = this->declare_parameter<float>("nms_threshold", 0.2);
         usePartialPointcloud_ = this->declare_parameter("partial_pointcloud_subscription", true); 
+        predefinedPlanning_ = this->declare_parameter("predefined_planning", "zig_zag_planning_wide");
 
         RCLCPP_INFO(this->get_logger(), "Parameters and arguments initialized..");
 
@@ -56,9 +57,9 @@ namespace nbv_pipeline{
 
 
         // Initialize Moveit2 variables
-        ZigZagPlanningPoses_ = createZigZagPlanningPoses();
-        ZigZagCartesianPlanningPoses_= std::vector<Eigen::Isometry3d>(ZigZagPlanningPoses_.size());
-        RCLCPP_INFO(this->get_logger(), "Initial position and zig zag planning positions created.");        
+        PlanningPoses_ = createPlanningPoses();
+        CartesianPlanningPoses_= std::vector<Eigen::Isometry3d>(PlanningPoses_.size());
+        RCLCPP_INFO(this->get_logger(), "Initial position and %s positions created.", predefinedPlanning_.c_str());        
 
         
     }
@@ -84,10 +85,10 @@ namespace nbv_pipeline{
             tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
         } catch (const std::exception& e) {
             // This will catch standard exceptions
-            RCLCPP_ERROR(this->get_logger(), "[NBV][createDataSub] %s",e.what());
+            RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][createDataSub] %s",e.what());
         } catch (...) {
             // This will catch all other exceptions
-            RCLCPP_ERROR(this->get_logger(), "[NBV][createDataSub] Generic error.");
+            RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][createDataSub] Generic error.");
         }        
     }
 
@@ -120,14 +121,14 @@ namespace nbv_pipeline{
             }
             
         } catch (tf2::TransformException &ex) {
-            RCLCPP_WARN(this->get_logger(), "[NBV][saveData] Could not transform %s to %s: %s", target_frame.c_str(), camera_info_msg->header.frame_id.c_str(), ex.what());
+            RCLCPP_WARN(this->get_logger(), "[PredefinedPlanning][saveData] Could not transform %s to %s: %s", target_frame.c_str(), camera_info_msg->header.frame_id.c_str(), ex.what());
             return;
         } catch (const std::exception& e) {
             // This will catch standard exceptions
-            RCLCPP_ERROR(this->get_logger(), "[NBV][saveData] %s",e.what());
+            RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][saveData] %s",e.what());
         } catch (...) {
             // This will catch all other exceptions
-            RCLCPP_ERROR(this->get_logger(), "[NBV][saveData] Generic error.");
+            RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][saveData] Generic error.");
         } 
         // Used to tell the main function that is time to execute
         data_received_ = true;
@@ -147,9 +148,10 @@ namespace nbv_pipeline{
 
     void NBVPipeline::NBVPipelineThread(){
         
-        RCLCPP_INFO(this->get_logger(), "---------------------------------------");
-        RCLCPP_INFO(this->get_logger(), "---------------------------------------");
-        RCLCPP_INFO(this->get_logger(), "NBV pipeline started.");
+        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+        RCLCPP_INFO(this->get_logger(), "Predefined planning pipeline started.");
+        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
         // set the rate for the main thread
 	    rclcpp::Rate rate(15);
 
@@ -160,8 +162,8 @@ namespace nbv_pipeline{
         RCLCPP_INFO(this->get_logger(), "Visualize planning viewpoints..");
 
         // Create a vector with all the position names
-        std::vector<std::string> positions_names(ZigZagPlanningPoses_.size());
-        for (size_t i = 0; i < ZigZagPlanningPoses_.size(); ++i) {
+        std::vector<std::string> positions_names(PlanningPoses_.size());
+        for (size_t i = 0; i < PlanningPoses_.size(); ++i) {
             if (i == 0){
                 positions_names[i] = "initial_position";
             }
@@ -172,9 +174,9 @@ namespace nbv_pipeline{
         // Set the fixed frame id of the visualization
         MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
         // For each pose, get the cartesian pose and publish a marker on it
-        for (size_t i = 0; i < ZigZagPlanningPoses_.size(); ++i){
-            ZigZagCartesianPlanningPoses_[i] = MoveIt2API_node_->fromJointSpaceGoalToCartesianPose(ZigZagPlanningPoses_[i]);
-            MoveIt2API_node_->visual_tools->publishAxisLabeled(ZigZagCartesianPlanningPoses_[i], positions_names[i], rviz_visual_tools::MEDIUM, rviz_visual_tools::GREEN);
+        for (size_t i = 0; i < PlanningPoses_.size(); ++i){
+            CartesianPlanningPoses_[i] = MoveIt2API_node_->fromJointSpaceGoalToCartesianPose(PlanningPoses_[i]);
+            MoveIt2API_node_->visual_tools->publishAxisLabeled(CartesianPlanningPoses_[i], positions_names[i], rviz_visual_tools::MEDIUM, rviz_visual_tools::GREEN);
         }
         MoveIt2API_node_->visual_tools->trigger();
 
@@ -183,7 +185,7 @@ namespace nbv_pipeline{
 
         // Move to the initial position
         RCLCPP_INFO(this->get_logger(), "Moving to initial position..");
-	    bool valid_motion = MoveIt2API_node_->robotPlanAndMove(ZigZagPlanningPoses_[0], "initial_position");
+	    bool valid_motion = MoveIt2API_node_->robotPlanAndMove(PlanningPoses_[0], "initial_position");
         if (!valid_motion) {
 			RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
 			return;
@@ -201,24 +203,25 @@ namespace nbv_pipeline{
 
         // Create a loop that will end when there are not new positions to move to
         // Start from the second element because the first is the first position
-        for (size_t i = 1; i < ZigZagPlanningPoses_.size(); ++i) {
+        for (size_t i = 1; i < PlanningPoses_.size(); ++i) {
 
-            RCLCPP_INFO(this->get_logger(), "---------------------------------------");
-            RCLCPP_INFO(this->get_logger(), "---------------------------------------");
-            RCLCPP_INFO(this->get_logger(), "NBV pipeline step started.");
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "Predefined planning pipeline step started.");
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
 
 
             // Move to the next position
             RCLCPP_INFO(this->get_logger(), "Moving to position %zu...", i);
             RCLCPP_INFO(this->get_logger(), "Translation: [%f, %f, %f], Rotation (Quaternion): [%f, %f, %f, %f]", 
-                ZigZagCartesianPlanningPoses_[i].translation().x(), 
-                ZigZagCartesianPlanningPoses_[i].translation().y(), 
-                ZigZagCartesianPlanningPoses_[i].translation().z(), 
-                Eigen::Quaterniond(ZigZagCartesianPlanningPoses_[i].rotation()).x(), 
-                Eigen::Quaterniond(ZigZagCartesianPlanningPoses_[i].rotation()).y(), 
-                Eigen::Quaterniond(ZigZagCartesianPlanningPoses_[i].rotation()).z(), 
-                Eigen::Quaterniond(ZigZagCartesianPlanningPoses_[i].rotation()).w());
-            valid_motion = MoveIt2API_node_->robotPlanAndMove(ZigZagPlanningPoses_[i], positions_names[i]);
+                CartesianPlanningPoses_[i].translation().x(), 
+                CartesianPlanningPoses_[i].translation().y(), 
+                CartesianPlanningPoses_[i].translation().z(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).x(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).y(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).z(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).w());
+            valid_motion = MoveIt2API_node_->robotPlanAndMove(PlanningPoses_[i], positions_names[i]);
             if (!valid_motion) {
                 RCLCPP_ERROR(this->get_logger(), "Could not move to position %zu.", i);
                 return;
@@ -236,7 +239,7 @@ namespace nbv_pipeline{
             data_received_ = false; // Reset the flag
 
             // Ontain data to send it to the segmentation server
-            RCLCPP_INFO(this->get_logger(), "---------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
             RCLCPP_INFO(this->get_logger(), "Getting data from subscriber...");
 
             Image::ConstSharedPtr working_rgb_msg;
@@ -288,9 +291,8 @@ namespace nbv_pipeline{
                 masks_images_array_ = std::make_shared<const ImageArray>(response->masks_images_array);
                 merged_masks_image_ = std::make_shared<const Image>(response->merged_masks_images);
                 confidences_ = std::make_shared<const Confidence>(response->confidences);
-
-                RCLCPP_INFO(this->get_logger(), "Response obtained.");
-            
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+                RCLCPP_INFO(this->get_logger(), "Segmentation response obtained.");
             }
 
 
@@ -298,13 +300,10 @@ namespace nbv_pipeline{
             segmentedImagePub_->publish(*merged_masks_image_);
 
 
-            // Introduce a delay
-            //rclcpp::sleep_for(std::chrono::milliseconds(2000));
-
-
 
             // Create full and segmented pointcloud
             if (usePartialPointcloud_){
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
                 RCLCPP_INFO(this->get_logger(), "Creating partial pointcloud...");
                 partialPointcloud_ = segmented_pointcloud_node_->imageCb(
                     working_depth_msg, 
@@ -312,6 +311,7 @@ namespace nbv_pipeline{
                     working_camera_info_msg);
             } 
             else {
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
                 RCLCPP_INFO(this->get_logger(), "Creating full pointcloud...");
                 fullPointcloud_ = pointcloud_node_->imageCb(
                     working_depth_msg, 
@@ -340,6 +340,7 @@ namespace nbv_pipeline{
 
 
             // Update octomap and publish visualization
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
             RCLCPP_INFO(this->get_logger(), "Updating octomap...");
             if (usePartialPointcloud_){
                 extended_octomap_node_->insertPartialCloudCallback(partialPointcloud_, working_tf);
@@ -353,14 +354,14 @@ namespace nbv_pipeline{
 
 
 
-
-            RCLCPP_WARN(this->get_logger(), "NBV pipeline step terminated.");
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_WARN(this->get_logger(), "Predefined planning pipeline step terminated.");
 
 
         }
 
-        RCLCPP_WARN(this->get_logger(), "NBV pipeline terminated.");
-        RCLCPP_WARN(this->get_logger(), "---------------------------------------");
+        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+        RCLCPP_WARN(this->get_logger(), "Predefined planning pipeline terminated.");
 
 
     }
@@ -368,25 +369,26 @@ namespace nbv_pipeline{
 
 
 
-    std::vector<std::array<double, 6>> NBVPipeline::createZigZagPlanningPoses(){
+    std::vector<std::array<double, 6>> NBVPipeline::createPlanningPoses(){
 
 
         // Load yaml configuration files
         std::string package_path = ament_index_cpp::get_package_share_directory("fruit_picking_nbv");
+        std::string predefined_planning_yaml_config_file_path = "/config/" + predefinedPlanning_ + "_waypoints.yaml";
         YAML::Node initial_position = YAML::LoadFile(package_path + "/config/initial_position.yaml");
         YAML::Node joint_limits = YAML::LoadFile(package_path + "/config/joint_limits.yaml");
-        YAML::Node zig_zag_planning_waypoints = YAML::LoadFile(package_path + "/config/zig_zag_planning_waypoints.yaml");
+        YAML::Node planning_waypoints = YAML::LoadFile(package_path + predefined_planning_yaml_config_file_path);
 
 
         // Check if the file was loaded successfully
         if (initial_position.IsNull()) {
-            throw std::runtime_error("Failed to load initial_position.yaml config file.");
+            throw std::runtime_error("Failed to load initial position config file.");
         }
         if (joint_limits.IsNull()) {
-            throw std::runtime_error("Failed to load joint_limits.yaml config file.");
+            throw std::runtime_error("Failed to load joint limits config file.");
         }
-        if (zig_zag_planning_waypoints.IsNull()) {
-            throw std::runtime_error("Failed to load zig_zag_planning_waypoints.yaml config file.");
+        if (planning_waypoints.IsNull()) {
+            throw std::runtime_error("Failed to load planning waypoints config file.");
         }
 
 
@@ -409,7 +411,7 @@ namespace nbv_pipeline{
         std::array<double, 6> initial_pose;
         for (int i = 0; i < 6; ++i) {
             std::string joint_key = "joint_" + std::to_string(i + 1);
-            float joint_value = initial_position["zig_zag_planning"][joint_key].as<float>();
+            float joint_value = initial_position[predefinedPlanning_][joint_key].as<float>();
             if (joint_value < 0) {
                 initial_pose[i] = min_rad[i] * joint_value / min_deg[i];
             } else {
@@ -419,8 +421,8 @@ namespace nbv_pipeline{
         poses.push_back(initial_pose);
 
 
-        // Calculate all the zig zag planning pose based in the zig_zag_planning_waypoints configuration
-        for (auto it = zig_zag_planning_waypoints.begin(); it != zig_zag_planning_waypoints.end(); ++it) {
+        // Calculate all the planning position based in the planning_waypoints configuration
+        for (auto it = planning_waypoints.begin(); it != planning_waypoints.end(); ++it) {
             // Each position now refers to one of the positions in the YAML
             auto future_position = it->second; // Assuming the structure is a map or similar
 

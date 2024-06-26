@@ -91,10 +91,10 @@ namespace nbv_pipeline{
 
 
         // Moveit2 variables
-
         // Vector containing the inital pose and the planning poses, in joint and cartesian space
-        std::vector<std::array<double, 6>> ZigZagPlanningPoses_;
-        std::vector<Eigen::Isometry3d> ZigZagCartesianPlanningPoses_;
+        std::string predefinedPlanning_;
+        std::vector<std::array<double, 6>> PlanningPoses_;
+        std::vector<Eigen::Isometry3d> CartesianPlanningPoses_;
 
         // Function that create the data subscriber
         void createDataSub();
@@ -106,7 +106,7 @@ namespace nbv_pipeline{
             const CameraInfo::ConstSharedPtr & camera_info_msg);
 
         // Function that creates a vector of planned positions
-        std::vector<std::array<double, 6>> createZigZagPlanningPoses();
+        std::vector<std::array<double, 6>> createPlanningPoses();
 
 
     public:

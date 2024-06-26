@@ -318,6 +318,8 @@ launch:
       efficient_SAM_model_type: "l0"
 
     nbv_pipeline_launch:
+      # Planning
+      predefined_planning: "zig_zag_planning_narrow" #zig_zag_planning_narrow, zig_zag_planning_wide, square_planning_wide, square_planning_narrow
       # Segmentation
       segmentation_prompt: "tomato" 
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001

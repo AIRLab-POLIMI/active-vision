@@ -22,6 +22,7 @@ from moveit_launch import moveit_loader
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument('predefined_planning', default_value='zig_zag_planning_wide'),
         DeclareLaunchArgument('camera_frame', default_value='igus_rebel/link_8/depth_camera'), # for moveit2_api
         DeclareLaunchArgument('load_base', default_value='False'), # for moveit2_api
         DeclareLaunchArgument('segmentation_prompt', default_value='tomato'),
@@ -99,6 +100,7 @@ def generate_launch_description():
                 ],
         parameters=moveit_loader.load_moveit(with_sensors3d=False) + [
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
+            "predefined_planning": LaunchConfiguration("predefined_planning"),
             "camera_frame": LaunchConfiguration("camera_frame"),
             "load_base": LaunchConfiguration("load_base"),
             "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),

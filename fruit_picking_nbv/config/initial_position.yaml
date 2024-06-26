@@ -1,4 +1,41 @@
-zig_zag_planning:
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+zig_zag_planning_wide:
+  joint_1: 0.0
+  joint_2: -40.0
+  joint_3: 90.0
+  joint_4: 0.0
+  joint_5: 40.0
+  joint_6: 0.0
+
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+zig_zag_planning_narrow:
+  joint_1: 0.0
+  joint_2: -40.0
+  joint_3: 90.0
+  joint_4: 0.0
+  joint_5: 40.0
+  joint_6: 0.0
+
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+zig_zag_planning_curve:
+  joint_1: 0.0
+  joint_2: -40.0
+  joint_3: 90.0
+  joint_4: 0.0
+  joint_5: 40.0
+  joint_6: 0.0
+
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+square_planning_wide:
+  joint_1: 0.0
+  joint_2: -40.0
+  joint_3: 90.0
+  joint_4: 0.0
+  joint_5: 40.0
+  joint_6: 0.0
+
+# The x positon of the spawned robot need to be -0.7, and the yaw 0.0
+square_planning_narrow:
   joint_1: 0.0
   joint_2: -40.0
   joint_3: 90.0

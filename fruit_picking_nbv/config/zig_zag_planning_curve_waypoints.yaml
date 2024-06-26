@@ -1,0 +1,119 @@
+pose_1:
+  joint_1: -63.0
+  joint_2: 32.0
+  joint_3: 4.0
+  joint_4: 89.0
+  joint_5: 89.0
+  joint_6: -36.0
+
+pose_2:
+  joint_1: 0.0
+  joint_2: -44.0
+  joint_3: 75.0
+  joint_4: 0.0
+  joint_5: 59.0
+  joint_6: 0.0
+
+pose_3:
+  joint_1: 63.0
+  joint_2: 13.0
+  joint_3: 41.0
+  joint_4: -89.0
+  joint_5: 89.0
+  joint_6: 55.0
+
+pose_4:
+  joint_1: 0.0
+  joint_2: -53.0
+  joint_3: 90.0
+  joint_4: 0.0
+  joint_5: 53.0
+  joint_6: 0.0
+
+pose_5:
+  joint_1: -63.0
+  joint_2: 7.0
+  joint_3: 60.0
+  joint_4: 89.0
+  joint_5: 89.0
+  joint_6: -67.0
+
+pose_6:
+  joint_1: 0.0
+  joint_2: -63.0
+  joint_3: 105.0
+  joint_4: 0.0
+  joint_5: 47.0
+  joint_6: 0.0
+
+pose_7:
+  joint_1: 63.0
+  joint_2: 3.0
+  joint_3: 73.0
+  joint_4: -90.0
+  joint_5: 89.0
+  joint_6: 75.0
+
+pose_8:
+  joint_1: 0.0
+  joint_2: -71.0
+  joint_3: 117.0
+  joint_4: 0.0
+  joint_5: 44.0
+  joint_6: 0.0
+
+pose_9:
+  joint_1: -63.0
+  joint_2: 2.0
+  joint_3: 84.0
+  joint_4: 90.0
+  joint_5: 89.0
+  joint_6: -86.0
+
+pose_10:
+  joint_1: 0.0
+  joint_2: -79.0
+  joint_3: 128.0
+  joint_4: 0.0
+  joint_5: 41.0
+  joint_6: 0.0
+
+pose_11:
+  joint_1: 63.0
+  joint_2: 0.0
+  joint_3: 93.0
+  joint_4: -90.0
+  joint_5: 89.0
+  joint_6: 93.0
+
+pose_12:
+  joint_1: 0.0
+  joint_2: -79.0
+  joint_3: 128.0
+  joint_4: 0.0
+  joint_5: 41.0
+  joint_6: 0.0
+
+pose_13:
+  joint_1: -63.0
+  joint_2: 4.0
+  joint_3: 101.0
+  joint_4: 90.0
+  joint_5: 89.0
+  joint_6: -104.0
+
+pose_14:
+  joint_1: 0.0
+  joint_2: -79.0
+  joint_3: 128.0
+  joint_4: 0.0
+  joint_5: 41.0
+  joint_6: 0.0
+
+pose_15:
+  joint_1: 63.0
+  joint_2: 5.0
+  joint_3: 107.0
+  joint_4: -90.0
+  joint_5: 89.0
+  joint_6: 112.0

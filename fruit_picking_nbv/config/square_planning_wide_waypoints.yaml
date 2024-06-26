@@ -1,0 +1,33 @@
+# This file contains 8 planning waypoints that create a square trajectory with a wide exploration area
+
+pose_1:
+  joint_1: -75.0
+  joint_2: 30.0
+  joint_3: 4.0
+  joint_4: 77.0
+  joint_5: 81.0
+  joint_6: -33.0
+
+pose_2:
+  joint_1: -75.0
+  joint_2: 5.0
+  joint_3: 113.0
+  joint_4: 98.0
+  joint_5: 76.0
+  joint_6: -119.0
+
+pose_3:
+  joint_1: 73.0
+  joint_2: 4.0
+  joint_3: 115.0
+  joint_4: 81.0
+  joint_5: -76.0
+  joint_6: -61.0
+
+pose_4:
+  joint_1: 73.0
+  joint_2: 24.0
+  joint_3: 14.0
+  joint_4: -77.0
+  joint_5: 80.0
+  joint_6: 37.0

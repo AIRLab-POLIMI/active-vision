@@ -56,8 +56,8 @@
         </include>
         
         <include>
-            <uri>tomato_1</uri>
-            <name>tomato_1</name>
+            <uri>tomato_0</uri>
+            <name>tomato_0</name>
             <pose>0.0 3.0 0 0 0 0</pose>
         </include>
         

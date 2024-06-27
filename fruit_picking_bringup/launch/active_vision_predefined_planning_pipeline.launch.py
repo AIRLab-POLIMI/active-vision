@@ -3,12 +3,10 @@
 
 from launch import LaunchDescription
 from launch.substitutions import (
-    PathJoinSubstitution,
     LaunchConfiguration,
 )
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
-from launch_ros.actions import Node
 from launch.actions import OpaqueFunction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -94,11 +92,11 @@ def generate_launch_description():
         description="Whether or not run the yolo world server for segmentation",
     )
 
-    run_nbv_pipeline_arg = DeclareLaunchArgument(
-        name="run_nbv_pipeline",
+    run_active_vision_pipeline_arg = DeclareLaunchArgument(
+        name="run_active_vision_pipeline",
         default_value="false",
         choices=["true", "false"],
-        description="Whether or not run the NBV pipeline",
+        description="Whether or not run the active vision pipeline",
     )
     
 
@@ -115,7 +113,7 @@ def generate_launch_description():
             full_world_name_arg,
             run_robot_moveit_arg,
             run_yolo_world_arg,
-            run_nbv_pipeline_arg,
+            run_active_vision_pipeline_arg,
             OpaqueFunction(function=launch_setup),
         ]
     )
@@ -132,6 +130,8 @@ def launch_setup(context, *args, **kwargs):
         config_yaml = yaml.safe_load(file)
 
 
+
+
     # Array of action that will be returned at the end for execution
     return_actions = []
 
@@ -141,7 +141,7 @@ def launch_setup(context, *args, **kwargs):
     # Parameters
 
     # Sim time
-    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+    if LaunchConfiguration("hardware_protocol").perform(context) == 'ignition' and LaunchConfiguration("load_gazebo").perform(context) == 'true':
         use_sim_time = True
     else:
         use_sim_time = False
@@ -151,21 +151,21 @@ def launch_setup(context, *args, **kwargs):
 
     
     # Frames
-    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+    if LaunchConfiguration("hardware_protocol").perform(context) == 'ignition' and LaunchConfiguration("load_gazebo").perform(context) == 'true':
         frame_id = config_yaml['frames']['frame_id']
         base_frame_id = config_yaml['frames']['base_frame_id']
         camera_frame_id = config_yaml['frames']['gazebo_ignition_camera_frame_id']
 
-    else:
-        if LaunchConfiguration("test_camera").perform(context) == 'false':
-            if LaunchConfiguration("camera").perform(context) == 'realsense':
-                camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
-            frame_id = config_yaml['frames']['base_frame_id']
-            base_frame_id = config_yaml['frames']['base_frame_id']
-        else:
-            if LaunchConfiguration("camera").perform(context) == 'realsense':
-                frame_id = config_yaml['frames']['realsense_frame_id']
-                base_frame_id = config_yaml['frames']['realsense_base_frame_id']
+    elif LaunchConfiguration("hardware_protocol").perform(context) == 'simulation' and LaunchConfiguration("load_gazebo").perform(context) == 'false':
+        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
+        frame_id = config_yaml['frames']['frame_id']
+        base_frame_id = config_yaml['frames']['base_frame_id']
+    
+    elif LaunchConfiguration("hardware_protocol").perform(context) == 'cri' and LaunchConfiguration("load_gazebo").perform(context) == 'false':
+        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
+        frame_id = config_yaml['frames']['frame_id']
+        base_frame_id = config_yaml['frames']['base_frame_id']
+
 
 
 
@@ -186,13 +186,12 @@ def launch_setup(context, *args, **kwargs):
 
     # Input entity
     if LaunchConfiguration("run_robot_moveit").perform(context) == 'true': 
-        # Igus Rebel moveit launch
         moveit_launch_file = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py']),
             launch_arguments={
                 "rviz_file": os.path.join(
-                    get_package_share_directory("fruit_picking_bringup"), "rviz/nbv_pipeline.rviz"),
+                    get_package_share_directory("fruit_picking_bringup"), "rviz/active_vision_predefined_planning_pipeline.rviz"),
             }.items(),
         )
         return_actions.append(moveit_launch_file)
@@ -210,7 +209,7 @@ def launch_setup(context, *args, **kwargs):
                 **{
                     "frame_id": frame_id,
                 },
-                **config_yaml['launch']['nbv']['yolo_world_server']
+                **config_yaml['launch']['active_vision_pipeline_launch']['yolo_world_server']
 
             }.items(),
         )
@@ -218,12 +217,11 @@ def launch_setup(context, *args, **kwargs):
 
     
 
-    # Main NBV planning pipeline
-    if LaunchConfiguration("run_nbv_pipeline").perform(context) == 'true': 
-        # Igus Rebel moveit launch
-        nbv_pipeline_launch_file = IncludeLaunchDescription(
+    # Active vision pipeline
+    if LaunchConfiguration("run_active_vision_pipeline").perform(context) == 'true': 
+        predefined_planning_pipeline_launch_file = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
-                FindPackageShare("fruit_picking_nbv"), '/launch', '/nbv_pipeline.launch.py']),
+                FindPackageShare("fruit_picking_planning"), '/launch', '/predefined_planning_pipeline.launch.py']),
             launch_arguments={
                 **use_sim_time_dict,
                 **{
@@ -233,13 +231,13 @@ def launch_setup(context, *args, **kwargs):
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
                     "camera_frame": camera_frame_id,
-                    "centralized_architecture": config_yaml['launch']['nbv']['centralized_architecture']
+                    "centralized_architecture": config_yaml['launch']['active_vision_pipeline_launch']['centralized_architecture']
                 },
-                **config_yaml['launch']['nbv']['nbv_pipeline_launch'],
+                **config_yaml['launch']['active_vision_pipeline_launch']['predefined_planning_pipeline_launch'],
 
             }.items(),
         )
-        return_actions.append(nbv_pipeline_launch_file)
+        return_actions.append(predefined_planning_pipeline_launch_file)
 
 
 

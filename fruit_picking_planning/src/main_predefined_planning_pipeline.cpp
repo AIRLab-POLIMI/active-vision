@@ -1,4 +1,4 @@
-#include <fruit_picking_nbv/nbv_pipeline.hpp>
+#include <fruit_picking_planning/pipeline.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -13,8 +13,8 @@ int main(int argc, char * argv[])
 	// Segmentation client node
 	auto SegmentationClientNode = rclcpp::Node::make_shared("yolo_world_client");
 
-    // Create NBV pipeline object
-    auto Pipeline = std::make_shared<nbv_pipeline::NBVPipeline>(
+    // Create active vision pipeline object
+    auto Pipeline = std::make_shared<active_vision_pipeline::ActiveVisionPipeline>(
 		MoveIt2APICreator,
         PointcloudCreator, 
         SegmentedPointcloudCreator, 
@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 
     // start the main thread for the grasp pose estimator node to estimate the grasp pose from object coordinates
 	std::thread pipeline_thread = std::thread(
-		&nbv_pipeline::NBVPipeline::NBVPipelineThread, Pipeline);
+		&active_vision_pipeline::ActiveVisionPipeline::ActiveVisionPipelineThread, Pipeline);
 	pipeline_thread.detach();
 
 	main_thread->join();

@@ -2,27 +2,15 @@
 # https://github.com/frankaemika/franka_ros2/blob/develop/franka_description/launch/visualize_franka.launch.py
 
 from launch import LaunchDescription
-from launch.substitutions import (
-    PathJoinSubstitution,
-    LaunchConfiguration,
-)
-from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
-from launch.actions import OpaqueFunction, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-import yaml
-from ament_index_python.packages import get_package_share_directory
-import os
 
 from moveit_launch import moveit_loader
 
-
-
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument('predefined_planning', default_value='zig_zag_planning_wide'),
+        DeclareLaunchArgument('predefined_planning', default_value='zig_zag_curve_waypoints'),
         DeclareLaunchArgument('camera_frame', default_value='igus_rebel/link_8/depth_camera'), # for moveit2_api
         DeclareLaunchArgument('load_base', default_value='False'), # for moveit2_api
         DeclareLaunchArgument('segmentation_prompt', default_value='tomato'),
@@ -79,15 +67,15 @@ def generate_launch_description():
         DeclareLaunchArgument('centralized_architecture', default_value='False'),
 
 
-    # Main NBV pipeline node
+    # Predefined planning pipeline node
     Node(
-        package='fruit_picking_nbv',
-        executable='main_nbv_pipeline',
+        package='fruit_picking_planning',
+        executable='main_predefined_planning_pipeline',
         output='screen',
         arguments= [
             "--ros-args",
             "--log-level",
-            "nbv_pipeline:=info",
+            "main_predefined_planning_pipeline:=info",
         ],
         remappings=[('rgb_image', LaunchConfiguration('rgb_image_topic')),
                     ('depth_image', LaunchConfiguration('depth_image_topic')),

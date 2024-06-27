@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _NBV_PIPELINE_HPP_
-#define _NBV_PIPELINE_HPP_
+#ifndef _ACTIVE_VISION_PIPELINE_HPP_
+#define _ACTIVE_VISION_PIPELINE_HPP_
 
 #include <moveit2_apis.hpp>
 #include <fruit_picking_pointcloud/full_pointcloud.hpp>
@@ -25,9 +25,9 @@ using DataSynchronizer = message_filters::Synchronizer<DataSyncPolicy>;
 
 
 
-namespace nbv_pipeline{
+namespace active_vision_pipeline{
 
-    class NBVPipeline: public rclcpp::Node {
+    class ActiveVisionPipeline: public rclcpp::Node {
 
     protected:
 
@@ -90,11 +90,11 @@ namespace nbv_pipeline{
         std::shared_ptr<PointcloudArray> segmentedPointcloudArray_;
 
 
-        // Moveit2 variables
-        // Vector containing the inital pose and the planning poses, in joint and cartesian space
+        // Variable containing the predefined planning waypoints
         std::string predefinedPlanning_;
         std::vector<std::array<double, 6>> PlanningPoses_;
         std::vector<Eigen::Isometry3d> CartesianPlanningPoses_;
+
 
         // Function that create the data subscriber
         void createDataSub();
@@ -111,19 +111,19 @@ namespace nbv_pipeline{
 
     public:
 
-        NBVPipeline(
+        ActiveVisionPipeline(
             std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
             std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
             std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
             std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
             std::shared_ptr<rclcpp::Node> segmentationClientNode,
             const rclcpp::NodeOptions &,
-            const std::string = "nbv_pipeline");
+            const std::string = "active_vision_pipeline");
 
-        void NBVPipelineThread();
+        void ActiveVisionPipelineThread();
         
     };
     
 
-} // end namespace main_pipeline
+}
 #endif

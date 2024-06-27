@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(fruit_picking_nbv)
+project(fruit_picking_planning)
 
 
 # Compiler
@@ -60,8 +60,8 @@ include_directories(include)
 
 
 # In order to add the executable that can be used by ros2
-add_executable(main_nbv_pipeline src/main_nbv_pipeline.cpp src/nbv_pipeline.cpp)
-ament_target_dependencies(main_nbv_pipeline
+add_executable(main_predefined_planning_pipeline src/main_predefined_planning_pipeline.cpp src/predefined_planning_pipeline.cpp)
+ament_target_dependencies(main_predefined_planning_pipeline
   rclcpp
   rclcpp_components
   PCL
@@ -98,7 +98,7 @@ ament_target_dependencies(main_nbv_pipeline
 
 # In order to let ros2 find the executable
 install(TARGETS 
-  main_nbv_pipeline
+  main_predefined_planning_pipeline
 	DESTINATION lib/${PROJECT_NAME}
 )
 

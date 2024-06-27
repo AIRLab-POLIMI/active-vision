@@ -310,16 +310,16 @@ launch:
       real: "octomap_segmentation_yolo_world.rviz"
 
 
-  nbv:
+  active_vision_pipeline_launch:
     centralized_architecture: "True"  
     yolo_world_server:
       publish_masks_array: "True"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
 
-    nbv_pipeline_launch:
+    predefined_planning_pipeline_launch:
       # Planning
-      predefined_planning: "square_plane_narrow_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
+      predefined_planning: "zig_zag_curve_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_plane_narrow_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
       # Segmentation
       segmentation_prompt: "tomato" 
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001

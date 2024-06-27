@@ -1,9 +1,9 @@
-#include <fruit_picking_nbv/nbv_pipeline.hpp>
+#include <fruit_picking_planning/pipeline.hpp>
 
-namespace nbv_pipeline{
+namespace active_vision_pipeline{
     
     // Constructor
-    NBVPipeline::NBVPipeline(
+    ActiveVisionPipeline::ActiveVisionPipeline(
         std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
@@ -65,12 +65,12 @@ namespace nbv_pipeline{
     }
 
 
-    void NBVPipeline::createDataSub(){
+    void ActiveVisionPipeline::createDataSub(){
         try {
             data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_rgb_, sub_depth_, sub_camera_info_);
             data_sync_->registerCallback(
                 std::bind(
-                    &NBVPipeline::saveData,
+                    &ActiveVisionPipeline::saveData,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
@@ -94,7 +94,7 @@ namespace nbv_pipeline{
 
 
 
-    void NBVPipeline::saveData(
+    void ActiveVisionPipeline::saveData(
         const Image::ConstSharedPtr & rgb_msg,
         const Image::ConstSharedPtr & depth_msg,
         const CameraInfo::ConstSharedPtr & camera_info_msg)
@@ -146,7 +146,7 @@ namespace nbv_pipeline{
 
 
 
-    void NBVPipeline::NBVPipelineThread(){
+    void ActiveVisionPipeline::ActiveVisionPipelineThread(){
         
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
@@ -369,11 +369,11 @@ namespace nbv_pipeline{
 
 
 
-    std::vector<std::array<double, 6>> NBVPipeline::createPlanningPoses(){
+    std::vector<std::array<double, 6>> ActiveVisionPipeline::createPlanningPoses(){
 
 
         // Load yaml configuration files
-        std::string package_path = ament_index_cpp::get_package_share_directory("fruit_picking_nbv");
+        std::string package_path = ament_index_cpp::get_package_share_directory("fruit_picking_planning");
         YAML::Node joint_limits = YAML::LoadFile(package_path + "/config/joint_limits.yaml");
         YAML::Node planning_waypoints = YAML::LoadFile(package_path + "/config/predefined_planning_waypoints.yaml");
 

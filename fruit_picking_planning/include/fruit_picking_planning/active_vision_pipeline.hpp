@@ -90,12 +90,6 @@ namespace active_vision_pipeline{
         std::shared_ptr<PointcloudArray> segmentedPointcloudArray_;
 
 
-        // Variable containing the predefined planning waypoints
-        std::string predefinedPlanning_;
-        std::vector<std::array<double, 6>> PlanningPoses_;
-        std::vector<Eigen::Isometry3d> CartesianPlanningPoses_;
-
-
         // Function that create the data subscriber
         void createDataSub();
 
@@ -105,23 +99,18 @@ namespace active_vision_pipeline{
             const Image::ConstSharedPtr & depth_msg,
             const CameraInfo::ConstSharedPtr & camera_info_msg);
 
-        // Function that creates a vector of planned positions
-        std::vector<std::array<double, 6>> createPlanningPoses();
-
 
     public:
 
         ActiveVisionPipeline(
-            std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
-            std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
-            std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
-            std::shared_ptr<extended_octomap_server::ExtendedOctomapServer> extended_octomap_creator,
-            std::shared_ptr<rclcpp::Node> segmentationClientNode,
-            const rclcpp::NodeOptions &,
-            const std::string = "active_vision_pipeline");
-
-        void ActiveVisionPipelineThread();
-        
+            std::shared_ptr<MoveIt2APIs>,
+            std::shared_ptr<full_pointcloud::FullPointcloud>,
+            std::shared_ptr<segmented_pointcloud::SegmentedPointcloud>,
+            std::shared_ptr<extended_octomap_server::ExtendedOctomapServer>,
+            std::shared_ptr<rclcpp::Node>,
+            const rclcpp::NodeOptions &nodeOptions = rclcpp::NodeOptions(),
+            const std::string name = "active_vision_pipeline"): 
+            rclcpp::Node(name, nodeOptions){}       
     };
     
 

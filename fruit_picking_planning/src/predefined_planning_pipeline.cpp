@@ -1,9 +1,9 @@
-#include <fruit_picking_planning/pipeline.hpp>
+#include <fruit_picking_planning/active_vision_predefined_planning_pipeline.hpp>
 
-namespace active_vision_pipeline{
+namespace active_vision_predefined_planning_pipeline{
     
     // Constructor
-    ActiveVisionPipeline::ActiveVisionPipeline(
+    ActiveVisionPredefinedPlanningPipeline::ActiveVisionPredefinedPlanningPipeline(
         std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
         std::shared_ptr<segmented_pointcloud::SegmentedPointcloud> segmented_pointcloud_creator,
@@ -11,7 +11,14 @@ namespace active_vision_pipeline{
         std::shared_ptr<rclcpp::Node> segmentationClientNode,
         const rclcpp::NodeOptions &options, 
         const std::string node_name): 
-        Node(node_name, options)
+        active_vision_pipeline::ActiveVisionPipeline(
+            MoveIt2API_creator, 
+            pointcloud_creator, 
+            segmented_pointcloud_creator, 
+            extended_octomap_creator, 
+            segmentationClientNode, 
+            options, 
+            node_name)
     {
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
         RCLCPP_INFO(this->get_logger(), "Predefined planning pipeline constructor started.");
@@ -65,12 +72,12 @@ namespace active_vision_pipeline{
     }
 
 
-    void ActiveVisionPipeline::createDataSub(){
+    void ActiveVisionPredefinedPlanningPipeline::createDataSub(){
         try {
             data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_rgb_, sub_depth_, sub_camera_info_);
             data_sync_->registerCallback(
                 std::bind(
-                    &ActiveVisionPipeline::saveData,
+                    &ActiveVisionPredefinedPlanningPipeline::saveData,
                     this,
                     std::placeholders::_1,
                     std::placeholders::_2,
@@ -94,7 +101,7 @@ namespace active_vision_pipeline{
 
 
 
-    void ActiveVisionPipeline::saveData(
+    void ActiveVisionPredefinedPlanningPipeline::saveData(
         const Image::ConstSharedPtr & rgb_msg,
         const Image::ConstSharedPtr & depth_msg,
         const CameraInfo::ConstSharedPtr & camera_info_msg)
@@ -146,7 +153,7 @@ namespace active_vision_pipeline{
 
 
 
-    void ActiveVisionPipeline::ActiveVisionPipelineThread(){
+    void ActiveVisionPredefinedPlanningPipeline::ActiveVisionPredefinedPlanningPipelineThread(){
         
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
@@ -369,7 +376,7 @@ namespace active_vision_pipeline{
 
 
 
-    std::vector<std::array<double, 6>> ActiveVisionPipeline::createPlanningPoses(){
+    std::vector<std::array<double, 6>> ActiveVisionPredefinedPlanningPipeline::createPlanningPoses(){
 
 
         // Load yaml configuration files

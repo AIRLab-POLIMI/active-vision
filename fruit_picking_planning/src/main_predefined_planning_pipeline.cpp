@@ -1,4 +1,4 @@
-#include <fruit_picking_planning/pipeline.hpp>
+#include <fruit_picking_planning/active_vision_predefined_planning_pipeline.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -14,7 +14,7 @@ int main(int argc, char * argv[])
 	auto SegmentationClientNode = rclcpp::Node::make_shared("yolo_world_client");
 
     // Create active vision pipeline object
-    auto Pipeline = std::make_shared<active_vision_pipeline::ActiveVisionPipeline>(
+    auto Pipeline = std::make_shared<active_vision_predefined_planning_pipeline::ActiveVisionPredefinedPlanningPipeline>(
 		MoveIt2APICreator,
         PointcloudCreator, 
         SegmentedPointcloudCreator, 
@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 
     // start the main thread for the grasp pose estimator node to estimate the grasp pose from object coordinates
 	std::thread pipeline_thread = std::thread(
-		&active_vision_pipeline::ActiveVisionPipeline::ActiveVisionPipelineThread, Pipeline);
+		&active_vision_predefined_planning_pipeline::ActiveVisionPredefinedPlanningPipeline::ActiveVisionPredefinedPlanningPipelineThread, Pipeline);
 	pipeline_thread.detach();
 
 	main_thread->join();

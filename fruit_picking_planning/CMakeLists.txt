@@ -102,6 +102,49 @@ install(TARGETS
 	DESTINATION lib/${PROJECT_NAME}
 )
 
+# In order to add the executable that can be used by ros2
+add_executable(main_nbv_planning_pipeline src/main_nbv_planning_pipeline.cpp src/nbv_planning_pipeline.cpp)
+ament_target_dependencies(main_nbv_planning_pipeline
+  rclcpp
+  rclcpp_components
+  PCL
+  pcl_conversions
+  sensor_msgs
+  std_msgs
+  std_srvs
+  nav_msgs
+  visualization_msgs
+  geometry_msgs
+  cv_bridge
+  pluginlib
+  moveit_core
+  moveit_kinematics
+  moveit_ros_planning_interface
+  moveit_visual_tools
+  mobile_manipulation_interfaces
+  igus_rebel_gripper_controller
+  moveit2_api
+  OPENMP
+  message_filters
+  octomap
+  octomap_msgs
+  tf2
+  tf2_ros
+  tf2_msgs
+  tf2_geometry_msgs
+  rclcpp_components
+  fruit_picking_interfaces
+  fruit_picking_octomap
+  fruit_picking_pointcloud
+  depth_image_proc
+  )
+
+# In order to let ros2 find the executable
+install(TARGETS 
+  main_nbv_planning_pipeline
+	DESTINATION lib/${PROJECT_NAME}
+)
+
 # In order to let ros2 find the folders
 install( 
   DIRECTORY include launch src config

@@ -186,9 +186,57 @@ namespace active_vision_nbv_planning_pipeline{
                 end_point.z = start_point.z + forward_direction.z() * arrow_length;
 
                 // Publish the arrow to visualize the pose's forward direction
+                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+
+            
+
+
+            // Calculate valid candidate viewpoints
+            std::vector<Eigen::Isometry3d> validCandidateViewpoints_;
+
+            // For each Eigen pose, get the stamped cartesian pose and check if it is valid
+            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
+                if (!MoveIt2API_node_->checkIKSolution(eigenIsometry3dToPoseStamped(candidateViewpoints_[i])->pose)){
+                    continue; // The pose can not be reached by the robot
+                }
+                // The pose is valid and it is added to the valid vector of poses
+                validCandidateViewpoints_.push_back(candidateViewpoints_[i]);
+            }
+
+
+
+            // Visualize valid candidate viewpoints
+            RCLCPP_INFO(this->get_logger(), "Visualize valid candidate viewpoints..");
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+            // For each valid candidate Eigen pose, get the stamped cartesian pose and publish an arrow on it
+            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
+                geometry_msgs::msg::Point start_point;
+                start_point.x = validCandidateViewpoints_[i].translation().x();
+                start_point.y = validCandidateViewpoints_[i].translation().y();
+                start_point.z = validCandidateViewpoints_[i].translation().z();
+
+                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
+                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
+
+                // Define the length of the arrow
+                double arrow_length = 0.1; // For example, 0.1 meters
+
+                // Calculate the end point of the arrow based on the forward direction
+                geometry_msgs::msg::Point end_point;
+                end_point.x = start_point.x + forward_direction.x() * arrow_length;
+                end_point.y = start_point.y + forward_direction.y() * arrow_length;
+                end_point.z = start_point.z + forward_direction.z() * arrow_length;
+
+                // Publish the arrow to visualize the pose's forward direction
                 MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
             }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::LARGE);
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "valid_candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
             MoveIt2API_node_->visual_tools->trigger();
 
 
@@ -200,8 +248,12 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+
+
+
+
             // Select the NBV
-            NBV_pose_ = chooseNBV(candidateViewpoints_);
+            NBV_pose_ = chooseNBV(validCandidateViewpoints_);
 
 
 
@@ -211,29 +263,29 @@ namespace active_vision_nbv_planning_pipeline{
             RCLCPP_INFO(this->get_logger(), "Visualize NBV pose and candidate viewpoints..");
 
             // For each pose except the NBV pose, get the cartesian pose and publish an arrow on it
-            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
-                // MoveIt2API_node_->visual_tools->publishAxisLabeled(candidateViewpoints_[i], "", rviz_visual_tools::SMALL, rviz_visual_tools::GREEN);
+            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
+
                 geometry_msgs::msg::Point start_point;
-                start_point.x = candidateViewpoints_[i].translation().x();
-                start_point.y = candidateViewpoints_[i].translation().y();
-                start_point.z = candidateViewpoints_[i].translation().z();
+                start_point.x = validCandidateViewpoints_[i].translation().x();
+                start_point.y = validCandidateViewpoints_[i].translation().y();
+                start_point.z = validCandidateViewpoints_[i].translation().z();
 
                 // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = candidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
+                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
 
                 // Define the length of the arrow
                 double arrow_length = 0.05; // For example, 0.1 meters
 
 
                 // Check if the current viewpoint is equal to NBV_pose_
-                if (candidateViewpoints_[i].isApprox(NBV_pose_)) {
+                if (validCandidateViewpoints_[i].isApprox(NBV_pose_)) {
                     // Calculate the end point of the arrow based on the forward direction
                     geometry_msgs::msg::Point end_point;
                     end_point.x = start_point.x + forward_direction.x() * arrow_length * 3;
                     end_point.y = start_point.y + forward_direction.y() * arrow_length * 3;
                     end_point.z = start_point.z + forward_direction.z() * arrow_length * 3;
 
-                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
+                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::LARGE);
                 }
                 else{
                     // Calculate the end point of the arrow based on the forward direction
@@ -245,7 +297,7 @@ namespace active_vision_nbv_planning_pipeline{
                     MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::WHITE, rviz_visual_tools::SMALL);
                 }
             }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "NBV_pose", rviz_visual_tools::GREEN, rviz_visual_tools::LARGE);
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "NBV_pose", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
             MoveIt2API_node_->visual_tools->trigger();
 
 

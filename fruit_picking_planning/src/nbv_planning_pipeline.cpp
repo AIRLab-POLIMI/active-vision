@@ -126,13 +126,26 @@ namespace active_vision_nbv_planning_pipeline{
                 Eigen::Quaterniond(initialPositionCartesian_.rotation()).y(), 
                 Eigen::Quaterniond(initialPositionCartesian_.rotation()).z(), 
                 Eigen::Quaterniond(initialPositionCartesian_.rotation()).w());
-	    bool valid_motion = MoveIt2API_node_->robotPlanAndMove(initialPosition_, "initial_position");
+
+        bool valid_motion = MoveIt2API_node_->robotPlanAndMove(
+            eigenIsometry3dToPoseStamped(initialPositionCartesian_), 
+            "initial_position",
+            false);
         if (!valid_motion) {
 			RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
 			return;
 		}
         RCLCPP_INFO(this->get_logger(), "Initial position reached.");
 
+
+
+	    // Alternative way: with joint space goal
+        // bool valid_motion = MoveIt2API_node_->robotPlanAndMove(initialPosition_, "initial_position");
+        // if (!valid_motion) {
+		// 	RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
+		// 	return;
+		// }
+        // RCLCPP_INFO(this->get_logger(), "Initial position reached.");
 
 
         // Initialize data subscriber
@@ -149,192 +162,9 @@ namespace active_vision_nbv_planning_pipeline{
 
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            RCLCPP_INFO(this->get_logger(), "NBV planning pipeline step started.");
+            RCLCPP_INFO(this->get_logger(), "NBV planning pipeline step %d/%d started.", i, maxNBVPlanningSteps_);
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
 
-
-
-
-            // Visualize candidate viewpoints
-            RCLCPP_INFO(this->get_logger(), "Visualize candidate viewpoints..");
-            MoveIt2API_node_->visual_tools->deleteAllMarkers();
-
-            // Create a vector with all the position names
-            std::vector<std::string> positions_names(candidateViewpoints_.size());
-            for (size_t i = 0; i < candidateViewpoints_.size(); ++i) {
-                positions_names[i] = "pose_" + std::to_string(i);
-            }
-
-            // For each pose, get the cartesian pose and publish an arrow on it
-            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
-                // MoveIt2API_node_->visual_tools->publishAxisLabeled(candidateViewpoints_[i], "", rviz_visual_tools::SMALL, rviz_visual_tools::GREEN);
-                geometry_msgs::msg::Point start_point;
-                start_point.x = candidateViewpoints_[i].translation().x();
-                start_point.y = candidateViewpoints_[i].translation().y();
-                start_point.z = candidateViewpoints_[i].translation().z();
-
-                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = candidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
-
-                // Define the length of the arrow
-                double arrow_length = 0.1; // For example, 0.1 meters
-
-                // Calculate the end point of the arrow based on the forward direction
-                geometry_msgs::msg::Point end_point;
-                end_point.x = start_point.x + forward_direction.x() * arrow_length;
-                end_point.y = start_point.y + forward_direction.y() * arrow_length;
-                end_point.z = start_point.z + forward_direction.z() * arrow_length;
-
-                // Publish the arrow to visualize the pose's forward direction
-                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
-            }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
-            MoveIt2API_node_->visual_tools->trigger();
-
-            
-
-
-            // Calculate valid candidate viewpoints
-            std::vector<Eigen::Isometry3d> validCandidateViewpoints_;
-
-            // For each Eigen pose, get the stamped cartesian pose and check if it is valid
-            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
-                if (!MoveIt2API_node_->checkIKSolution(eigenIsometry3dToPoseStamped(candidateViewpoints_[i])->pose)){
-                    continue; // The pose can not be reached by the robot
-                }
-                // The pose is valid and it is added to the valid vector of poses
-                validCandidateViewpoints_.push_back(candidateViewpoints_[i]);
-            }
-
-
-
-            // Visualize valid candidate viewpoints
-            RCLCPP_INFO(this->get_logger(), "Visualize valid candidate viewpoints..");
-            MoveIt2API_node_->visual_tools->deleteAllMarkers();
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-            // For each valid candidate Eigen pose, get the stamped cartesian pose and publish an arrow on it
-            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
-                geometry_msgs::msg::Point start_point;
-                start_point.x = validCandidateViewpoints_[i].translation().x();
-                start_point.y = validCandidateViewpoints_[i].translation().y();
-                start_point.z = validCandidateViewpoints_[i].translation().z();
-
-                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
-
-                // Define the length of the arrow
-                double arrow_length = 0.1; // For example, 0.1 meters
-
-                // Calculate the end point of the arrow based on the forward direction
-                geometry_msgs::msg::Point end_point;
-                end_point.x = start_point.x + forward_direction.x() * arrow_length;
-                end_point.y = start_point.y + forward_direction.y() * arrow_length;
-                end_point.z = start_point.z + forward_direction.z() * arrow_length;
-
-                // Publish the arrow to visualize the pose's forward direction
-                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
-            }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "valid_candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-            rclcpp::sleep_for(std::chrono::seconds(2));
-
-            MoveIt2API_node_->visual_tools->deleteAllMarkers();
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-
-
-
-
-
-
-            // Select the NBV
-            NBV_pose_ = chooseNBV(validCandidateViewpoints_);
-
-
-
-
-
-            // Visualize NBV and candidate viewpoints
-            RCLCPP_INFO(this->get_logger(), "Visualize NBV pose and candidate viewpoints..");
-
-            // For each pose except the NBV pose, get the cartesian pose and publish an arrow on it
-            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
-
-                geometry_msgs::msg::Point start_point;
-                start_point.x = validCandidateViewpoints_[i].translation().x();
-                start_point.y = validCandidateViewpoints_[i].translation().y();
-                start_point.z = validCandidateViewpoints_[i].translation().z();
-
-                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
-
-                // Define the length of the arrow
-                double arrow_length = 0.05; // For example, 0.1 meters
-
-
-                // Check if the current viewpoint is equal to NBV_pose_
-                if (validCandidateViewpoints_[i].isApprox(NBV_pose_)) {
-                    // Calculate the end point of the arrow based on the forward direction
-                    geometry_msgs::msg::Point end_point;
-                    end_point.x = start_point.x + forward_direction.x() * arrow_length * 3;
-                    end_point.y = start_point.y + forward_direction.y() * arrow_length * 3;
-                    end_point.z = start_point.z + forward_direction.z() * arrow_length * 3;
-
-                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::LARGE);
-                }
-                else{
-                    // Calculate the end point of the arrow based on the forward direction
-                    geometry_msgs::msg::Point end_point;
-                    end_point.x = start_point.x + forward_direction.x() * arrow_length;
-                    end_point.y = start_point.y + forward_direction.y() * arrow_length;
-                    end_point.z = start_point.z + forward_direction.z() * arrow_length;
-
-                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::WHITE, rviz_visual_tools::SMALL);
-                }
-            }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "NBV_pose", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-            rclcpp::sleep_for(std::chrono::seconds(2));
-
-            MoveIt2API_node_->visual_tools->deleteAllMarkers();
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-
-
-            // // move to the NBV
-            // valid_motion = MoveIt2API_node_->robotPlanAndMove(NBV_pose_, "NBV_pose");
-            // if (!valid_motion) {
-            //     RCLCPP_ERROR(this->get_logger(), "Could not move to NBV pose");
-            //     return;
-            // }
-
-
-
-
-            // // Move to the next position
-            // RCLCPP_INFO(this->get_logger(), "Moving to position %zu...", i);
-            // RCLCPP_INFO(this->get_logger(), "Translation: [%f, %f, %f], Rotation (Quaternion): [%f, %f, %f, %f]", 
-            //     candidateViewpointsPoses_[i].translation().x(), 
-            //     candidateViewpointsPoses_[i].translation().y(), 
-            //     candidateViewpointsPoses_[i].translation().z(), 
-            //     Eigen::Quaterniond(candidateViewpointsPoses_[i].rotation()).x(), 
-            //     Eigen::Quaterniond(candidateViewpointsPoses_[i].rotation()).y(), 
-            //     Eigen::Quaterniond(candidateViewpointsPoses_[i].rotation()).z(), 
-            //     Eigen::Quaterniond(candidateViewpointsPoses_[i].rotation()).w());
-            // valid_motion = MoveIt2API_node_->robotPlanAndMove(candidateViewpointsPoses_[i], positions_names[i]);
-            // if (!valid_motion) {
-            //     RCLCPP_ERROR(this->get_logger(), "Could not move to position %zu.", i);
-            //     return;
-            // }
-            // RCLCPP_INFO(this->get_logger(), "Position %zu reached.", i);
 
 
 
@@ -459,6 +289,188 @@ namespace active_vision_nbv_planning_pipeline{
             //     extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
             // }
             // RCLCPP_INFO(this->get_logger(), "Octomap updated.");
+
+
+
+
+            // Visualize candidate viewpoints
+            RCLCPP_INFO(this->get_logger(), "Visualize candidate viewpoints..");
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+
+            // Create a vector with all the position names
+            std::vector<std::string> positions_names(candidateViewpoints_.size());
+            for (size_t i = 0; i < candidateViewpoints_.size(); ++i) {
+                positions_names[i] = "pose_" + std::to_string(i);
+            }
+
+            // For each pose, get the cartesian pose and publish an arrow on it
+            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
+                // MoveIt2API_node_->visual_tools->publishAxisLabeled(candidateViewpoints_[i], "", rviz_visual_tools::SMALL, rviz_visual_tools::GREEN);
+                geometry_msgs::msg::Point start_point;
+                start_point.x = candidateViewpoints_[i].translation().x();
+                start_point.y = candidateViewpoints_[i].translation().y();
+                start_point.z = candidateViewpoints_[i].translation().z();
+
+                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
+                Eigen::Vector3d forward_direction = candidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
+
+                // Define the length of the arrow
+                double arrow_length = 0.1; // For example, 0.1 meters
+
+                // Calculate the end point of the arrow based on the forward direction
+                geometry_msgs::msg::Point end_point;
+                end_point.x = start_point.x + forward_direction.x() * arrow_length;
+                end_point.y = start_point.y + forward_direction.y() * arrow_length;
+                end_point.z = start_point.z + forward_direction.z() * arrow_length;
+
+                // Publish the arrow to visualize the pose's forward direction
+                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+
+            
+
+
+            // Calculate valid candidate viewpoints
+            std::vector<Eigen::Isometry3d> validCandidateViewpoints_;
+
+            // For each Eigen pose, get the stamped cartesian pose and check if it is valid
+            for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
+                if (!MoveIt2API_node_->checkIKSolution(eigenIsometry3dToPoseStamped(candidateViewpoints_[i])->pose)){
+                    continue; // The pose can not be reached by the robot
+                }
+                // The pose is valid and it is added to the valid vector of poses
+                validCandidateViewpoints_.push_back(candidateViewpoints_[i]);
+            }
+
+
+
+            // Visualize valid candidate viewpoints
+            RCLCPP_INFO(this->get_logger(), "Visualize valid candidate viewpoints..");
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+            // For each valid candidate Eigen pose, get the stamped cartesian pose and publish an arrow on it
+            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
+                geometry_msgs::msg::Point start_point;
+                start_point.x = validCandidateViewpoints_[i].translation().x();
+                start_point.y = validCandidateViewpoints_[i].translation().y();
+                start_point.z = validCandidateViewpoints_[i].translation().z();
+
+                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
+                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
+
+                // Define the length of the arrow
+                double arrow_length = 0.1; // For example, 0.1 meters
+
+                // Calculate the end point of the arrow based on the forward direction
+                geometry_msgs::msg::Point end_point;
+                end_point.x = start_point.x + forward_direction.x() * arrow_length;
+                end_point.y = start_point.y + forward_direction.y() * arrow_length;
+                end_point.z = start_point.z + forward_direction.z() * arrow_length;
+
+                // Publish the arrow to visualize the pose's forward direction
+                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "valid_candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+            rclcpp::sleep_for(std::chrono::milliseconds(1500));
+
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+
+
+
+
+
+
+            // Select the NBV
+            NBV_pose_ = chooseNBV(validCandidateViewpoints_);
+            NBV_pose_ptr_ = eigenIsometry3dToPoseStamped(NBV_pose_);
+
+
+
+
+            // Visualize NBV and candidate viewpoints
+            RCLCPP_INFO(this->get_logger(), "Visualize NBV pose and candidate viewpoints..");
+
+            // For each pose except the NBV pose, get the cartesian pose and publish an arrow on it
+            for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
+
+                geometry_msgs::msg::Point start_point;
+                start_point.x = validCandidateViewpoints_[i].translation().x();
+                start_point.y = validCandidateViewpoints_[i].translation().y();
+                start_point.z = validCandidateViewpoints_[i].translation().z();
+
+                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
+                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
+
+                // Define the length of the arrow
+                double arrow_length = 0.05; // For example, 0.1 meters
+
+
+                // Check if the current viewpoint is equal to NBV_pose_
+                if (validCandidateViewpoints_[i].isApprox(NBV_pose_)) {
+                    // Calculate the end point of the arrow based on the forward direction
+                    geometry_msgs::msg::Point end_point;
+                    end_point.x = start_point.x + forward_direction.x() * arrow_length * 3;
+                    end_point.y = start_point.y + forward_direction.y() * arrow_length * 3;
+                    end_point.z = start_point.z + forward_direction.z() * arrow_length * 3;
+
+                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::LARGE);
+                }
+                else{
+                    // Calculate the end point of the arrow based on the forward direction
+                    geometry_msgs::msg::Point end_point;
+                    end_point.x = start_point.x + forward_direction.x() * arrow_length;
+                    end_point.y = start_point.y + forward_direction.y() * arrow_length;
+                    end_point.z = start_point.z + forward_direction.z() * arrow_length;
+
+                    MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::WHITE, rviz_visual_tools::SMALL);
+                }
+            }
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "NBV_pose", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+            rclcpp::sleep_for(std::chrono::milliseconds(1500));
+
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+
+
+            // Move to the NBV
+            RCLCPP_INFO(this->get_logger(), "Moving to position NBV pose...");
+            RCLCPP_INFO(this->get_logger(), "Translation: [%f, %f, %f], Rotation (Quaternion): [%f, %f, %f, %f]", 
+                NBV_pose_.translation().x(), 
+                NBV_pose_.translation().y(), 
+                NBV_pose_.translation().z(), 
+                Eigen::Quaterniond(NBV_pose_.rotation()).x(), 
+                Eigen::Quaterniond(NBV_pose_.rotation()).y(), 
+                Eigen::Quaterniond(NBV_pose_.rotation()).z(), 
+                Eigen::Quaterniond(NBV_pose_.rotation()).w());
+            valid_motion = MoveIt2API_node_->robotPlanAndMove(NBV_pose_ptr_, "NBV_pose", false);
+            if (!valid_motion) {
+                RCLCPP_ERROR(this->get_logger(), "Could not move to NBV pose");
+                return;
+            }
+            RCLCPP_INFO(this->get_logger(), "NBV pose reached.");
+            rclcpp::sleep_for(std::chrono::milliseconds(1500));
+
+
 
 
 
@@ -760,6 +772,9 @@ namespace active_vision_nbv_planning_pipeline{
 
     geometry_msgs::msg::PoseStamped::SharedPtr ActiveVisionNbvPlanningPipeline::eigenIsometry3dToPoseStamped(const Eigen::Isometry3d& isometry) {
         auto pose_msg = std::make_shared<geometry_msgs::msg::PoseStamped>();
+
+        // Set the header
+        pose_msg->header.frame_id = base_frame_id_;
 
         // Set the position
         pose_msg->pose.position.x = isometry.translation().x();

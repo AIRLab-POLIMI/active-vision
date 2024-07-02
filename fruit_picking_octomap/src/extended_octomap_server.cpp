@@ -2415,6 +2415,13 @@ namespace extended_octomap_server {
 
 
 
+    std::shared_ptr<ExtendedOctomapMap> ExtendedOctomapServer::getExtendedOctomapMap(){
+        return extended_octomap_map;
+    }
+
+
+
+
     // Transforms
     void ExtendedOctomapServer::transformAsMatrix(const tf2::Transform &bt,
                            Eigen::Matrix4f &out_mat) {

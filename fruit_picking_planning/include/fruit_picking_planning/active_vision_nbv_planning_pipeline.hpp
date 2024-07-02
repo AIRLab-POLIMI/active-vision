@@ -14,12 +14,16 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         int candidateViewpointsNumber_;
         std::string planeTypeCandidateViewpoints_;
         float movementRange_;
+
         std::array<double, 6> initialPosition_;
         Eigen::Isometry3d initialPositionCartesian_;
         std::vector<Eigen::Isometry3d> candidateViewpoints_;
         Eigen::Isometry3d NBV_pose_;
         geometry_msgs::msg::PoseStamped::SharedPtr NBV_pose_ptr_;
         int maxNBVPlanningSteps_;
+
+        std::shared_ptr<ExtendedOctomapMap> extendedOctomapMap_;
+
 
         void createDataSub();
 
@@ -40,6 +44,14 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         geometry_msgs::msg::Pose findUpperCenterPose(const std::vector<Eigen::Isometry3d>& poses);
 
         geometry_msgs::msg::PoseStamped::SharedPtr eigenIsometry3dToPoseStamped(const Eigen::Isometry3d& isometry);
+
+        void visualizeArrowPose(const Eigen::Isometry3d& pose, double length, rviz_visual_tools::Colors color, rviz_visual_tools::Scales scale);
+
+        Eigen::Isometry3d chooseNBVRandom(const std::vector<Eigen::Isometry3d>& poses);
+
+        void visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg);
+
+        void visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg);
 
         Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses);
 

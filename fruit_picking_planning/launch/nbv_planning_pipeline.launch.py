@@ -10,6 +10,7 @@ from moveit_launch import moveit_loader
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument('hardware_protocol', default_value='simulation'),
         DeclareLaunchArgument('orientations', default_value='0'),
         DeclareLaunchArgument('candidate_viewpoints_number', default_value='100'),
         DeclareLaunchArgument('plane_type_candidate_viewpoints', default_value='square'),
@@ -91,6 +92,7 @@ def generate_launch_description():
                 ],
         parameters=moveit_loader.load_moveit(with_sensors3d=False) + [
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
+            "hardware_protocol": LaunchConfiguration("hardware_protocol"),
             "orientations": LaunchConfiguration("orientations"),
             "candidate_viewpoints_number": LaunchConfiguration("candidate_viewpoints_number"),
             "plane_type_candidate_viewpoints": LaunchConfiguration("plane_type_candidate_viewpoints"),

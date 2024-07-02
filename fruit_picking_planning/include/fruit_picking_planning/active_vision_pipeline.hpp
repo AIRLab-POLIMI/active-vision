@@ -31,6 +31,8 @@ namespace active_vision_pipeline{
 
     protected:
 
+        std::string hardware_protocol_;
+
         // Variables for saving nodes
         std::shared_ptr<MoveIt2APIs> MoveIt2API_node_;
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_node_;

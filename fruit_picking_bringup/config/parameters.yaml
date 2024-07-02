@@ -368,9 +368,9 @@ launch:
 
     nbv_planning_pipeline_launch:
       # Planning
-      candidate_viewpoints_number: "64"
-      plane_type_candidate_viewpoints: "circle" # square, circle
-      movement_range: "1.0" # lenght of the portion containing the candidate viewpoints
+      candidate_viewpoints_number: "16"
+      plane_type_candidate_viewpoints: "square" # square, circle
+      movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
       # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
       orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
       # Segmentation

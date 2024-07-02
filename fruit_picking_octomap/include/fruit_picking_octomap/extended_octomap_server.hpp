@@ -537,6 +537,10 @@ namespace extended_octomap_server{
             const fruit_picking_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
             const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
+
+        
+        std::shared_ptr<ExtendedOctomapMap> getExtendedOctomapMap();
+
         
     };
 

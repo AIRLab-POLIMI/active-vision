@@ -34,6 +34,7 @@ namespace active_vision_nbv_planning_pipeline{
         client_node_ = segmentationClientNode;
 
         // Read parameters
+        hardware_protocol_ = this->declare_parameter("hardware_protocol", "simulation");
         frame_id_ = this->declare_parameter("frame_id", "world");
         base_frame_id_ = this->declare_parameter("base_frame_id", "igus_rebel_base_link");
         queue_size_ = this->declare_parameter<int>("queue_size", 5);
@@ -139,7 +140,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-	    // Alternative way: with joint space goal
+	    // // Alternative way: with joint space goal
         // bool valid_motion = MoveIt2API_node_->robotPlanAndMove(initialPosition_, "initial_position");
         // if (!valid_motion) {
 		// 	RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
@@ -162,34 +163,34 @@ namespace active_vision_nbv_planning_pipeline{
 
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            RCLCPP_INFO(this->get_logger(), "NBV planning pipeline step %d/%d started.", i, maxNBVPlanningSteps_);
+            RCLCPP_INFO(this->get_logger(), "NBV planning pipeline step %d/%d started.", (i+1), maxNBVPlanningSteps_);
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
 
 
 
 
-            // // Obtain data from the robot
+            // Obtain data from the robot
 
-            // // Lock the variables till the function terminates, locking also the subsciber to save the current data
-            // std::unique_lock<std::mutex> lock(data_mutex_);
-            // // Wait intill notification: then check the value of data received
-            // data_cond_.wait(lock, [this]{ return this->data_received_; });
-            // data_received_ = false; // Reset the flag
+            // Lock the variables till the function terminates, locking also the subsciber to save the current data
+            std::unique_lock<std::mutex> lock(data_mutex_);
+            // Wait intill notification: then check the value of data received
+            data_cond_.wait(lock, [this]{ return this->data_received_; });
+            data_received_ = false; // Reset the flag
 
-            // // Ontain data to send it to the segmentation server
-            // RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            // RCLCPP_INFO(this->get_logger(), "Getting data from subscriber...");
+            // Ontain data to send it to the segmentation server
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "Getting data from subscriber...");
 
-            // Image::ConstSharedPtr working_rgb_msg;
-            // Image::ConstSharedPtr working_depth_msg;
-            // CameraInfo::ConstSharedPtr working_camera_info_msg;
-            // geometry_msgs::msg::TransformStamped::ConstSharedPtr working_tf;
+            Image::ConstSharedPtr working_rgb_msg;
+            Image::ConstSharedPtr working_depth_msg;
+            CameraInfo::ConstSharedPtr working_camera_info_msg;
+            geometry_msgs::msg::TransformStamped::ConstSharedPtr working_tf;
 
-            // std::tie(
-            //     working_rgb_msg, working_depth_msg, working_camera_info_msg, working_tf) = std::make_tuple(
-            //     current_rgb_msg_, current_depth_msg_, current_camera_info_msg_, current_tf_);
+            std::tie(
+                working_rgb_msg, working_depth_msg, working_camera_info_msg, working_tf) = std::make_tuple(
+                current_rgb_msg_, current_depth_msg_, current_camera_info_msg_, current_tf_);
 
-            // RCLCPP_INFO(this->get_logger(), "Data obtained.");
+            RCLCPP_INFO(this->get_logger(), "Data obtained.");
 
 
 
@@ -288,6 +289,9 @@ namespace active_vision_nbv_planning_pipeline{
             //     extended_octomap_node_->insertCloudCallback(fullPointcloud_);
             //     extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
             // }
+            //
+            // extendedOctomapMap_ = extended_octomap_node_->getExtendedOctomapMap();
+            //
             // RCLCPP_INFO(this->get_logger(), "Octomap updated.");
 
 
@@ -307,29 +311,13 @@ namespace active_vision_nbv_planning_pipeline{
 
             // For each pose, get the cartesian pose and publish an arrow on it
             for (size_t i = 0; i < candidateViewpoints_.size(); ++i){
-                // MoveIt2API_node_->visual_tools->publishAxisLabeled(candidateViewpoints_[i], "", rviz_visual_tools::SMALL, rviz_visual_tools::GREEN);
-                geometry_msgs::msg::Point start_point;
-                start_point.x = candidateViewpoints_[i].translation().x();
-                start_point.y = candidateViewpoints_[i].translation().y();
-                start_point.z = candidateViewpoints_[i].translation().z();
+                visualizeArrowPose(candidateViewpoints_[i], 0.1, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
 
-                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = candidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
-
-                // Define the length of the arrow
-                double arrow_length = 0.1; // For example, 0.1 meters
-
-                // Calculate the end point of the arrow based on the forward direction
-                geometry_msgs::msg::Point end_point;
-                end_point.x = start_point.x + forward_direction.x() * arrow_length;
-                end_point.y = start_point.y + forward_direction.y() * arrow_length;
-                end_point.z = start_point.z + forward_direction.z() * arrow_length;
-
-                // Publish the arrow to visualize the pose's forward direction
-                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
             }
             MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(candidateViewpoints_), "candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
             MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(750));
+
 
             
 
@@ -357,25 +345,8 @@ namespace active_vision_nbv_planning_pipeline{
 
             // For each valid candidate Eigen pose, get the stamped cartesian pose and publish an arrow on it
             for (size_t i = 0; i < validCandidateViewpoints_.size(); ++i){
-                geometry_msgs::msg::Point start_point;
-                start_point.x = validCandidateViewpoints_[i].translation().x();
-                start_point.y = validCandidateViewpoints_[i].translation().y();
-                start_point.z = validCandidateViewpoints_[i].translation().z();
+                visualizeArrowPose(validCandidateViewpoints_[i], 0.1, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
 
-                // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
-                Eigen::Vector3d forward_direction = validCandidateViewpoints_[i].rotation() * Eigen::Vector3d(1, 0, 0);
-
-                // Define the length of the arrow
-                double arrow_length = 0.1; // For example, 0.1 meters
-
-                // Calculate the end point of the arrow based on the forward direction
-                geometry_msgs::msg::Point end_point;
-                end_point.x = start_point.x + forward_direction.x() * arrow_length;
-                end_point.y = start_point.y + forward_direction.y() * arrow_length;
-                end_point.z = start_point.z + forward_direction.z() * arrow_length;
-
-                // Publish the arrow to visualize the pose's forward direction
-                MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
             }
             MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "valid_candidate_viewpoints", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
             MoveIt2API_node_->visual_tools->trigger();
@@ -395,6 +366,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
             // Select the NBV
+            // NBV_pose_ = chooseNBVRandom(validCandidateViewpoints_);
             NBV_pose_ = chooseNBV(validCandidateViewpoints_);
             NBV_pose_ptr_ = eigenIsometry3dToPoseStamped(NBV_pose_);
 
@@ -561,7 +533,6 @@ namespace active_vision_nbv_planning_pipeline{
         RCLCPP_DEBUG(this->get_logger(), "Internal data updated.");
 
     }
-
 
 
 
@@ -775,6 +746,7 @@ namespace active_vision_nbv_planning_pipeline{
 
         // Set the header
         pose_msg->header.frame_id = base_frame_id_;
+        pose_msg->header.stamp = this->now();
 
         // Set the position
         pose_msg->pose.position.x = isometry.translation().x();
@@ -793,7 +765,33 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBV(const std::vector<Eigen::Isometry3d>& poses) {
+    void ActiveVisionNbvPlanningPipeline::visualizeArrowPose(const Eigen::Isometry3d& pose, double length,
+        rviz_visual_tools::Colors color, rviz_visual_tools::Scales scale)
+    {
+        geometry_msgs::msg::Point start_point;
+        start_point.x = pose.translation().x();
+        start_point.y = pose.translation().y();
+        start_point.z = pose.translation().z();
+
+        // Assuming the forward direction is correctly represented by transforming the x-axis unit vector by the pose's orientation
+        Eigen::Vector3d forward_direction = pose.rotation() * Eigen::Vector3d(1, 0, 0);
+
+        // Define the length of the arrow
+        double arrow_length = length; // For example, 0.1 meters
+
+        // Calculate the end point of the arrow based on the forward direction
+        geometry_msgs::msg::Point end_point;
+        end_point.x = start_point.x + forward_direction.x() * arrow_length;
+        end_point.y = start_point.y + forward_direction.y() * arrow_length;
+        end_point.z = start_point.z + forward_direction.z() * arrow_length;
+
+        // Publish the arrow to visualize the pose's forward direction
+        MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, color, scale);
+    }
+
+
+
+    Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBVRandom(const std::vector<Eigen::Isometry3d>& poses) {
         // Check if the input vector is empty
         if (poses.empty()) {
             throw std::runtime_error("Input vector of poses is empty."); // Throw an exception if there are no poses to choose from
@@ -809,6 +807,134 @@ namespace active_vision_nbv_planning_pipeline{
 
         // Return the selected Eigen::Isometry3d
         return poses[randomIndex];
+    }
+
+
+
+    void ActiveVisionNbvPlanningPipeline::visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg) {
+        // Convert FOV from degrees to radians
+        double fov_w_rad = fov_w_deg * (M_PI / 180.0);
+        double fov_h_rad = fov_h_deg * (M_PI / 180.0);
+
+        // Calculate half-angles for simplicity
+        double half_fov_w = fov_w_rad / 2.0;
+        double half_fov_h = fov_h_rad / 2.0;
+
+        // Calculate direction vectors for the frustum sides
+        std::vector<Eigen::Vector3d> directions = {
+            Eigen::Vector3d(1, tan(half_fov_w), tan(half_fov_h)),    // Top right direction
+            Eigen::Vector3d(1, -tan(half_fov_w), tan(half_fov_h)),   // Top left direction
+            Eigen::Vector3d(1, -tan(half_fov_w), -tan(half_fov_h)),  // Bottom left direction
+            Eigen::Vector3d(1, tan(half_fov_w), -tan(half_fov_h))    // Bottom right direction
+        };
+
+        // Normalize direction vectors
+        for (auto& dir : directions) {
+            dir.normalize();
+        }
+
+        // Starting point for the lines is the apex of the frustum
+        Eigen::Vector3d starting_point = starting_pose.translation();
+
+        // Visualize the frustum sides
+        for (const auto& dir : directions) {
+            // Transform direction vector to world frame and scale to desired length (e.g., 1 meter)
+            Eigen::Vector3d end_point = starting_point + (starting_pose.rotation() * dir) * 1.0;
+            MoveIt2API_node_->visual_tools->publishLine(starting_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::XSMALL);
+        }
+
+        MoveIt2API_node_->visual_tools->trigger();
+    }
+
+
+
+    void ActiveVisionNbvPlanningPipeline::visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg) {
+        // Convert FOV from degrees to radians
+        double fov_h_rad = fov_h_deg * (M_PI / 180.0);
+        double fov_w_rad = fov_w_deg * (M_PI / 180.0);
+
+        // Calculate half-angles for simplicity
+        double half_fov_h = fov_h_rad / 2.0;
+        double half_fov_w = fov_w_rad / 2.0;
+
+        // Depth is set to 1 meter
+        double depth = 1.0;
+
+        // Calculate the offsets at the depth
+        double offset_h = depth * tan(half_fov_h);
+        double offset_w = depth * tan(half_fov_w);
+
+        // Define frustum base corners in camera frame
+        std::vector<Eigen::Vector3d> corners = {
+            Eigen::Vector3d(depth, offset_w, offset_h),    // Top right
+            Eigen::Vector3d(depth, -offset_w, offset_h),   // Top left
+            Eigen::Vector3d(depth, -offset_w, -offset_h),  // Bottom left
+            Eigen::Vector3d(depth, offset_w, -offset_h)    // Bottom right
+        };
+
+        // Transform corners to world frame
+        for (auto& corner : corners) {
+            corner = starting_pose * corner;
+        }
+
+        // Visualize the base of the frustum as a rectangle
+        for (size_t i = 0; i < corners.size(); ++i) {
+            MoveIt2API_node_->visual_tools->publishLine(corners[i], corners[(i + 1) % corners.size()], rviz_visual_tools::RED, rviz_visual_tools::XSMALL);
+        }
+
+        MoveIt2API_node_->visual_tools->trigger();
+    }
+
+
+
+    Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBV(const std::vector<Eigen::Isometry3d>& poses) {
+        // Check if the input vector is empty
+        if (poses.empty()) {
+            throw std::runtime_error("Input vector of poses is empty."); // Throw an exception if there are no poses to choose from
+        }
+
+        // Calculate horizontal and vertical FOV for the viewpoint frustum
+        double fx = current_camera_info_msg_->k[0];
+        double fy = current_camera_info_msg_->k[4];
+        int w = current_camera_info_msg_->width;
+        int h = current_camera_info_msg_->height;
+
+        double fov_w, fov_h;
+        if (hardware_protocol_ == "ignition"){
+            fov_w = 2.0 * std::atan(static_cast<double>(w) / (4.0 * fx));
+            fov_h = 2.0 * std::atan(static_cast<double>(h) / (4.0 * fy));
+        }
+        else {
+            fov_w = 2.0 * std::atan(static_cast<double>(w) / (2.0 * fx));
+            fov_h = 2.0 * std::atan(static_cast<double>(h) / (2.0 * fy));
+        }
+        fov_w = fov_w * (180.0 / M_PI);
+        fov_h = fov_h * (180.0 / M_PI);
+
+
+        // Visualize frustum
+        for (auto pose : poses){
+            visualizeFrustum(pose, fov_w, fov_h);
+            visualizeFrustumBase(pose, fov_w, fov_h);
+            visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+
+            rclcpp::sleep_for(std::chrono::milliseconds(2000));
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+        }
+
+
+        // Initialize a random number generator
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator(seed);
+        std::uniform_int_distribution<size_t> distribution(0, poses.size() - 1);
+
+        // Select a random index
+        size_t randomIndex = distribution(generator);
+
+        // Return the selected Eigen::Isometry3d
+        return poses[randomIndex];
+
     }
 
 

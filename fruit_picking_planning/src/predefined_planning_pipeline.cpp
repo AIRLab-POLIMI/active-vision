@@ -125,6 +125,8 @@ namespace active_vision_predefined_planning_pipeline{
                 current_tf_ = std::make_shared<geometry_msgs::msg::TransformStamped>(
                     this->tf_buffer_->lookupTransform(
                         target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp));
+                // Used to tell the main function that is time to execute
+                data_received_ = true;
             }
             
         } catch (tf2::TransformException &ex) {
@@ -137,12 +139,16 @@ namespace active_vision_predefined_planning_pipeline{
             // This will catch all other exceptions
             RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][saveData] Generic error.");
         } 
-        // Used to tell the main function that is time to execute
-        data_received_ = true;
+        
         // Used to block the wait, and to check the value of the above flag
         data_cond_.notify_one();
 
         RCLCPP_DEBUG(this->get_logger(), "Internal data updated.");
+        // From this moment on, when the function terminates (and the scope is destroyed), the lock is released
+        // But if no other thread get the lock, again this function will get it one more time since it is called continuosly 
+        // by the sync
+        // Moreover, the main function can not get the lock if data received is still false. This assures the fact that
+        // this function restarts till all the data are obtained (thanks to the bool flag setted if the tf is received)
 
     }
 
@@ -259,6 +265,8 @@ namespace active_vision_predefined_planning_pipeline{
                 current_rgb_msg_, current_depth_msg_, current_camera_info_msg_, current_tf_);
 
             RCLCPP_INFO(this->get_logger(), "Data obtained.");
+            // Manually release the lock here to allow `saveData` to update the shared data
+            lock.unlock();
 
 
 

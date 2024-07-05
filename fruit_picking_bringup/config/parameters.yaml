@@ -92,6 +92,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -146,6 +152,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -209,6 +221,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -274,6 +292,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -371,6 +395,7 @@ launch:
       candidate_viewpoints_number: "16"
       plane_type_candidate_viewpoints: "square" # square, circle
       movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
+      max_ray_depth: "2.0"
       # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
       orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
       # Segmentation

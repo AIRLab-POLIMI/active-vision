@@ -23,6 +23,9 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         int maxNBVPlanningSteps_;
 
         std::shared_ptr<ExtendedOctomapMap> extendedOctomapMap_;
+        std::shared_ptr<OcTreeT> octree_;
+
+        double maxRayDepth_;
 
 
         void createDataSub();
@@ -49,9 +52,13 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
 
         Eigen::Isometry3d chooseNBVRandom(const std::vector<Eigen::Isometry3d>& poses);
 
-        void visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg);
+        void visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth);
 
-        void visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg);
+        void visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth);
+
+        std::vector<Eigen::Vector3d> generateFrustumBaseGrid(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m, double frustum_depth);
+
+        octomap::KeySet performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
 
         Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses);
 

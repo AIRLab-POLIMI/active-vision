@@ -2414,9 +2414,18 @@ namespace extended_octomap_server {
     }
 
 
+    double ExtendedOctomapServer::getRes(){
+        return this->m_res;
+    }
+
+
+    std::shared_ptr<OcTreeT> ExtendedOctomapServer::getOcTree(){
+        return this->m_octree;
+    }
+
 
     std::shared_ptr<ExtendedOctomapMap> ExtendedOctomapServer::getExtendedOctomapMap(){
-        return extended_octomap_map;
+        return this->extended_octomap_map;
     }
 
 

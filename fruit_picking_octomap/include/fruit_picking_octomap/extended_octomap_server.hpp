@@ -538,7 +538,10 @@ namespace extended_octomap_server{
             const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
             const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud);
 
+        double getRes();
         
+        std::shared_ptr<OcTreeT> getOcTree();
+
         std::shared_ptr<ExtendedOctomapMap> getExtendedOctomapMap();
 
         

@@ -46,6 +46,7 @@ namespace active_vision_nbv_planning_pipeline{
         candidateViewpointsNumber_ = this->declare_parameter<int>("candidate_viewpoints_number", 100);
         planeTypeCandidateViewpoints_ = this->declare_parameter("plane_type_candidate_viewpoints", "square");
         movementRange_ = this->declare_parameter<float>("movement_range", 1.0);
+        maxRayDepth_ = this->declare_parameter<float>("max_ray_depth", 10.0);
 
 
 
@@ -63,6 +64,10 @@ namespace active_vision_nbv_planning_pipeline{
 
         // Initialize full and segmented pointcloud visualization publisherrclcpp::SensorDataQoS()
         segmentedPointcloudPub_ = create_publisher<PointCloud2>("/visualization/segmented_pointcloud", rclcpp::SensorDataQoS(rclcpp::KeepLast(3)));
+
+        // Initialize octomap data structure
+        octree_ = std::make_shared<OcTreeT>(extended_octomap_node_->getRes());
+        extendedOctomapMap_ = std::make_shared<ExtendedOctomapMap>();
 
         // Initialize extended octomap visualization publishers
         extended_octomap_node_->createVisualizations();
@@ -191,108 +196,114 @@ namespace active_vision_nbv_planning_pipeline{
                 current_rgb_msg_, current_depth_msg_, current_camera_info_msg_, current_tf_);
 
             RCLCPP_INFO(this->get_logger(), "Data obtained.");
+            // Manually release the lock here to allow `saveData` to update the shared data
+            lock.unlock();
 
 
 
 
-            // // Create segmentation request for the server
+            // Create segmentation request for the server
 
-            // auto request = std::make_shared<fruit_picking_interfaces::srv::YOLOWorldSegmentation::Request>();
-            // request->image = *working_rgb_msg;
-            // request->text_prompt = this->prompt_;
-            // request->confidence_threshold = this->confidence_threshold_;
-            // request->nms_threshold = this->nms_confidence_threshold_;
-
-
-
-
-            // // Wait for the server to be active
-
-            // while (!this->client_->wait_for_service(std::chrono::seconds(1))) {
-            //     if (!rclcpp::ok()) {
-            //         RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
-            //         return;
-            //     }
-            //     RCLCPP_WARN(this->get_logger(), "Service not available, waiting again...");
-            // }
-
-            // auto result = client_->async_send_request(request);
+            auto request = std::make_shared<fruit_picking_interfaces::srv::YOLOWorldSegmentation::Request>();
+            request->image = *working_rgb_msg;
+            request->text_prompt = this->prompt_;
+            request->confidence_threshold = this->confidence_threshold_;
+            request->nms_threshold = this->nms_confidence_threshold_;
 
 
 
 
-            // // Wait for the response, and save them once received
+            // Wait for the server to be active
 
-            // if (rclcpp::spin_until_future_complete(client_node_, result) ==
-            //     rclcpp::FutureReturnCode::SUCCESS)
-            // {
-            //     auto response = result.get();
-            //     masks_images_array_ = std::make_shared<const ImageArray>(response->masks_images_array);
-            //     merged_masks_image_ = std::make_shared<const Image>(response->merged_masks_images);
-            //     confidences_ = std::make_shared<const Confidence>(response->confidences);
-            //     RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            //     RCLCPP_INFO(this->get_logger(), "Segmentation response obtained.");
-            // }
+            while (!this->client_->wait_for_service(std::chrono::seconds(1))) {
+                if (!rclcpp::ok()) {
+                    RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
+                    return;
+                }
+                RCLCPP_WARN(this->get_logger(), "Service not available, waiting again...");
+            }
 
-
-            // // Publish segmented image
-            // segmentedImagePub_->publish(*merged_masks_image_);
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "Sending data to segmentation server...");
+            auto result = client_->async_send_request(request);
 
 
 
-            // // Create full and segmented pointcloud
-            // if (usePartialPointcloud_){
-            //     RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            //     RCLCPP_INFO(this->get_logger(), "Creating partial pointcloud...");
-            //     partialPointcloud_ = segmented_pointcloud_node_->imageCb(
-            //         working_depth_msg, 
-            //         merged_masks_image_, 
-            //         working_camera_info_msg);
-            // } 
-            // else {
-            //     RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            //     RCLCPP_INFO(this->get_logger(), "Creating full pointcloud...");
-            //     fullPointcloud_ = pointcloud_node_->imageCb(
-            //         working_depth_msg, 
-            //         working_rgb_msg, 
-            //         working_camera_info_msg);
-            // }
-            // RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
+
+            // Wait for the response, and save them once received
+            RCLCPP_INFO(this->get_logger(), "Waiting data from segmentation server...");
+            if (rclcpp::spin_until_future_complete(client_node_, result) ==
+                rclcpp::FutureReturnCode::SUCCESS)
+            {
+                auto response = result.get();
+                masks_images_array_ = std::make_shared<const ImageArray>(response->masks_images_array);
+                merged_masks_image_ = std::make_shared<const Image>(response->merged_masks_images);
+                confidences_ = std::make_shared<const Confidence>(response->confidences);
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+                RCLCPP_INFO(this->get_logger(), "Segmentation response obtained.");
+            }
+
+
+            // Publish segmented image
+            segmentedImagePub_->publish(*merged_masks_image_);
+
+
+
+            // Create full and segmented pointcloud
+            if (usePartialPointcloud_){
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+                RCLCPP_INFO(this->get_logger(), "Creating partial pointcloud...");
+                partialPointcloud_ = segmented_pointcloud_node_->imageCb(
+                    working_depth_msg, 
+                    merged_masks_image_, 
+                    working_camera_info_msg);
+            } 
+            else {
+                RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+                RCLCPP_INFO(this->get_logger(), "Creating full pointcloud...");
+                fullPointcloud_ = pointcloud_node_->imageCb(
+                    working_depth_msg, 
+                    working_rgb_msg, 
+                    working_camera_info_msg);
+            }
+            RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
             
-            // segmentedPointcloudArray_ = segmented_pointcloud_node_->imageArrayCb(
-            //     working_depth_msg,
-            //     masks_images_array_,
-            //     working_camera_info_msg,
-            //     confidences_);
-            // RCLCPP_INFO(this->get_logger(), "Pointclouds created.");
+            segmentedPointcloudArray_ = segmented_pointcloud_node_->imageArrayCb(
+                working_depth_msg,
+                masks_images_array_,
+                working_camera_info_msg,
+                confidences_);
+            RCLCPP_INFO(this->get_logger(), "Pointclouds created.");
 
 
 
-            // // Publish full and segmented pointclouds for visualization
-            // segmentedPointcloud_ = segmented_pointcloud_node_->imageCb(
-            //     working_depth_msg, 
-            //     merged_masks_image_, 
-            //     working_camera_info_msg);
-            // segmentedPointcloudPub_->publish(*segmentedPointcloud_);
+            // Publish full and segmented pointclouds for visualization
+            segmentedPointcloud_ = segmented_pointcloud_node_->imageCb(
+                working_depth_msg, 
+                merged_masks_image_, 
+                working_camera_info_msg);
+            segmentedPointcloudPub_->publish(*segmentedPointcloud_);
 
             
 
 
-            // // Update octomap and publish visualization
-            // RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
-            // RCLCPP_INFO(this->get_logger(), "Updating octomap...");
-            // if (usePartialPointcloud_){
-            //     extended_octomap_node_->insertPartialCloudCallback(partialPointcloud_, working_tf);
-            //     extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, partialPointcloud_);
-            // }
-            // else {
-            //     extended_octomap_node_->insertCloudCallback(fullPointcloud_);
-            //     extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
-            // }
-            //
-            // extendedOctomapMap_ = extended_octomap_node_->getExtendedOctomapMap();
-            //
-            // RCLCPP_INFO(this->get_logger(), "Octomap updated.");
+            // Update octomap and publish visualization
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "Updating octomap...");
+            if (usePartialPointcloud_){
+                extended_octomap_node_->insertPartialCloudCallback(partialPointcloud_, working_tf);
+                extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, partialPointcloud_);
+            }
+            else {
+                extended_octomap_node_->insertCloudCallback(fullPointcloud_);
+                extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
+            }
+            RCLCPP_INFO(this->get_logger(), "Storing octomap...");
+            
+            octree_ = extended_octomap_node_->getOcTree();
+            extendedOctomapMap_ = extended_octomap_node_->getExtendedOctomapMap();
+            
+            RCLCPP_INFO(this->get_logger(), "Octomap updated.");
 
 
 
@@ -366,7 +377,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
             // Select the NBV
-            // NBV_pose_ = chooseNBVRandom(validCandidateViewpoints_);
+            RCLCPP_INFO(this->get_logger(), "Choosing NBV viewpoint among the valid candidate viewpoints..");
             NBV_pose_ = chooseNBV(validCandidateViewpoints_);
             NBV_pose_ptr_ = eigenIsometry3dToPoseStamped(NBV_pose_);
 
@@ -513,6 +524,8 @@ namespace active_vision_nbv_planning_pipeline{
                 current_tf_ = std::make_shared<geometry_msgs::msg::TransformStamped>(
                     this->tf_buffer_->lookupTransform(
                         target_frame, camera_info_msg->header.frame_id, camera_info_msg->header.stamp));
+                // Used to tell the main function that is time to execute
+                data_received_ = true;
             }
             
         } catch (tf2::TransformException &ex) {
@@ -525,12 +538,16 @@ namespace active_vision_nbv_planning_pipeline{
             // This will catch all other exceptions
             RCLCPP_ERROR(this->get_logger(), "[PredefinedPlanning][saveData] Generic error.");
         } 
-        // Used to tell the main function that is time to execute
-        data_received_ = true;
+        
         // Used to block the wait, and to check the value of the above flag
         data_cond_.notify_one();
 
         RCLCPP_DEBUG(this->get_logger(), "Internal data updated.");
+        // From this moment on, when the function terminates (and the scope is destroyed), the lock is released
+        // But if no other thread get the lock, again this function will get it one more time since it is called continuosly 
+        // by the sync
+        // Moreover, the main function can not get the lock if data received is still false. This assures the fact that
+        // this function restarts till all the data are obtained (thanks to the bool flag setted if the tf is received)
 
     }
 
@@ -811,7 +828,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    void ActiveVisionNbvPlanningPipeline::visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg) {
+    void ActiveVisionNbvPlanningPipeline::visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth) {
         // Convert FOV from degrees to radians
         double fov_w_rad = fov_w_deg * (M_PI / 180.0);
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
@@ -819,6 +836,9 @@ namespace active_vision_nbv_planning_pipeline{
         // Calculate half-angles for simplicity
         double half_fov_w = fov_w_rad / 2.0;
         double half_fov_h = fov_h_rad / 2.0;
+
+        // Depth is set to 1 meter
+        double depth = frustum_depth;
 
         // Calculate direction vectors for the frustum sides
         std::vector<Eigen::Vector3d> directions = {
@@ -833,13 +853,19 @@ namespace active_vision_nbv_planning_pipeline{
             dir.normalize();
         }
 
+        // Define the actual size of the side of the frustum using Pitagora
+        double offset_w = depth * tan(half_fov_w);
+        double offset_h = depth * tan(half_fov_h);
+        double hypotenuse = sqrt(depth * depth + offset_w * offset_w + offset_h * offset_h);
+
+
         // Starting point for the lines is the apex of the frustum
         Eigen::Vector3d starting_point = starting_pose.translation();
 
         // Visualize the frustum sides
         for (const auto& dir : directions) {
             // Transform direction vector to world frame and scale to desired length (e.g., 1 meter)
-            Eigen::Vector3d end_point = starting_point + (starting_pose.rotation() * dir) * 1.0;
+            Eigen::Vector3d end_point = starting_point + (starting_pose.rotation() * dir) * hypotenuse;
             MoveIt2API_node_->visual_tools->publishLine(starting_point, end_point, rviz_visual_tools::YELLOW, rviz_visual_tools::XSMALL);
         }
 
@@ -848,7 +874,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    void ActiveVisionNbvPlanningPipeline::visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg) {
+    void ActiveVisionNbvPlanningPipeline::visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth) {
         // Convert FOV from degrees to radians
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
         double fov_w_rad = fov_w_deg * (M_PI / 180.0);
@@ -857,10 +883,9 @@ namespace active_vision_nbv_planning_pipeline{
         double half_fov_h = fov_h_rad / 2.0;
         double half_fov_w = fov_w_rad / 2.0;
 
-        // Depth is set to 1 meter
-        double depth = 1.0;
+        double depth = frustum_depth;
 
-        // Calculate the offsets at the depth
+        // Calculate the offsets at the depth (the distance between the center of the plane and the corner defined by the angle)
         double offset_h = depth * tan(half_fov_h);
         double offset_w = depth * tan(half_fov_w);
 
@@ -883,6 +908,106 @@ namespace active_vision_nbv_planning_pipeline{
         }
 
         MoveIt2API_node_->visual_tools->trigger();
+
+        
+    }
+
+
+
+    std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::generateFrustumBaseGrid(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m, double frustum_depth) {
+        // Convert FOV from degrees to radians
+        double fov_h_rad = fov_h_deg * (M_PI / 180.0);
+        double fov_w_rad = fov_w_deg * (M_PI / 180.0);
+
+        // Calculate half-angles for simplicity
+        double half_fov_h = fov_h_rad / 2.0;
+        double half_fov_w = fov_w_rad / 2.0;
+
+        // Depth is set to frustum_depth
+        double depth = frustum_depth;
+
+        // Calculate the offsets at the depth
+        double offset_h = depth * tan(half_fov_h);
+        double offset_w = depth * tan(half_fov_w);
+
+        // Calculate the number of steps based on the resolution
+        int w = static_cast<int>(std::ceil((2 * offset_w) / resolution_m));
+        int h = static_cast<int>(std::ceil((2 * offset_h) / resolution_m));
+
+        // Adjust step sizes based on the new number of steps
+        double step_w = (2 * offset_w) / (w - 1);
+        double step_h = (2 * offset_h) / (h - 1);
+
+        std::vector<Eigen::Vector3d> gridPoints;
+        gridPoints.reserve(h * w);
+
+        // Generate grid points
+        for (int i = 0; i < h; ++i) {
+            for (int j = 0; j < w; ++j) {
+                // Calculate interpolation factors for width and height
+                double t_w = j * step_w - offset_w;
+                double t_h = i * step_h - offset_h;
+
+                // Interpolate to find the point on the frustum base
+                Eigen::Vector3d point = starting_pose * Eigen::Vector3d(depth, t_w, t_h);
+                gridPoints.push_back(point);
+            }
+        }
+
+        return gridPoints;
+    }
+
+
+
+    octomap::KeySet ActiveVisionNbvPlanningPipeline::performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
+
+        // Generate ray's end point at a large-enough distance from the starting point
+        // This approach ensures that each ray is cast within the FOV from the starting point to a enough-distant ending point, 
+        // effectively covering the common possible front area.
+        octomap::KeySet finalSet;
+        double ray_depth = maxRayDepth_;
+        std::vector<Eigen::Vector3d> end_points = generateFrustumBaseGrid(pose, fov_w, fov_h, extended_octomap_node_->getRes(), ray_depth);
+
+        // // Visualize ray's end point based on the current octomap limit (set in the parameter file)
+        // for (auto end: end_points){
+        //     MoveIt2API_node_->visual_tools->publishSphere(end, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
+        //     MoveIt2API_node_->visual_tools->trigger();
+        //     rclcpp::sleep_for(std::chrono::milliseconds(2));
+        // }
+
+
+        octomap::KeyRay voxelRayKeys; 
+        octomap::point3d starting_3d_point(pose.translation().x(), pose.translation().y(), pose.translation().z());
+
+        for (auto end_point: end_points){
+
+            // Save the voxel keys traversed by the ray
+            octomap::point3d ending_3d_point(end_point.x(), end_point.y(), end_point.z());
+            if (!octree_->computeRayKeys(starting_3d_point, ending_3d_point, voxelRayKeys)) {
+                throw std::runtime_error("Could not perform ray casting");
+            }
+            // Find the key of the closest voxel to the starting point that is occupied
+            octomap::OcTreeKey closestOccupiedKey;
+            double minDistance = std::numeric_limits<double>::max();
+            for (auto key: voxelRayKeys){
+                // It could happen that a key dont exists in the octree, since in some configurations
+                // it can contain only occupied cells. A cehck is needed
+                octomap::OcTreeNode* node = octree_->search(key);
+                if (node && octree_->isNodeOccupied(node)){ // Check if node is not null and is occupied
+                    octomap::point3d keyPoint = octree_->keyToCoord(key);
+                    double distance = starting_3d_point.distance(keyPoint);
+                    if (distance < minDistance){
+                        minDistance = distance;
+                        closestOccupiedKey = key;
+                    }
+                }
+            }
+            
+            // Insert the key into the main keyset
+            finalSet.insert(closestOccupiedKey);
+
+        }
+        return finalSet;
     }
 
 
@@ -908,16 +1033,38 @@ namespace active_vision_nbv_planning_pipeline{
             fov_w = 2.0 * std::atan(static_cast<double>(w) / (2.0 * fx));
             fov_h = 2.0 * std::atan(static_cast<double>(h) / (2.0 * fy));
         }
-        fov_w = fov_w * (180.0 / M_PI);
-        fov_h = fov_h * (180.0 / M_PI);
+        fov_w = fov_w * (180.0 / M_PI); // in degrees
+        fov_h = fov_h * (180.0 / M_PI); // in degrees
 
 
-        // Visualize frustum
+        // Start a loop for each valid candidate viewpoint
         for (auto pose : poses){
-            visualizeFrustum(pose, fov_w, fov_h);
-            visualizeFrustumBase(pose, fov_w, fov_h);
+
+            // Visualize frustum
+            visualizeFrustum(pose, fov_w, fov_h, 1.0);
+            visualizeFrustumBase(pose, fov_w, fov_h, 1.0);
             visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
             MoveIt2API_node_->visual_tools->trigger();
+
+            // Ray casting
+            octomap::KeySet rayCastingVoxels;
+            rayCastingVoxels = performNaiveRayCasting(pose, fov_w, fov_h);
+            
+            RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
+
+
+            // Visualize points related to the voxel obtained by ray casting
+            for (auto key: rayCastingVoxels){
+                octomap::point3d centerPoint = octree_->keyToCoord(key);
+                Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
+                MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
+            }
+            RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
+            MoveIt2API_node_->visual_tools->trigger();
+
+
+            
+
 
             rclcpp::sleep_for(std::chrono::milliseconds(2000));
             MoveIt2API_node_->visual_tools->deleteAllMarkers();

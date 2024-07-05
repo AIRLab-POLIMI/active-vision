@@ -15,6 +15,7 @@ def generate_launch_description():
         DeclareLaunchArgument('candidate_viewpoints_number', default_value='100'),
         DeclareLaunchArgument('plane_type_candidate_viewpoints', default_value='square'),
         DeclareLaunchArgument('movement_range', default_value='1.0'),
+        DeclareLaunchArgument('max_ray_depth', default_value='10.0'),
         DeclareLaunchArgument('camera_frame', default_value='igus_rebel/link_8/depth_camera'), # for moveit2_api
         DeclareLaunchArgument('load_base', default_value='False'), # for moveit2_api
         DeclareLaunchArgument('segmentation_prompt', default_value='tomato'),
@@ -97,6 +98,7 @@ def generate_launch_description():
             "candidate_viewpoints_number": LaunchConfiguration("candidate_viewpoints_number"),
             "plane_type_candidate_viewpoints": LaunchConfiguration("plane_type_candidate_viewpoints"),
             "movement_range": LaunchConfiguration("movement_range"),
+            "max_ray_depth": LaunchConfiguration("max_ray_depth"),
             "camera_frame": LaunchConfiguration("camera_frame"),
             "load_base": LaunchConfiguration("load_base"),
             "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),

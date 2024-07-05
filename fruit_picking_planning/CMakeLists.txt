@@ -138,6 +138,9 @@ ament_target_dependencies(main_nbv_planning_pipeline
   fruit_picking_pointcloud
   depth_image_proc
   )
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(main_nbv_planning_pipeline OpenMP::OpenMP_CXX)
+endif()
 
 # In order to let ros2 find the executable
 install(TARGETS 

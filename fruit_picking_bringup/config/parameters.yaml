@@ -396,6 +396,7 @@ launch:
       plane_type_candidate_viewpoints: "square" # square, circle
       movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
       max_ray_depth: "2.0"
+      ray_step_proportion: "1.0" # multiplier to the octomap resolution to define ray egenration step during ray casting. 1 means octomap resolution
       # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
       orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
       # Segmentation

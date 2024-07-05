@@ -3,6 +3,8 @@
 #define _ACTIVE_VISION_NBV_PLANNING_PIPELINE_HPP_
 
 #include <fruit_picking_planning/active_vision_pipeline.hpp>
+#include <random>
+#include <omp.h>
 
 namespace active_vision_nbv_planning_pipeline {
 
@@ -26,6 +28,7 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         std::shared_ptr<OcTreeT> octree_;
 
         double maxRayDepth_;
+        double rayStepProportion_;
 
 
         void createDataSub();
@@ -58,7 +61,13 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
 
         std::vector<Eigen::Vector3d> generateFrustumBaseGrid(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m, double frustum_depth);
 
+        std::vector<Eigen::Vector3d> generateFrustumBaseDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m);
+
         octomap::KeySet performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
+
+        octomap::KeySet performRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
+
+        octomap::KeySet performFastRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
 
         Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses);
 

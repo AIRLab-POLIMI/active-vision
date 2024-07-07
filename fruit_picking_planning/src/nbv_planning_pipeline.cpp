@@ -47,6 +47,9 @@ namespace active_vision_nbv_planning_pipeline{
         movementRange_ = this->declare_parameter<float>("movement_range", 1.0);
         maxRayDepth_ = this->declare_parameter<float>("max_ray_depth", 10.0);
         rayStepProportion_ = this->declare_parameter<float>("ray_step_proportion", 1.0);
+        rayCastingType_ = this->declare_parameter("ray_casting_type", "attention");
+        rayCastingVis_ = this->declare_parameter("ray_casting_vis", false); 
+
 
 
 
@@ -1251,51 +1254,46 @@ namespace active_vision_nbv_planning_pipeline{
         // Start a loop for each valid candidate viewpoint
         for (auto& pose : poses){
 
-            // Visualize frustum
-            visualizeFrustum(pose, fov_w, fov_h, 1.0);
-            visualizeFrustumBase(pose, fov_w, fov_h, 1.0);
-            visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
-            MoveIt2API_node_->visual_tools->trigger();
-
-
-            // // Ray casting
-            // RCLCPP_INFO(this->get_logger(), "Performing ray casting...");
-            // octomap::KeySet rayCastingVoxels;
-            // rayCastingVoxels = performRayCasting(pose, fov_w, fov_h);
-            
-            // RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
-
-            // // Visualize points related to the voxel obtained by ray casting
-            // for (auto key: rayCastingVoxels){
-            //     octomap::point3d centerPoint = octree_->keyToCoord(key);
-            //     Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
-            //     MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
-            // }
-            // RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
-            // MoveIt2API_node_->visual_tools->trigger();
-
-
-
-            // Attention ray casting
-            RCLCPP_INFO(this->get_logger(), "Performing attention ray casting...");
-            octomap::KeySet attentionRayCastingVoxels;
-            attentionRayCastingVoxels = performRayCastingAttention(pose, fov_w, fov_h, true);
-            
-            RCLCPP_INFO(this->get_logger(), "Attention ray casting performed.");
-
-            // Visualize points related to the voxel obtained by attention ray casting
-            for (auto key: attentionRayCastingVoxels){
-                octomap::point3d centerPoint = octree_->keyToCoord(key);
-                Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
-                MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::YELLOW, rviz_visual_tools::MEDIUM);
+            if (rayCastingVis_){
+                // Visualize frustum
+                MoveIt2API_node_->visual_tools->deleteAllMarkers();
+                visualizeFrustum(pose, fov_w, fov_h, 1.0);
+                visualizeFrustumBase(pose, fov_w, fov_h, 1.0);
+                visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
+                MoveIt2API_node_->visual_tools->trigger();
             }
-            RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
-            MoveIt2API_node_->visual_tools->trigger();
+
+
+
+            // Ray casting
+            RCLCPP_INFO(this->get_logger(), "Performing %s ray casting...", rayCastingType_.c_str());
+            octomap::KeySet rayCastingVoxels;
+
+            if (rayCastingType_ == "naive"){
+                rayCastingVoxels = performNaiveRayCasting(pose, fov_w, fov_h, rayCastingVis_);
+            }
+            else if (rayCastingType_ == "normal"){
+                rayCastingVoxels = performRayCasting(pose, fov_w, fov_h);
+            }
+            else {
+                rayCastingVoxels = performRayCastingAttention(pose, fov_w, fov_h, rayCastingVis_);
+            }
             
+            RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
 
-
-            rclcpp::sleep_for(std::chrono::milliseconds(5000));
-            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            if (rayCastingVis_){
+                // Visualize points related to the voxel obtained by attention ray casting
+                for (auto key: rayCastingVoxels){
+                    octomap::point3d centerPoint = octree_->keyToCoord(key);
+                    Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
+                    MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::YELLOW, rviz_visual_tools::MEDIUM);
+                }
+                RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
+                MoveIt2API_node_->visual_tools->trigger();
+                
+                rclcpp::sleep_for(std::chrono::milliseconds(5000));
+                MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            }
         }
 
 

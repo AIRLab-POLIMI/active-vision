@@ -29,6 +29,8 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
 
         double maxRayDepth_;
         double rayStepProportion_;
+        std::string rayCastingType_;
+        bool rayCastingVis_;
 
 
         void createDataSub();

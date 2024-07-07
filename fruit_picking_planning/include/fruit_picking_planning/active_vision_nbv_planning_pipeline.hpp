@@ -63,11 +63,15 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
 
         std::vector<Eigen::Vector3d> generateFrustumBaseDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m);
 
-        octomap::KeySet performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
+        std::vector<Eigen::Vector3d> getSemanticArea(bool visualization);
+
+        std::vector<Eigen::Vector3d> generateFrustumBaseAttentionDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, bool visualization);
+        
+        octomap::KeySet performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization);
 
         octomap::KeySet performRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
-
-        octomap::KeySet performFastRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h);
+    
+        octomap::KeySet performRayCastingAttention(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization);
 
         Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses);
 

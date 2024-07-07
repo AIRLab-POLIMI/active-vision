@@ -959,7 +959,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    octomap::KeySet ActiveVisionNbvPlanningPipeline::performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
+    octomap::KeySet ActiveVisionNbvPlanningPipeline::performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization=false){
 
         // Generate ray's end point at a large-enough distance from the starting point
         // This approach ensures that each ray is cast within the FOV from the starting point to a enough-distant ending point, 
@@ -968,12 +968,14 @@ namespace active_vision_nbv_planning_pipeline{
         double ray_depth = maxRayDepth_;
         std::vector<Eigen::Vector3d> end_points = generateFrustumBaseGrid(pose, fov_w, fov_h, extended_octomap_node_->getRes(), ray_depth);
 
-        // // Visualize ray's end point based on the current octomap limit (set in the parameter file)
-        // for (auto end: end_points){
-        //     MoveIt2API_node_->visual_tools->publishSphere(end, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
-        //     MoveIt2API_node_->visual_tools->trigger();
-        //     rclcpp::sleep_for(std::chrono::milliseconds(2));
-        // }
+        if (visualization){
+            // Visualize ray's end point based on the current octomap limit (set in the parameter file)
+            for (auto end: end_points){
+                MoveIt2API_node_->visual_tools->publishSphere(end, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
+                MoveIt2API_node_->visual_tools->trigger();
+                rclcpp::sleep_for(std::chrono::milliseconds(2));
+            }
+        }
 
 
         octomap::KeyRay voxelRayKeys; 
@@ -1054,40 +1056,101 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    octomap::KeySet ActiveVisionNbvPlanningPipeline::performRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
+    std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::getSemanticArea(bool visualization=false) {
+        std::vector<Eigen::Vector3d> target_positions;
 
-        // Based of the FOV, generate directions
-        // This approach ensures that each ray is cast along directions within the FOV, 
-        // effectively covering the common possible front area. This is doen without calculating end points of the rays.
-        octomap::KeySet finalSet;
-        double ray_depth = maxRayDepth_;
-        std::vector<Eigen::Vector3d> directions = generateFrustumBaseDirections(pose, fov_w, fov_h, extended_octomap_node_->getRes()*rayStepProportion_);
+        // Use an iterator to iterate through all entries in the extended octomap map
+        for (auto it = extendedOctomapMap_->begin(); it != extendedOctomapMap_->end(); ++it) {
+            const octomap::OcTreeKey& key = it->first;
+            ExtendedOctomapData& data = it->second;
 
-        // // Visualize directions
-        // for (auto dir: directions){
-        //     MoveIt2API_node_->visual_tools->publishSphere(dir, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
-        //     MoveIt2API_node_->visual_tools->trigger();
-        //     rclcpp::sleep_for(std::chrono::milliseconds(2));
-        // }
-
-        octomap::point3d starting_3d_point(pose.translation().x(), pose.translation().y(), pose.translation().z());
-
-        for (auto& dir: directions){
-            Eigen::Vector3d normalized_dir = dir.normalized();
-            // Convert the direction vector to an octomap::point3d, assuming a unit vector represents the direction
-            octomap::point3d direction(normalized_dir.x(), normalized_dir.y(), normalized_dir.z());
-            octomap::point3d hit_point;
-            if (octree_->castRay(starting_3d_point, direction, hit_point, true, ray_depth)) {
-                octomap::OcTreeKey hit_key = octree_->coordToKey(hit_point);
-                finalSet.insert(hit_key);
+            // Check if the semantic class matches the target
+            if (data.getSemanticClass() == prompt_) {
+                // Retrieve the 3D position using the octree
+                octomap::point3d point;
+                point = octree_->keyToCoord(key);
+                target_positions.push_back(Eigen::Vector3d(point.x(), point.y(), point.z()));
+                if (visualization){
+                    MoveIt2API_node_->visual_tools->publishSphere(Eigen::Vector3d(point.x(), point.y(), point.z()), rviz_visual_tools::BLUE, rviz_visual_tools::XSMALL);
+                }
             }
         }
-        return finalSet;
+        if (visualization){
+            MoveIt2API_node_->visual_tools->trigger();
+        }
+        return target_positions;
     }
 
 
 
-    octomap::KeySet ActiveVisionNbvPlanningPipeline::performFastRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
+    std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::generateFrustumBaseAttentionDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, bool visualization=false) {
+        // Convert FOV from degrees to radians
+        double fov_h_rad = fov_h_deg * (M_PI / 180.0);
+        double fov_w_rad = fov_w_deg * (M_PI / 180.0);
+
+        // Calculate half-angles for simplicity
+        double half_fov_h = fov_h_rad / 2.0;
+        double half_fov_w = fov_w_rad / 2.0;
+
+        // Calculate the dimensions of the projection plane at distance d=1 (simplified)
+        double projection_plane_h = 2 * tan(half_fov_h);
+        double projection_plane_w = 2 * tan(half_fov_w);
+
+        std::vector<Eigen::Vector3d> directions;
+        std::vector<Eigen::Vector3d> target_positions = getSemanticArea(visualization);
+
+        // Forward vector (n^) of the starting pose
+        Eigen::Vector3d n_hat = starting_pose.rotation() * Eigen::Vector3d(1, 0, 0);
+        // Right vector (u^) of the starting pose
+        Eigen::Vector3d u_hat = starting_pose.rotation() * Eigen::Vector3d(0, 1, 0);
+        // Up vector (v^) of the starting pose
+        Eigen::Vector3d v_hat = starting_pose.rotation() * Eigen::Vector3d(0, 0, 1);
+
+        for (const auto& target : target_positions) {
+            Eigen::Vector3d direction = (target - starting_pose.translation());
+
+            // Step 1: Calculate d' = p⃗ ⋅ n^
+            double d_prime = direction.dot(n_hat);
+            if (d_prime <= 0) {
+                // Point is behind the camera
+                continue;
+            }
+
+            // Step 2: Calculate p⃗ ′ = d * (1/d' * p⃗ - n^)
+            Eigen::Vector3d p_prime = (direction / d_prime) - n_hat;
+
+            // Step 3: Calculate u′ = p⃗ ′ ⋅ u^ and check horizontal limits
+            double u_prime = p_prime.dot(u_hat);
+            if (u_prime < -projection_plane_w / 2 || u_prime > projection_plane_w / 2) {
+                // Point is outside the horizontal FOV
+                continue;
+            }
+
+            // Step 4: Calculate v′ = p⃗ ′ ⋅ v^ and check vertical limits
+            double v_prime = p_prime.dot(v_hat);
+            if (v_prime < -projection_plane_h / 2 || v_prime > projection_plane_h / 2) {
+                // Point is outside the vertical FOV
+                continue;
+            }
+
+            // Point is within the FOV
+            directions.push_back(direction.normalized());
+
+            if (visualization){
+                MoveIt2API_node_->visual_tools->publishLine(starting_pose.translation(), target, rviz_visual_tools::PURPLE, rviz_visual_tools::XXXXSMALL);
+            }
+        }
+
+        if (visualization){
+            MoveIt2API_node_->visual_tools->trigger();
+        }
+
+        return directions;
+    }
+
+
+
+    octomap::KeySet ActiveVisionNbvPlanningPipeline::performRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
 
         // Based of the FOV, generate directions
         // This approach ensures that each ray is cast along directions within the FOV, 
@@ -1098,12 +1161,42 @@ namespace active_vision_nbv_planning_pipeline{
         std::vector<Eigen::Vector3d> directions = generateFrustumBaseDirections(pose, fov_w, fov_h, extended_octomap_node_->getRes()*rayStepProportion_);
         RCLCPP_DEBUG(this->get_logger(), "Number of directions: %zu", directions.size());
 
-        // // Visualize directions
-        // for (auto dir: directions){
-        //     MoveIt2API_node_->visual_tools->publishSphere(dir, rviz_visual_tools::GREEN, rviz_visual_tools::MEDIUM);
-        //     MoveIt2API_node_->visual_tools->trigger();
-        //     rclcpp::sleep_for(std::chrono::milliseconds(2));
-        // }
+        octomap::point3d starting_3d_point(pose.translation().x(), pose.translation().y(), pose.translation().z());
+
+        #pragma omp parallel
+        {
+            octomap::KeySet localSet; // Thread-local set to collect keys
+            #pragma omp for nowait // Distribute loop iterations across threads, without waiting for all threads at the end of the loop
+            for (size_t i = 0; i < directions.size(); ++i) {
+                auto& dir = directions[i];
+                Eigen::Vector3d normalized_dir = dir.normalized();
+                octomap::point3d direction(normalized_dir.x(), normalized_dir.y(), normalized_dir.z());
+                octomap::point3d hit_point;
+                if (octree_->castRay(starting_3d_point, direction, hit_point, true, ray_depth)) {
+                    octomap::OcTreeKey hit_key = octree_->coordToKey(hit_point);
+                    localSet.insert(hit_key);
+                }
+            }
+            #pragma omp critical
+            finalSet.insert(localSet.begin(), localSet.end()); // Merge thread-local sets into the final set
+        }
+
+        return finalSet;
+    }
+
+
+
+    octomap::KeySet ActiveVisionNbvPlanningPipeline::performRayCastingAttention(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization=false){
+
+        // Based of the semantic area, generate directions toward the starting point,
+        // ensuring that each ray is cast within the FOV, 
+        // effectively covering only the area of the semantic objects. 
+        // This is doen without calculating end points of the rays.
+        // The process is speed-up using OMP.
+        octomap::KeySet finalSet;
+        double ray_depth = maxRayDepth_;
+        std::vector<Eigen::Vector3d> directions = generateFrustumBaseAttentionDirections(pose, fov_w, fov_h, visualization);
+        RCLCPP_DEBUG(this->get_logger(), "Number of directions: %zu", directions.size());
 
         octomap::point3d starting_3d_point(pose.translation().x(), pose.translation().y(), pose.translation().z());
 
@@ -1164,13 +1257,13 @@ namespace active_vision_nbv_planning_pipeline{
             visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
             MoveIt2API_node_->visual_tools->trigger();
 
-            // Ray casting
-            RCLCPP_INFO(this->get_logger(), "Performing ray casting...");
-            octomap::KeySet rayCastingVoxels;
-            rayCastingVoxels = performFastRayCasting(pose, fov_w, fov_h);
-            
-            RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
 
+            // // Ray casting
+            // RCLCPP_INFO(this->get_logger(), "Performing ray casting...");
+            // octomap::KeySet rayCastingVoxels;
+            // rayCastingVoxels = performRayCasting(pose, fov_w, fov_h);
+            
+            // RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
 
             // // Visualize points related to the voxel obtained by ray casting
             // for (auto key: rayCastingVoxels){
@@ -1182,10 +1275,26 @@ namespace active_vision_nbv_planning_pipeline{
             // MoveIt2API_node_->visual_tools->trigger();
 
 
+
+            // Attention ray casting
+            RCLCPP_INFO(this->get_logger(), "Performing attention ray casting...");
+            octomap::KeySet attentionRayCastingVoxels;
+            attentionRayCastingVoxels = performRayCastingAttention(pose, fov_w, fov_h, true);
+            
+            RCLCPP_INFO(this->get_logger(), "Attention ray casting performed.");
+
+            // Visualize points related to the voxel obtained by attention ray casting
+            for (auto key: attentionRayCastingVoxels){
+                octomap::point3d centerPoint = octree_->keyToCoord(key);
+                Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
+                MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::YELLOW, rviz_visual_tools::MEDIUM);
+            }
+            RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
+            MoveIt2API_node_->visual_tools->trigger();
             
 
 
-            // rclcpp::sleep_for(std::chrono::milliseconds(200));
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
             MoveIt2API_node_->visual_tools->deleteAllMarkers();
         }
 

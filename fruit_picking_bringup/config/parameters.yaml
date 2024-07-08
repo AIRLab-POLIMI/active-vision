@@ -275,6 +275,7 @@ launch:
       segmentation_prompt: "tomato" 
       confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
       nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
+      confidence_normalization: "True"
 
     segmented_pointcloud_creation_launch:
       publish_pointclouds_array: "True"
@@ -340,6 +341,7 @@ launch:
       publish_masks_array: "True"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
+      confidence_normalization: "True"
 
     predefined_planning_pipeline_launch:
       # Planning

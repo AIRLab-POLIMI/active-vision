@@ -69,6 +69,13 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    ld.add_action(
+        DeclareLaunchArgument(
+            "confidence_normalization",
+            default_value="false",
+        )
+    )
+
 
 
 
@@ -108,6 +115,7 @@ def generate_launch_description() -> LaunchDescription:
                     "segmentation_prompt": LaunchConfiguration("segmentation_prompt"),
                     "confidence_threshold": LaunchConfiguration("confidence_threshold"),
                     "nms_threshold": LaunchConfiguration("nms_threshold"),
+                    "confidence_normalization": LaunchConfiguration("confidence_normalization"),
                 }
             ]
         )

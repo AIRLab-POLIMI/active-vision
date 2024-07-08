@@ -81,7 +81,7 @@ def generate_launch_description():
             arguments= [
                 "--ros-args",
                 "--log-level",
-                "extended_octomap_server:=debug",
+                "extended_octomap_server:=info",
             ],
             remappings=[('cloud_in', LaunchConfiguration('pointcloud_topic')),
                         ('segmented_pointcloud', LaunchConfiguration('segmented_pointcloud_topic')),

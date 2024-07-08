@@ -62,6 +62,7 @@ class YOLOWorldNode(Node):
                 ("segmentation_prompt", "tomato"),
                 ("confidence_threshold", 0.001),
                 ("nms_threshold", 0.2),
+                ("confidence_normalization", False),
             ],
         )
 
@@ -84,6 +85,7 @@ class YOLOWorldNode(Node):
         self._yolo_world_segmentation_prompt = self.get_parameter("segmentation_prompt").value
         self._yolo_world_confidence_threshold = self.get_parameter("confidence_threshold").value
         self._yolo_world_nms_threshold = self.get_parameter("nms_threshold").value
+        self._yolo_world_confidence_normalization = self.get_parameter("confidence_normalization").value
 
 
 
@@ -259,6 +261,67 @@ class YOLOWorldNode(Node):
                 self.segment(rgb_msg, depth_msg, depth_image_camera_info_msg, tf_msg)
                 self.lock = True
 
+    
+
+    def confidences_normalization(self, arr):
+        if self._yolo_world_segmentation_prompt == "tomato":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.09)
+            mask3 = (arr > 0.09) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For values from 0.001 to 0.09, interpolate strictly between 0.1 and 0.6
+            if np.any(mask2):
+                adjusted_arr[mask2] = 0.5 * ((arr[mask2] - 0.001) / (0.09 - 0.001)) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.599)
+            
+            # For mask3: values from 0.1 to 0.99 interpolate strictly between 0.6 and 0.99
+            if np.any(mask3):
+                adjusted_arr[mask3] = 0.39 * ((arr[mask3] - 0.1) / (0.99 - 0.1)) + 0.6
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.989)
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+        
+        elif self._yolo_world_segmentation_prompt == "apple":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.09)
+            mask3 = (arr > 0.09) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For values from 0.001 to 0.09, interpolate strictly between 0.1 and 0.6
+            if np.any(mask2):
+                adjusted_arr[mask2] = 0.5 * ((arr[mask2] - 0.001) / (0.09 - 0.001)) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.599)
+            
+            # For mask3: values from 0.1 to 0.99 interpolate strictly between 0.6 and 0.99
+            if np.any(mask3):
+                adjusted_arr[mask3] = 0.39 * ((arr[mask3] - 0.1) / (0.99 - 0.1)) + 0.6
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.989)
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+    
 
 
 
@@ -337,8 +400,14 @@ class YOLOWorldNode(Node):
         detections.mask = np.array(masks)
 
 
-        # Obtain confidences
+        # Obtain YOLO World confidences
         confidences = detections.confidence
+        self.get_logger().debug(f"[YOLOWorld] YOLO World confidences: {confidences}")
+
+        if (self._yolo_world_confidence_normalization):
+            # Normalize YOLO World confidences
+            confidences = self.confidences_normalization(confidences)
+            self.get_logger().debug(f"[YOLOWorld] YOLO World confidences normalized: {confidences}")
 
 
 

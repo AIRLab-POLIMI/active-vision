@@ -53,7 +53,12 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
-
+    ld.add_action(
+        DeclareLaunchArgument(
+            "confidence_normalization",
+            default_value="false",
+        )
+    )
 
 
     # Nodes
@@ -77,6 +82,7 @@ def generate_launch_description() -> LaunchDescription:
                     "publish_masks_array": LaunchConfiguration("publish_masks_array"),
                     "yolo_world_model_type": LaunchConfiguration("yolo_world_model_type"),
                     "efficient_SAM_model_type": LaunchConfiguration("efficient_SAM_model_type"),
+                    "confidence_normalization": LaunchConfiguration("confidence_normalization"),
                 }
             ]
         )

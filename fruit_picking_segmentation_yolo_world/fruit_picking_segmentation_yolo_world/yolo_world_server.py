@@ -40,6 +40,7 @@ class YOLOWorldServer(Node):
                 ("publish_masks_array", True),
                 ("yolo_world_model_type", "yolo_world/l"),
                 ("efficient_SAM_model_type", "l0"),
+                ("confidence_normalization", False),
             ],
         )
 
@@ -47,6 +48,7 @@ class YOLOWorldServer(Node):
         self._publish_masks_array = self.get_parameter("publish_masks_array").value
         self._yolo_world_model_type = self.get_parameter("yolo_world_model_type").value
         self._efficient_SAM_model_type = self.get_parameter("efficient_SAM_model_type").value
+        self._yolo_world_confidence_normalization = self.get_parameter("confidence_normalization").value
 
 
 
@@ -100,6 +102,69 @@ class YOLOWorldServer(Node):
         self.get_logger().info("[INIT] Yolo World server is ready.")
 
 
+
+
+    
+
+    def confidences_normalization(self, arr, target):
+        if target == "tomato":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.09)
+            mask3 = (arr > 0.09) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For values from 0.001 to 0.09, interpolate strictly between 0.1 and 0.6
+            if np.any(mask2):
+                adjusted_arr[mask2] = 0.5 * ((arr[mask2] - 0.001) / (0.09 - 0.001)) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.599)
+            
+            # For mask3: values from 0.1 to 0.99 interpolate strictly between 0.6 and 0.99
+            if np.any(mask3):
+                adjusted_arr[mask3] = 0.39 * ((arr[mask3] - 0.1) / (0.99 - 0.1)) + 0.6
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.989)
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+        
+        elif target == "apple":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.09)
+            mask3 = (arr > 0.09) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For values from 0.001 to 0.09, interpolate strictly between 0.1 and 0.6
+            if np.any(mask2):
+                adjusted_arr[mask2] = 0.5 * ((arr[mask2] - 0.001) / (0.09 - 0.001)) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.599)
+            
+            # For mask3: values from 0.1 to 0.99 interpolate strictly between 0.6 and 0.99
+            if np.any(mask3):
+                adjusted_arr[mask3] = 0.39 * ((arr[mask3] - 0.1) / (0.99 - 0.1)) + 0.6
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.989)
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+    
 
 
 
@@ -181,8 +246,15 @@ class YOLOWorldServer(Node):
         detections.mask = np.array(masks)
 
 
-        # Obtain confidences
+        # Obtain YOLO World confidences
         confidences = detections.confidence
+        self.get_logger().debug(f"[YOLOWorld] YOLO World confidences: {confidences}")
+
+        if (self._yolo_world_confidence_normalization):
+            # Normalize YOLO World confidences
+            confidences = self.confidences_normalization(confidences, text_prompt_query)
+            self.get_logger().debug(f"[YOLOWorld] YOLO World confidences normalized: {confidences}")
+
 
 
 

@@ -164,6 +164,67 @@ class YOLOWorldServer(Node):
             adjusted_arr[arr > 0.99] = arr[arr > 0.99]
 
             return adjusted_arr
+        
+
+    def high_confidences_normalization(self, arr, target):
+        if target == "tomato":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.025)
+            mask3 = (arr > 0.025) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For mask2: interpolate values from 0.001 to 0.025 to values between 0.1 and 0.79
+            if np.any(mask2):
+                adjusted_arr[mask2] = ((arr[mask2] - 0.001) / (0.025 - 0.001)) * (0.79 - 0.1) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.789)  # Ensure values are strictly less than 0.79
+            
+            # For mask3: interpolate values from 0.025 on to values between 0.79 and 0.999
+            if np.any(mask3):
+                adjusted_arr[mask3] = ((arr[mask3] - 0.025) / (0.99 - 0.025)) * (0.999 - 0.79) + 0.79
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.998)  # Ensure values are strictly less than 0.999
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+        
+        elif target == "apple":
+            if arr.size == 0:
+                return arr
+            
+            adjusted_arr = np.zeros_like(arr)
+            
+            # Define masks
+            mask1 = (arr <= 0.00099)
+            mask2 = (arr > 0.00099) & (arr <= 0.025)
+            mask3 = (arr > 0.025) & (arr <= 0.99)
+            
+            # Values <= 0.00099 remain unchanged
+            adjusted_arr[mask1] = arr[mask1]
+            
+            # For mask2: interpolate values from 0.001 to 0.025 to values between 0.1 and 0.79
+            if np.any(mask2):
+                adjusted_arr[mask2] = ((arr[mask2] - 0.001) / (0.025 - 0.001)) * (0.79 - 0.1) + 0.1
+                adjusted_arr[mask2] = np.minimum(adjusted_arr[mask2], 0.789)  # Ensure values are strictly less than 0.79
+            
+            # For mask3: interpolate values from 0.025 on to values between 0.79 and 0.999
+            if np.any(mask3):
+                adjusted_arr[mask3] = ((arr[mask3] - 0.025) / (0.99 - 0.025)) * (0.999 - 0.79) + 0.79
+                adjusted_arr[mask3] = np.minimum(adjusted_arr[mask3], 0.998)  # Ensure values are strictly less than 0.999
+            
+            # Values above 0.99 remain unchanged
+            adjusted_arr[arr > 0.99] = arr[arr > 0.99]
+
+            return adjusted_arr
+    
     
 
 
@@ -252,7 +313,7 @@ class YOLOWorldServer(Node):
 
         if (self._yolo_world_confidence_normalization):
             # Normalize YOLO World confidences
-            confidences = self.confidences_normalization(confidences, text_prompt_query)
+            confidences = self.high_confidences_normalization(confidences, text_prompt_query)
             self.get_logger().debug(f"[YOLOWorld] YOLO World confidences normalized: {confidences}")
 
 

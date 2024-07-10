@@ -31,6 +31,8 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         double rayStepProportion_;
         std::string rayCastingType_;
         bool rayCastingVis_;
+        std::string utilityType_;
+        bool utilityVis_;
 
 
         void createDataSub();
@@ -75,7 +77,9 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
     
         octomap::KeySet performRayCastingAttention(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization);
 
-        Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses);
+        float utilityCalculation(octomap::KeySet voxels, std::string utility_type);
+
+        Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses, Eigen::Isometry3d current_pose);
 
 
     

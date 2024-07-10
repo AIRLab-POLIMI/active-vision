@@ -49,6 +49,8 @@ namespace active_vision_nbv_planning_pipeline{
         rayStepProportion_ = this->declare_parameter<float>("ray_step_proportion", 1.0);
         rayCastingType_ = this->declare_parameter("ray_casting_type", "attention");
         rayCastingVis_ = this->declare_parameter("ray_casting_vis", false); 
+        utilityType_ = this->declare_parameter("utility_type", "expected_semantic_information_gain");
+        utilityVis_ = this->declare_parameter("utility_vis", false); 
 
 
 
@@ -145,6 +147,9 @@ namespace active_vision_nbv_planning_pipeline{
 			return;
 		}
         RCLCPP_INFO(this->get_logger(), "Initial position reached.");
+
+        Eigen::Isometry3d current_pose;
+        current_pose = initialPositionCartesian_;
 
 
 
@@ -381,7 +386,7 @@ namespace active_vision_nbv_planning_pipeline{
 
             // Select the NBV
             RCLCPP_INFO(this->get_logger(), "Choosing NBV viewpoint among the valid candidate viewpoints..");
-            NBV_pose_ = chooseNBV(validCandidateViewpoints_);
+            NBV_pose_ = chooseNBV(validCandidateViewpoints_, current_pose);
             NBV_pose_ptr_ = eigenIsometry3dToPoseStamped(NBV_pose_);
 
 
@@ -454,6 +459,7 @@ namespace active_vision_nbv_planning_pipeline{
                 return;
             }
             RCLCPP_INFO(this->get_logger(), "NBV pose reached.");
+            current_pose = NBV_pose_;
             rclcpp::sleep_for(std::chrono::milliseconds(1500));
 
 
@@ -511,7 +517,7 @@ namespace active_vision_nbv_planning_pipeline{
         // Lock the variables till the function terminates for concurrency purposes
         std::lock_guard<std::mutex> lock(data_mutex_);
 
-        RCLCPP_DEBUG(this->get_logger(), "Saving data...");
+        // RCLCPP_DEBUG(this->get_logger(), "Saving data...");
 
         current_rgb_msg_ = rgb_msg;
         current_depth_msg_ = depth_msg;
@@ -545,7 +551,7 @@ namespace active_vision_nbv_planning_pipeline{
         // Used to block the wait, and to check the value of the above flag
         data_cond_.notify_one();
 
-        RCLCPP_DEBUG(this->get_logger(), "Internal data updated.");
+        // RCLCPP_DEBUG(this->get_logger(), "Internal data updated.");
         // From this moment on, when the function terminates (and the scope is destroyed), the lock is released
         // But if no other thread get the lock, again this function will get it one more time since it is called continuosly 
         // by the sync
@@ -1226,11 +1232,46 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-    Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBV(const std::vector<Eigen::Isometry3d>& poses) {
+    float ActiveVisionNbvPlanningPipeline::utilityCalculation(octomap::KeySet voxels, std::string utility_type){
+
+        float utility = 0.0;
+
+        if (utility_type == "expected_semantic_information_gain"){
+            for (auto key: voxels){
+                float confidence = (*extendedOctomapMap_)[key].getConfidence();
+                float key_utility = (- confidence * log2(confidence)) - ((1 - confidence) * log2(1 - confidence));
+                utility = utility + key_utility;
+            }
+        }
+
+        // Case when the utility of the viewpoint need to be the sum of the confidences of the voxel
+        // This approach is oriented at choosing the viewpoint that have the smallest confidence
+        // The final utility will be the highest for the viewpoint with the smallest confidence,
+        // the smallest for the one with the greatest confidence (since the greatest value will be chosen it is a negative sum)
+        if (utility_type == "minimum_confidence"){
+            for (auto key: voxels){
+                float confidence = (*extendedOctomapMap_)[key].getConfidence();
+                utility = utility - confidence;
+            }
+        }
+
+        return utility;
+
+    }
+
+
+
+
+    Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBV(const std::vector<Eigen::Isometry3d>& poses, Eigen::Isometry3d current_pose) {
         // Check if the input vector is empty
         if (poses.empty()) {
             throw std::runtime_error("Input vector of poses is empty."); // Throw an exception if there are no poses to choose from
         }
+
+        std::vector<float> poseUtilities;
+        double maxUtility = -std::numeric_limits<double>::infinity();
+        Eigen::Isometry3d bestPose;
+
 
         // Calculate horizontal and vertical FOV for the viewpoint frustum
         double fx = current_camera_info_msg_->k[0];
@@ -1256,7 +1297,6 @@ namespace active_vision_nbv_planning_pipeline{
 
             if (rayCastingVis_){
                 // Visualize frustum
-                MoveIt2API_node_->visual_tools->deleteAllMarkers();
                 visualizeFrustum(pose, fov_w, fov_h, 1.0);
                 visualizeFrustumBase(pose, fov_w, fov_h, 1.0);
                 visualizeArrowPose(pose, 0.2, rviz_visual_tools::YELLOW, rviz_visual_tools::LARGE);
@@ -1266,7 +1306,7 @@ namespace active_vision_nbv_planning_pipeline{
 
 
             // Ray casting
-            RCLCPP_INFO(this->get_logger(), "Performing %s ray casting...", rayCastingType_.c_str());
+            RCLCPP_DEBUG(this->get_logger(), "Performing %s ray casting...", rayCastingType_.c_str());
             octomap::KeySet rayCastingVoxels;
 
             if (rayCastingType_ == "naive"){
@@ -1279,7 +1319,7 @@ namespace active_vision_nbv_planning_pipeline{
                 rayCastingVoxels = performRayCastingAttention(pose, fov_w, fov_h, rayCastingVis_);
             }
             
-            RCLCPP_INFO(this->get_logger(), "Ray casting performed.");
+            RCLCPP_DEBUG(this->get_logger(), "Ray casting performed.");
 
             if (rayCastingVis_){
                 // Visualize points related to the voxel obtained by attention ray casting
@@ -1288,25 +1328,72 @@ namespace active_vision_nbv_planning_pipeline{
                     Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
                     MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::YELLOW, rviz_visual_tools::MEDIUM);
                 }
-                RCLCPP_INFO(this->get_logger(), "Visualizing result of the ray casting...");
+                RCLCPP_DEBUG(this->get_logger(), "Visualizing result of the ray casting...");
                 MoveIt2API_node_->visual_tools->trigger();
                 
-                rclcpp::sleep_for(std::chrono::milliseconds(5000));
+                rclcpp::sleep_for(std::chrono::milliseconds(2000));
                 MoveIt2API_node_->visual_tools->deleteAllMarkers();
             }
+
+
+
+            // Utility calculation
+            RCLCPP_DEBUG(this->get_logger(), "Calculating %s for the current pose...", utilityType_.c_str());
+            octomap::KeySet targetVoxels;
+            for (auto key: rayCastingVoxels){
+                if ((*extendedOctomapMap_)[key].getSemanticClass() == prompt_){
+                    targetVoxels.insert(key);
+                }
+            }
+
+            float poseUtility = utilityCalculation(targetVoxels, utilityType_);
+            
+
+            if (utilityVis_){
+                // Visualize points related to the voxel obtained by attention ray casting
+                for (auto key: targetVoxels){
+                    octomap::point3d centerPoint = octree_->keyToCoord(key);
+                    Eigen::Vector3d centerVector(centerPoint.x(), centerPoint.y(), centerPoint.z());
+                    MoveIt2API_node_->visual_tools->publishSphere(centerVector, rviz_visual_tools::YELLOW, rviz_visual_tools::MEDIUM);
+                }
+                RCLCPP_DEBUG(this->get_logger(), "Visualizing voxels used for future entropy calculation...");
+                MoveIt2API_node_->visual_tools->trigger();
+
+                RCLCPP_DEBUG(this->get_logger(), "The %s of this pose is %f", utilityType_.c_str(), poseUtility);
+                for (auto key: targetVoxels){
+                    RCLCPP_DEBUG(this->get_logger(), "The confidence of the voxel is %f", (*extendedOctomapMap_)[key].getConfidence());
+                }
+                
+                rclcpp::sleep_for(std::chrono::milliseconds(2000));
+                MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            }
+
+            RCLCPP_DEBUG(this->get_logger(), "Utility calculated.");
+
+
+
+            // Total utility calculation
+            double distance = (pose.translation() - current_pose.translation()).norm();
+            double poseTotalUtility = poseUtility * exp(-distance);
+            poseUtilities.push_back(poseTotalUtility);
+
+            RCLCPP_DEBUG(this->get_logger(), 
+                "The distance between the current pose and %f, %f, %f pose is %f and the total utility is %f", 
+                pose.translation().x(), pose.translation().y(), pose.translation().z(), distance, poseTotalUtility);
+
+
+
+            // Check if the current pose's total utility is the highest
+            if (poseTotalUtility > maxUtility) {
+                maxUtility = poseTotalUtility;
+                bestPose = pose;
+            }
+
         }
 
-
-        // Initialize a random number generator
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator(seed);
-        std::uniform_int_distribution<size_t> distribution(0, poses.size() - 1);
-
-        // Select a random index
-        size_t randomIndex = distribution(generator);
-
-        // Return the selected Eigen::Isometry3d
-        return poses[randomIndex];
+        RCLCPP_INFO(this->get_logger(), 
+            "The NBV pose %f, %f, %f has utility %f", bestPose.translation().x(), bestPose.translation().y(), bestPose.translation().z(), maxUtility);
+        return bestPose;
 
     }
 

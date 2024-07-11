@@ -1,4 +1,6 @@
 frames:
+  real_base_frame_id: "base_footprint"
+  real_frame_id: "base_link"
   frame_id: "world"
   base_frame_id: "igus_rebel_base_link"
   realsense_frame_id: "container_realsense_link"
@@ -69,14 +71,7 @@ launch:
     enable_color: "true"
     enable_depth: "true"
     pointcloud.enable: "false"
-    clip_distance: "0.3"
-    publish_tf: "true"
-    tf_publish_rate: "30.00"
-    rgb_camera.color_profile: "640x480x30"
-    depth_module.depth_profile: "640x480x30"
-    unite_imu_method: "1"
-    enable_gyro: "true"
-    enable_accel: "true"
+    clip_distance: "1.0"
 
   
   octomap_normal_launch:     
@@ -210,7 +205,7 @@ launch:
       publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
     
     extended_octomap_creation_launch:
-      resolution: '0.006'
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -282,7 +277,7 @@ launch:
       publish_single_pointcloud: "True" # Set to true if partial pointcloud is needed
     
     extended_octomap_creation_launch:
-      resolution: '0.006'
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"

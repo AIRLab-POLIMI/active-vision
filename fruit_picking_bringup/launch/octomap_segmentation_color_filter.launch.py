@@ -191,17 +191,20 @@ def launch_setup(context, *args, **kwargs):
 
 
     # Frames
-    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true' and LaunchConfiguration("hardware_protocol").perform(context) == 'ignition':
         frame_id = config_yaml['frames']['frame_id']
         base_frame_id = config_yaml['frames']['base_frame_id']
     else:
-        if LaunchConfiguration("test_camera").perform(context) == 'false':
-            frame_id = config_yaml['frames']['base_frame_id']
-            base_frame_id = config_yaml['frames']['base_frame_id']
-        else:
+        if LaunchConfiguration("test_camera").perform(context) == 'true':
             if LaunchConfiguration("camera").perform(context) == 'realsense':
                 frame_id = config_yaml['frames']['realsense_frame_id']
-                base_frame_id = config_yaml['frames']['realsense_base_frame_id']
+                base_frame_id = config_yaml['frames']['realsense_base_frame_id'] 
+        elif LaunchConfiguration("test_camera").perform(context) == 'false' and LaunchConfiguration("hardware_protocol").perform(context) == 'cri':
+            if LaunchConfiguration("load_base").perform(context) == 'true':
+                frame_id = config_yaml['frames']['real_base_frame_id']
+            else:
+                frame_id = config_yaml['frames']['real_frame_id']
+            base_frame_id = config_yaml['frames']['base_frame_id']
 
     
 
@@ -242,20 +245,45 @@ def launch_setup(context, *args, **kwargs):
 
     # Input entity
     if LaunchConfiguration("run_robot").perform(context) == 'true': 
-        if LaunchConfiguration("test_camera").perform(context) == 'false': 
+        if LaunchConfiguration("load_gazebo").perform(context) == 'true' and LaunchConfiguration("hardware_protocol").perform(context) == 'ignition': 
+            
             # Igus Rebel description launch
             description_launch_file = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([
                     FindPackageShare("igus_rebel_description_ros2"), '/launch', '/visualize.launch.py'])
             )
             return_actions.append(description_launch_file)
-        else:
+        elif LaunchConfiguration("load_gazebo").perform(context) == 'false' and LaunchConfiguration("test_camera").perform(context) == 'true':
+            
             # Realsense launch file
             realsense_launch_file = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([
                     FindPackageShare("fruit_picking_bringup"), '/launch', '/realsense.launch.py']),
                 launch_arguments={
                     **use_sim_time_dict,
+                }.items(),
+            )
+            return_actions.append(realsense_launch_file)
+        elif LaunchConfiguration("load_gazebo").perform(context) == 'false' and LaunchConfiguration("hardware_protocol").perform(context) == 'cri' and LaunchConfiguration("moveit").perform(context) == 'true':
+            
+            # Igus Rebel moveit launch
+            moveit_launch_file = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py']),
+                launch_arguments={
+                    "rviz_file": os.path.join(
+                        get_package_share_directory("fruit_picking_bringup"), "rviz/", config_yaml["launch"]["octomap_segmentation_color_filter_launch"]["rviz"]["real"] ),
+                }.items(),
+            )
+            return_actions.append(moveit_launch_file)
+
+            # Realsense launch file
+            realsense_launch_file = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
+                launch_arguments={
+                    **use_sim_time_dict,
+                    **config_yaml['launch']['realsense_launch'],
                 }.items(),
             )
             return_actions.append(realsense_launch_file)
@@ -396,7 +424,7 @@ def launch_setup(context, *args, **kwargs):
         return_actions.append(extended_octomap_creation_launch_file)
 
     # Run this node only if the launch argument to run it is true
-    if LaunchConfiguration("run_rviz").perform(context) == 'true': 
+    if LaunchConfiguration("run_rviz").perform(context) == 'true' and LaunchConfiguration("hardware_protocol").perform(context) != 'cri': 
         return_actions.append(rviz_node)
 
 

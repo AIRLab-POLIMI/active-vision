@@ -133,6 +133,13 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             **use_sim_time_dict,
             **config_yaml['launch']['realsense_launch'],
+            "publish_tf": "true",
+            "tf_publish_rate": "30.00",
+            "rgb_camera.color_profile": "640x480x30",
+            "depth_module.depth_profile": "640x480x30",
+            "unite_imu_method": "1",
+            "enable_gyro": "true",
+            "enable_accel": "true",
         }.items(),
     )
 

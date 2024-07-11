@@ -42,7 +42,7 @@ def generate_launch_description() -> LaunchDescription:
             arguments= [
                 "--ros-args",
                 "--log-level",
-                "color_filter:=debug",
+                "color_filter:=info",
             ],
             parameters=[
                 {

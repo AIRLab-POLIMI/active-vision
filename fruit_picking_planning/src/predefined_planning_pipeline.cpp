@@ -224,25 +224,6 @@ namespace active_vision_predefined_planning_pipeline{
             RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
 
 
-            // Move to the next position
-            RCLCPP_INFO(this->get_logger(), "Moving to position %zu...", i);
-            RCLCPP_INFO(this->get_logger(), "Translation: [%f, %f, %f], Rotation (Quaternion): [%f, %f, %f, %f]", 
-                CartesianPlanningPoses_[i].translation().x(), 
-                CartesianPlanningPoses_[i].translation().y(), 
-                CartesianPlanningPoses_[i].translation().z(), 
-                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).x(), 
-                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).y(), 
-                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).z(), 
-                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).w());
-            valid_motion = MoveIt2API_node_->robotPlanAndMove(PlanningPoses_[i], positions_names[i]);
-            if (!valid_motion) {
-                RCLCPP_ERROR(this->get_logger(), "Could not move to position %zu.", i);
-                return;
-            }
-            RCLCPP_INFO(this->get_logger(), "Position %zu reached.", i);
-
-
-
             // Obtain data from the robot
 
             // Lock the variables till the function terminates, locking also the subsciber to save the current data
@@ -292,13 +273,15 @@ namespace active_vision_predefined_planning_pipeline{
                 RCLCPP_WARN(this->get_logger(), "Service not available, waiting again...");
             }
 
+            RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "Sending data to segmentation server...");
             auto result = client_->async_send_request(request);
 
 
 
 
             // Wait for the response, and save them once received
-
+            RCLCPP_INFO(this->get_logger(), "Waiting data from segmentation server...");
             if (rclcpp::spin_until_future_complete(client_node_, result) ==
                 rclcpp::FutureReturnCode::SUCCESS)
             {
@@ -366,6 +349,26 @@ namespace active_vision_predefined_planning_pipeline{
                 extended_octomap_node_->insertSegmentedPointcloudsArrayCallback(segmentedPointcloudArray_, working_tf, fullPointcloud_);
             }
             RCLCPP_INFO(this->get_logger(), "Octomap updated.");
+
+
+            // Move to the next position
+            RCLCPP_INFO(this->get_logger(), "Moving to position %zu...", i);
+            RCLCPP_INFO(this->get_logger(), "Translation: [%f, %f, %f], Rotation (Quaternion): [%f, %f, %f, %f]", 
+                CartesianPlanningPoses_[i].translation().x(), 
+                CartesianPlanningPoses_[i].translation().y(), 
+                CartesianPlanningPoses_[i].translation().z(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).x(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).y(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).z(), 
+                Eigen::Quaterniond(CartesianPlanningPoses_[i].rotation()).w());
+            valid_motion = MoveIt2API_node_->robotPlanAndMove(PlanningPoses_[i], positions_names[i]);
+            if (!valid_motion) {
+                RCLCPP_ERROR(this->get_logger(), "Could not move to position %zu.", i);
+                return;
+            }
+            RCLCPP_INFO(this->get_logger(), "Position %zu reached.", i);
+
+
 
 
 

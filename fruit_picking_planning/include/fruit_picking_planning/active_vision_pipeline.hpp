@@ -91,6 +91,9 @@ namespace active_vision_pipeline{
         std::shared_ptr<PointCloud2> segmentedPointcloud_;
         std::shared_ptr<PointcloudArray> segmentedPointcloudArray_;
 
+        // Variable to store the total entropy at each step of planning
+        std::vector<float> totalEntropies_;
+
 
         // Function that create the data subscriber
         void createDataSub();

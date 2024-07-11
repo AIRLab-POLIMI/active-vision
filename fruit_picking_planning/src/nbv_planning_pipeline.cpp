@@ -316,6 +316,30 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+            // Calculate total entropy of the scene
+            float stepEntropy = 0.0;
+
+            for (auto it = (*extended_octomap_node_->getExtendedOctomapMap()).begin(); it != (*extended_octomap_node_->getExtendedOctomapMap()).end(); ++it) {
+                ExtendedOctomapData& data = it->second;
+
+                if (data.getSemanticClass() == prompt_) {
+                    float confidence = data.getConfidence();
+                    float key_utility = (-confidence * std::log2(confidence)) - ((1 - confidence) * std::log2(1 - confidence));
+                    stepEntropy += key_utility;
+                    
+                }
+            }
+            totalEntropies_.push_back(stepEntropy);
+            RCLCPP_INFO(this->get_logger(), "--------------------------------------------------------------------------");
+            RCLCPP_INFO(this->get_logger(), "The total entropy of the scene after the octomap update is %f", stepEntropy);
+            RCLCPP_INFO(this->get_logger(), "--------------------------------------------------------------------------");
+
+
+
+
+
+
+
             // Visualize candidate viewpoints
             RCLCPP_INFO(this->get_logger(), "Visualize candidate viewpoints..");
             MoveIt2API_node_->visual_tools->deleteAllMarkers();
@@ -460,7 +484,13 @@ namespace active_vision_nbv_planning_pipeline{
             }
             RCLCPP_INFO(this->get_logger(), "NBV pose reached.");
             current_pose = NBV_pose_;
-            rclcpp::sleep_for(std::chrono::milliseconds(1500));
+            
+
+
+            // Sleep to allow the robot to be fully on position
+            RCLCPP_INFO(this->get_logger(), "Robot settlement...");
+            rclcpp::sleep_for(std::chrono::milliseconds(2000));
+
 
 
 
@@ -474,6 +504,38 @@ namespace active_vision_nbv_planning_pipeline{
 
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
         RCLCPP_WARN(this->get_logger(), "NBV planning pipeline terminated.");
+
+
+
+        // Results
+
+
+        // Output step entropies
+        for (size_t i = 0; i < totalEntropies_.size(); ++i) {
+            RCLCPP_WARN(this->get_logger(), "Entropy of step %zu: %f", i+1, totalEntropies_[i]);
+        }
+
+
+
+        // Output number of instances found with final confidence
+        std::unordered_map<int, float> instanceToConfidence;
+        for (auto it = (*extended_octomap_node_->getExtendedOctomapMap()).begin(); it != (*extended_octomap_node_->getExtendedOctomapMap()).end(); ++it) {
+            ExtendedOctomapData& data = it->second;
+            int instance = data.getInstance();
+            float confidence = data.getConfidence();
+            
+            // Since all elements of the same instance have the same confidence,
+            // we can directly assign the confidence to the instance key
+            instanceToConfidence[instance] = confidence;
+        }
+        std::map<int, float> sortedInstanceToConfidence(instanceToConfidence.begin(), instanceToConfidence.end());
+
+        for (const auto& instanceConfidencePair : sortedInstanceToConfidence) {
+            if (instanceConfidencePair.first == 0) continue; // Instance 0 refers to not semantic objects
+            float instanceEntropy = (-instanceConfidencePair.second * std::log2(instanceConfidencePair.second)) - ((1 - instanceConfidencePair.second) * std::log2(1 - instanceConfidencePair.second));
+            RCLCPP_WARN(this->get_logger(), "instance %d has confidence %f and entropy %f", instanceConfidencePair.first, instanceConfidencePair.second, instanceEntropy);
+        }
+
 
 
     }

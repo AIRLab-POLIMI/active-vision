@@ -389,11 +389,11 @@ launch:
 
     nbv_planning_pipeline_launch:
       # Planning
-      candidate_viewpoints_number: "16"
+      candidate_viewpoints_number: "100"
       plane_type_candidate_viewpoints: "square" # square, circle
       movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
       # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
-      orientations: "0" # 0: straight, 2: up and down, 4: up, down, left, right
+      orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
       max_ray_depth: "2.0"
       ray_step_proportion: "1.0" # multiplier to the octomap resolution to define ray generation step during not-attention ray casting. 1 means octomap resolution
       ray_casting_type: "attention" # attention, normal, naive

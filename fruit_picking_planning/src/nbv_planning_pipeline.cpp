@@ -1335,7 +1335,7 @@ namespace active_vision_nbv_planning_pipeline{
                 octomap::point3d point = octree_->keyToCoord(key);
                 Eigen::Vector3d point_eigen(point.x(), point.y(), point.z());
 
-                if (rayCastingType_ == "full_attention"){
+                if (rayCastingType_ == "full_attention" || rayCastingType_ == "full_attention_distance"){
                     if (point_eigen.x() <= newFurthest_ && point_eigen.x() >= newClosest_ &&
                     point_eigen.z() <= newHighest_ && point_eigen.z() >= newLowest_ &&
                     point_eigen.y() <= newLeftMost_ && point_eigen.y() >= newRightMost_) {
@@ -1564,7 +1564,7 @@ namespace active_vision_nbv_planning_pipeline{
 
         // If central attention is needed, calculate bounds of the scene
         // Calculate the center and bounds of the scene and correct them with a specific ratio
-        if (rayCastingType_ == "full_attention"){
+        if (rayCastingType_ == "full_attention" || rayCastingType_ == "full_attention_distance"){
             furthestPoint_ = findFurthestPoint(initialPositionCartesian_);
             closestPoint_ = findClosestPoint(initialPositionCartesian_);
             highestPoint_ = findHighestPoint(initialPositionCartesian_);
@@ -1665,19 +1665,21 @@ namespace active_vision_nbv_planning_pipeline{
 
 
             // Total utility calculation
-            double distance = (pose.translation() - current_pose.translation()).norm();
-            double poseTotalUtility = poseUtility * exp(-distance);
-            poseUtilities.push_back(poseTotalUtility);
+            if (rayCastingType_ == "full_attention_distance"){
+                double distance = (pose.translation() - current_pose.translation()).norm();
+                poseUtility = poseUtility * exp(-distance);
+            }
+            poseUtilities.push_back(poseUtility);
 
             RCLCPP_DEBUG(this->get_logger(), 
-                "The distance between the current pose and %f, %f, %f pose is %f and the total utility is %f", 
-                pose.translation().x(), pose.translation().y(), pose.translation().z(), distance, poseTotalUtility);
+                "The current pose %f, %f, %f pose has total utility is %f", 
+                pose.translation().x(), pose.translation().y(), pose.translation().z(), poseUtility);
 
 
 
             // Check if the current pose's total utility is the highest
-            if (poseTotalUtility > maxUtility) {
-                maxUtility = poseTotalUtility;
+            if (poseUtility > maxUtility) {
+                maxUtility = poseUtility;
                 bestPose = pose;
                 isMaxUtilityUpdated = true;
             }

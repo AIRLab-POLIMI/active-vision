@@ -17,7 +17,7 @@ def generate_launch_description():
         DeclareLaunchArgument('movement_range', default_value='1.0'),
         DeclareLaunchArgument('max_ray_depth', default_value='10.0'),
         DeclareLaunchArgument('ray_step_proportion', default_value='1.0'),
-        DeclareLaunchArgument('ray_casting_type', default_value='full_attention'),
+        DeclareLaunchArgument('ray_casting_type', default_value='full_attention_distance'),
         DeclareLaunchArgument('central_attention_front_distance_ratio', default_value='1.0'),
         DeclareLaunchArgument('central_attention_height_distance_ratio', default_value='1.0'),
         DeclareLaunchArgument('central_attention_width_distance_ratio', default_value='1.0'),

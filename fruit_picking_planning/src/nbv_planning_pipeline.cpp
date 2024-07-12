@@ -111,11 +111,8 @@ namespace active_vision_nbv_planning_pipeline{
         // Initialize initial position, candidate viewpoints and NBV pose
         initialPosition_ = getInitialPosition();
         initialPositionCartesian_ = MoveIt2API_node_->fromJointSpaceGoalToCartesianPose(initialPosition_);
-        candidateViewpoints_= generatePlaneCandidateViewpoints(
-            initialPositionCartesian_, orientations_, planeTypeCandidateViewpoints_, candidateViewpointsNumber_, movementRange_);
         NBV_pose_ptr_ = std::make_shared<geometry_msgs::msg::PoseStamped>();
-        int total_candidates = candidateViewpointsNumber_ + candidateViewpointsNumber_ * orientations_;
-        RCLCPP_INFO(this->get_logger(), "Initial position and %d candidate viewpoints in a %s shape with movement range of %.2f mt created.", total_candidates, planeTypeCandidateViewpoints_.c_str(), movementRange_);        
+        RCLCPP_INFO(this->get_logger(), "Initial position created.");        
 
 
 
@@ -339,6 +336,12 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+
+            // Generate candidate viewpoints
+            candidateViewpoints_= generatePlaneCandidateViewpoints(
+                initialPositionCartesian_, orientations_, planeTypeCandidateViewpoints_, candidateViewpointsNumber_, movementRange_);
+            int total_candidates = candidateViewpointsNumber_ + candidateViewpointsNumber_ * orientations_;
+            RCLCPP_INFO(this->get_logger(), "%d candidate viewpoints in a %s shape with movement range of %.2f mt created.", total_candidates, planeTypeCandidateViewpoints_.c_str(), movementRange_);        
 
 
 
@@ -684,7 +687,17 @@ namespace active_vision_nbv_planning_pipeline{
         double refZ = referencePose.translation().z();
         Eigen::Quaterniond referenceOrientation(referencePose.rotation());
 
-        auto addPoseWithOrientations = [&](Eigen::Isometry3d newPose) {
+        // Create random number generator and distribution outside the lambda
+        std::default_random_engine generator(static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count()));
+        std::uniform_real_distribution<double> distribution(-sideLength / 10.0, sideLength / 10.0);
+
+        auto addPoseWithOrientationsAndNoise = [&](Eigen::Isometry3d newPose, bool addNoise) {
+            if (addNoise) {
+                // Generate random noise within +/- 1/10 of the sideLength for each axis
+                Eigen::Vector3d noise(0.0, distribution(generator), distribution(generator));
+                newPose.translate(noise);
+            }
+
             poses.push_back(newPose);
             if (orientations == 2) {
                 Eigen::AngleAxisd rotateUp(M_PI / 6, Eigen::Vector3d::UnitY());
@@ -726,7 +739,9 @@ namespace active_vision_nbv_planning_pipeline{
             }
         };
 
-        if (planeTypeCandidateViewpoints_ == "circle") {
+        bool addNoise = planeTypeCandidateViewpoints_ == "square_random" || planeTypeCandidateViewpoints_ == "circle_random";
+
+        if (planeTypeCandidateViewpoints_ == "circle" || planeTypeCandidateViewpoints_ == "circle_random") {
             float radius = sideLength;
             int totalRings = std::ceil(std::sqrt(N));
             float deltaRadius = radius / totalRings;
@@ -751,13 +766,13 @@ namespace active_vision_nbv_planning_pipeline{
                     newPose.translate(Eigen::Vector3d(fixedX, y, z));
                     newPose.rotate(referenceOrientation);
 
-                    addPoseWithOrientations(newPose);
+                    addPoseWithOrientationsAndNoise(newPose, addNoise);
                     totalPosesPlaced++;
                     if (totalPosesPlaced >= N) break;
                 }
                 if (totalPosesPlaced >= N) break;
             }
-        } else {
+        } else if (planeTypeCandidateViewpoints_ == "square" || planeTypeCandidateViewpoints_ == "square_random") {
             int numPosesPerSide = std::sqrt(N);
             float spacing = sideLength / (numPosesPerSide - 1);
 
@@ -773,7 +788,7 @@ namespace active_vision_nbv_planning_pipeline{
                     newPose.translate(Eigen::Vector3d(fixedX, y, z));
                     newPose.rotate(referenceOrientation);
 
-                    addPoseWithOrientations(newPose);
+                    addPoseWithOrientationsAndNoise(newPose, addNoise);
                 }
             }
         }

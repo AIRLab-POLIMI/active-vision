@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
 		SegmentationClientNode,
         node_options
     );
-	// Pipeline->get_logger().set_level(rclcpp::Logger::Level::Debug);
+	Pipeline->get_logger().set_level(rclcpp::Logger::Level::Info);
 
 
     // asynchronous multi-threaded executor for spinning the nodes in separate threads

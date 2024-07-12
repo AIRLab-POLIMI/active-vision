@@ -27,6 +27,20 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         std::shared_ptr<ExtendedOctomapMap> extendedOctomapMap_;
         std::shared_ptr<OcTreeT> octree_;
 
+        Eigen::Vector3d octomapCenter_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d furthestPoint_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d closestPoint_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d highestPoint_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d lowestPoint_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d leftMostPoint_ = Eigen::Vector3d(0, 0, 0);
+        Eigen::Vector3d rightMostPoint_ = Eigen::Vector3d(0, 0, 0);
+        double newClosest_ = 0.0, newFurthest_ = 0.0, newLowest_ = 0.0, newHighest_ = 0.0, newLeftMost_ = 0.0, newRightMost_ = 0.0;
+
+        float centralAttentionFrontDistanceRatio_;
+        float centralAttentionWidthDistanceRatio_;
+        float centralAttentionHeightDistanceRatio_;
+
+
         double maxRayDepth_;
         double rayStepProportion_;
         std::string rayCastingType_;
@@ -66,6 +80,20 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         std::vector<Eigen::Vector3d> generateFrustumBaseGrid(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m, double frustum_depth);
 
         std::vector<Eigen::Vector3d> generateFrustumBaseDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m);
+
+        Eigen::Vector3d getOccupancyMapCenter();
+
+        Eigen::Vector3d findFurthestPoint(const Eigen::Isometry3d& current_pose);
+
+        Eigen::Vector3d findClosestPoint(const Eigen::Isometry3d& current_pose);
+
+        Eigen::Vector3d findHighestPoint(const Eigen::Isometry3d& current_pose);
+
+        Eigen::Vector3d findLowestPoint(const Eigen::Isometry3d& current_pose);
+
+        Eigen::Vector3d findLeftMostPoint(const Eigen::Isometry3d& current_pose);
+
+        Eigen::Vector3d findRightMostPoint(const Eigen::Isometry3d& current_pose);
 
         std::vector<Eigen::Vector3d> getSemanticArea(bool visualization);
 

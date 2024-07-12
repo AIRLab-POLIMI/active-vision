@@ -48,6 +48,9 @@ namespace active_vision_nbv_planning_pipeline{
         maxRayDepth_ = this->declare_parameter<float>("max_ray_depth", 10.0);
         rayStepProportion_ = this->declare_parameter<float>("ray_step_proportion", 1.0);
         rayCastingType_ = this->declare_parameter("ray_casting_type", "attention");
+        centralAttentionFrontDistanceRatio_ = this->declare_parameter<float>("central_attention_front_distance_ratio", 1.0);
+        centralAttentionWidthDistanceRatio_ = this->declare_parameter<float>("central_attention_width_distance_ratio", 1.0);
+        centralAttentionHeightDistanceRatio_ = this->declare_parameter<float>("central_attention_height_distance_ratio", 1.0);
         rayCastingVis_ = this->declare_parameter("ray_casting_vis", false); 
         utilityType_ = this->declare_parameter("utility_type", "expected_semantic_information_gain");
         utilityVis_ = this->declare_parameter("utility_vis", false); 
@@ -1127,6 +1130,197 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::getOccupancyMapCenter() {
+        double sumX = 0, sumY = 0, sumZ = 0; // Accumulators for the sum of coordinates
+        unsigned int count = 0; // Count of occupied nodes
+
+        // Iterate through all leaf nodes
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Accumulate the coordinates
+                sumX += it.getX();
+                sumY += it.getY();
+                sumZ += it.getZ();
+                ++count; // Increment the count
+            }
+        }
+
+        if (count > 0) {
+            // Calculate the average for each coordinate axis to get the center
+            double avgX = sumX / count;
+            double avgY = sumY / count;
+            double avgZ = sumZ / count;
+            // Return the average coordinates as an Eigen::Vector3d
+            return Eigen::Vector3d(avgX, avgY, avgZ);
+        } else {
+            // Return a default Eigen::Vector3d if there are no occupied nodes
+            return Eigen::Vector3d(0, 0, 0);
+        }
+    }
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findFurthestPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d rightmostPoint = Eigen::Vector3d(-std::numeric_limits<double>::infinity(), 0, 0);
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update rightmost point
+                if (localPoint.x() > rightmostPoint.x()) {
+                    rightmostPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the rightmost point back to the global frame
+        if (rightmostPoint.x() != -std::numeric_limits<double>::infinity()) {
+            return current_pose * rightmostPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findClosestPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d leftmostPoint = Eigen::Vector3d(std::numeric_limits<double>::infinity(), 0, 0);
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update leftmost point
+                if (localPoint.x() < leftmostPoint.x()) {
+                    leftmostPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the leftmost point back to the global frame
+        if (leftmostPoint.x() != std::numeric_limits<double>::infinity()) {
+            return current_pose * leftmostPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findHighestPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d aheadPoint = Eigen::Vector3d(0, 0, -std::numeric_limits<double>::infinity());
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update ahead point
+                if (localPoint.z() > aheadPoint.z()) {
+                    aheadPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the ahead point back to the global frame
+        if (aheadPoint.z() != -std::numeric_limits<double>::infinity()) {
+            return current_pose * aheadPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findLowestPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d behindPoint = Eigen::Vector3d(0, 0, std::numeric_limits<double>::infinity());
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update behind point
+                if (localPoint.z() < behindPoint.z()) {
+                    behindPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the behind point back to the global frame
+        if (behindPoint.z() != std::numeric_limits<double>::infinity()) {
+            return current_pose * behindPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findLeftMostPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d highestPoint(0, -std::numeric_limits<double>::infinity(), 0);
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update highest point
+                if (localPoint.y() > highestPoint.y()) {
+                    highestPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the highest point back to the global frame
+        if (highestPoint.y() != -std::numeric_limits<double>::infinity()) {
+            return current_pose * highestPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
+    Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findRightMostPoint(const Eigen::Isometry3d& current_pose) {
+        Eigen::Vector3d lowestPoint(0, std::numeric_limits<double>::infinity(), 0);
+        Eigen::Vector3d localPoint;
+
+        for (auto it = octree_->begin(octree_->getTreeDepth()), end = octree_->end(); it != end; ++it) {
+            if (octree_->isNodeOccupied(*it)) {
+                // Transform global coordinates to local frame
+                localPoint = current_pose.inverse() * Eigen::Vector3d(it.getX(), it.getY(), it.getZ());
+
+                // Update lowest point
+                if (localPoint.y() < lowestPoint.y()) {
+                    lowestPoint = localPoint;
+                }
+            }
+        }
+
+        // Transform the lowest point back to the global frame
+        if (lowestPoint.y() != std::numeric_limits<double>::infinity()) {
+            return current_pose * lowestPoint;
+        }
+
+        // Return an invalid point if no occupied nodes were found
+        return Eigen::Vector3d::Zero();
+    }
+
+
+
     std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::getSemanticArea(bool visualization=false) {
         std::vector<Eigen::Vector3d> target_positions;
 
@@ -1138,11 +1332,22 @@ namespace active_vision_nbv_planning_pipeline{
             // Check if the semantic class matches the target
             if (data.getSemanticClass() == prompt_) {
                 // Retrieve the 3D position using the octree
-                octomap::point3d point;
-                point = octree_->keyToCoord(key);
-                target_positions.push_back(Eigen::Vector3d(point.x(), point.y(), point.z()));
-                if (visualization){
-                    MoveIt2API_node_->visual_tools->publishSphere(Eigen::Vector3d(point.x(), point.y(), point.z()), rviz_visual_tools::BLUE, rviz_visual_tools::XSMALL);
+                octomap::point3d point = octree_->keyToCoord(key);
+                Eigen::Vector3d point_eigen(point.x(), point.y(), point.z());
+
+                if (rayCastingType_ == "full_attention"){
+                    if (point_eigen.x() <= newFurthest_ && point_eigen.x() >= newClosest_ &&
+                    point_eigen.z() <= newHighest_ && point_eigen.z() >= newLowest_ &&
+                    point_eigen.y() <= newLeftMost_ && point_eigen.y() >= newRightMost_) {
+                        target_positions.push_back(point_eigen);
+                        if (visualization){
+                            MoveIt2API_node_->visual_tools->publishSphere(point_eigen, rviz_visual_tools::RED, rviz_visual_tools::SMALL);
+                        }
+                    }
+                }
+                else {
+                    target_positions.push_back(point_eigen);
+
                 }
             }
         }
@@ -1353,6 +1558,29 @@ namespace active_vision_nbv_planning_pipeline{
         fov_w = fov_w * (180.0 / M_PI); // in degrees
         fov_h = fov_h * (180.0 / M_PI); // in degrees
 
+
+
+        // If central attention is needed, calculate bounds of the scene
+        // Calculate the center and bounds of the scene and correct them with a specific ratio
+        if (rayCastingType_ == "full_attention"){
+            furthestPoint_ = findFurthestPoint(initialPositionCartesian_);
+            closestPoint_ = findClosestPoint(initialPositionCartesian_);
+            highestPoint_ = findHighestPoint(initialPositionCartesian_);
+            lowestPoint_ = findLowestPoint(initialPositionCartesian_);
+            leftMostPoint_ = findLeftMostPoint(initialPositionCartesian_);
+            rightMostPoint_ = findRightMostPoint(initialPositionCartesian_);
+
+            // Adjust the bounds by the specified ratios
+            auto adjustBound = [](double min, double max, double ratio) -> std::pair<double, double> {
+                double range = max - min;
+                double adjustment = range * (1 - 1.0 / ratio) / 2.0; // Adjust both sides equally
+                return {min + adjustment, max - adjustment};
+            };
+
+            std::tie(newClosest_, newFurthest_) = adjustBound(closestPoint_.x(), furthestPoint_.x(), centralAttentionFrontDistanceRatio_);
+            std::tie(newLowest_, newHighest_) = adjustBound(lowestPoint_.z(), highestPoint_.z(), centralAttentionHeightDistanceRatio_);
+            std::tie(newLeftMost_, newRightMost_) = adjustBound(leftMostPoint_.y(), rightMostPoint_.y(), centralAttentionWidthDistanceRatio_);
+        }
 
         // Start a loop for each valid candidate viewpoint
         for (auto& pose : poses){

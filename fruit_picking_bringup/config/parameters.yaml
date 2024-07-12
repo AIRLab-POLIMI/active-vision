@@ -396,7 +396,7 @@ launch:
       orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
       max_ray_depth: "2.0"
       ray_step_proportion: "1.0" # multiplier to the octomap resolution to define ray generation step during not-attention ray casting. 1 means octomap resolution
-      ray_casting_type: "attention" # full_attention, attention, normal, naive
+      ray_casting_type: "full_attention" # full_attention, attention, normal, naive
       central_attention_front_distance_ratio: "4.0"
       central_attention_height_distance_ratio: "1.0"
       central_attention_width_distance_ratio: "4.0"

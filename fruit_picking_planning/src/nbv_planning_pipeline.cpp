@@ -1536,8 +1536,10 @@ namespace active_vision_nbv_planning_pipeline{
         }
 
         std::vector<float> poseUtilities;
-        double maxUtility = -std::numeric_limits<double>::infinity();
+        double maxUtility = 0.0;
         Eigen::Isometry3d bestPose;
+        bool isMaxUtilityUpdated = false;
+
 
 
         // Calculate horizontal and vertical FOV for the viewpoint frustum
@@ -1677,13 +1679,21 @@ namespace active_vision_nbv_planning_pipeline{
             if (poseTotalUtility > maxUtility) {
                 maxUtility = poseTotalUtility;
                 bestPose = pose;
+                isMaxUtilityUpdated = true;
             }
 
         }
 
-        RCLCPP_INFO(this->get_logger(), 
-            "The NBV pose %f, %f, %f has utility %f", bestPose.translation().x(), bestPose.translation().y(), bestPose.translation().z(), maxUtility);
-        return bestPose;
+        // Check if maxUtility was updated, if not, return current_pose
+        if (!isMaxUtilityUpdated) {
+            RCLCPP_INFO(this->get_logger(), "No better pose found. Returning current pose %f, %f, %f", current_pose.translation().x(), current_pose.translation().y(), current_pose.translation().z());
+            return current_pose;
+        }
+        else{
+            RCLCPP_INFO(this->get_logger(), 
+                "The NBV pose %f, %f, %f has utility %f", bestPose.translation().x(), bestPose.translation().y(), bestPose.translation().z(), maxUtility);
+            return bestPose;
+        }
 
     }
 

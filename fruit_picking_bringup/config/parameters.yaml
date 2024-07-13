@@ -1,6 +1,4 @@
 frames:
-  real_base_frame_id: "base_footprint"
-  real_frame_id: "base_link"
   frame_id: "world"
   base_frame_id: "igus_rebel_base_link"
   realsense_frame_id: "container_realsense_link"
@@ -92,7 +90,7 @@ launch:
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -152,7 +150,7 @@ launch:
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -221,7 +219,7 @@ launch:
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -293,7 +291,7 @@ launch:
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "0.85" # represents the world z min positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -357,6 +355,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -386,6 +390,10 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      # Rviz
+      rviz:
+        ignition: active_vision_predefined_planning_pipeline_ignition.rviz
+        real: active_vision_predefined_planning_pipeline.rviz
 
     nbv_planning_pipeline_launch:
       # Planning
@@ -419,6 +427,12 @@ launch:
       ground_filter/plane_distance: "0.07"
       compress_map: "True"
       incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -448,3 +462,7 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      # Rviz
+      rviz:
+        ignition: active_vision_nbv_planning_pipeline_ignition.rviz
+        real: active_vision_nbv_planning_pipeline.rviz

@@ -151,20 +151,13 @@ def launch_setup(context, *args, **kwargs):
 
     
     # Frames
-    if LaunchConfiguration("hardware_protocol").perform(context) == 'ignition' and LaunchConfiguration("load_gazebo").perform(context) == 'true':
-        frame_id = config_yaml['frames']['frame_id']
-        base_frame_id = config_yaml['frames']['base_frame_id']
+    frame_id = config_yaml['frames']['base_frame_id']
+    base_frame_id = config_yaml['frames']['base_frame_id']
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
         camera_frame_id = config_yaml['frames']['gazebo_ignition_camera_frame_id']
+    elif LaunchConfiguration("load_gazebo").perform(context) == 'false':
+        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
 
-    elif LaunchConfiguration("hardware_protocol").perform(context) == 'simulation' and LaunchConfiguration("load_gazebo").perform(context) == 'false':
-        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
-        frame_id = config_yaml['frames']['frame_id']
-        base_frame_id = config_yaml['frames']['base_frame_id']
-    
-    elif LaunchConfiguration("hardware_protocol").perform(context) == 'cri' and LaunchConfiguration("load_gazebo").perform(context) == 'false':
-        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
-        frame_id = config_yaml['frames']['frame_id']
-        base_frame_id = config_yaml['frames']['base_frame_id']
 
 
 
@@ -183,6 +176,14 @@ def launch_setup(context, *args, **kwargs):
 
     
 
+    # Rviz config file
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+        rviz_config_file_name = config_yaml["launch"]["active_vision_pipeline_launch"]["predefined_planning_pipeline_launch"]["rviz"]["ignition"]
+    else:
+        rviz_config_file_name = config_yaml["launch"]["active_vision_pipeline_launch"]["predefined_planning_pipeline_launch"]["rviz"]["real"]
+
+
+
 
     # Input entity
     if LaunchConfiguration("run_robot_moveit").perform(context) == 'true': 
@@ -191,7 +192,7 @@ def launch_setup(context, *args, **kwargs):
                 FindPackageShare("igus_rebel_moveit_config"), '/launch', '/demo.launch.py']),
             launch_arguments={
                 "rviz_file": os.path.join(
-                    get_package_share_directory("fruit_picking_bringup"), "rviz/active_vision_predefined_planning_pipeline.rviz"),
+                    get_package_share_directory("fruit_picking_bringup"), "rviz/", rviz_config_file_name),
             }.items(),
         )
         return_actions.append(moveit_launch_file)

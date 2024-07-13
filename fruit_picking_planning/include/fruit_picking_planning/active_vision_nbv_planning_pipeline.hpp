@@ -48,6 +48,12 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         std::string utilityType_;
         bool utilityVis_;
 
+        // This variable is set to true whenever some semantic is found. In this case, some entropy will be calculated and
+        // if some next step will have no confidence updated, the same pose will be explored
+        // If this variable is false, if during the step no confidence is updated, the next pose will be not the previous one 
+        // but a random one
+        bool semanticFound_ = false;
+
 
         void createDataSub();
 

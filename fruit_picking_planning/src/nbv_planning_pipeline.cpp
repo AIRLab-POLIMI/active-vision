@@ -1697,14 +1697,24 @@ namespace active_vision_nbv_planning_pipeline{
                 maxUtility = poseUtility;
                 bestPose = pose;
                 isMaxUtilityUpdated = true;
+                semanticFound_ = true;
             }
 
         }
 
-        // Check if maxUtility was updated, if not, return current_pose
+        // Check if maxUtility was updated
         if (!isMaxUtilityUpdated) {
-            RCLCPP_INFO(this->get_logger(), "No better pose found. Returning current pose %f, %f, %f", current_pose.translation().x(), current_pose.translation().y(), current_pose.translation().z());
-            return current_pose;
+            // If during the entire planning some semantic has been found, return the current pose
+            if (semanticFound_){
+                RCLCPP_INFO(this->get_logger(), "No better pose found. Returning current pose %f, %f, %f", current_pose.translation().x(), current_pose.translation().y(), current_pose.translation().z());
+                return current_pose;
+            }
+            // If during the entire planning no semantic is found yet, return a random pose
+            else {
+                RCLCPP_INFO(this->get_logger(), "No better pose found. Returning random pose");
+                Eigen::Isometry3d random_pose = chooseNBVRandom(poses);
+                return random_pose;
+            }
         }
         else{
             RCLCPP_INFO(this->get_logger(), 

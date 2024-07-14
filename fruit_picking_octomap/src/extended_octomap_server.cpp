@@ -41,7 +41,12 @@ namespace extended_octomap_server {
         publishOctomapBinary(false),
         publishOctomapFull(false),
         publishCentersPointcloud(false),
-        publish2DProjectedMap(false)
+        publish2DProjectedMap(false),
+
+        search_neighboorhood_ray(5),
+        correction_neighboorhood_ray(5),
+        outlier_detection(0.2)
+
     
     
     {
@@ -223,6 +228,18 @@ namespace extended_octomap_server {
             "insert_cloud_init", insertCloudActive);
         insertSegmentedActive = this->declare_parameter(
             "insert_segmented_init", insertSegmentedActive);
+
+        outlier_detection = this->declare_parameter(
+            "outlier_detection", outlier_detection);
+
+        search_neighboorhood_ray = this->declare_parameter(
+            "search_neighboorhood_ray", search_neighboorhood_ray);
+
+        correction_neighboorhood_ray = this->declare_parameter(
+            "correction_neighboorhood_ray", correction_neighboorhood_ray);
+
+        outlier_threshold = this->declare_parameter(
+            "outlier_threshold", outlier_threshold);
 
 
         
@@ -1231,6 +1248,107 @@ namespace extended_octomap_server {
 
         // Free the collision map
         collisionKeys->clear();
+
+
+
+
+        // outlier_detection for noise removal
+        if (outlier_detection) {
+            double threshold = outlier_threshold;
+            // Iterate through all leaf nodes
+            for (auto it = m_octree->begin(m_treeDepth), end = m_octree->end(); it != end; ++it) {
+                octomap::OcTreeKey key = it.getKey();
+                octomap::point3d current_key = m_octree->keyToCoord(key);
+                Eigen::Vector3d current_vector(current_key.x(), current_key.y(), current_key.z());
+                int key_instance = (*extended_octomap_map)[key].getInstance();
+                
+
+                // Get the search neighboorhood
+                octomap::KeySet search_neighboorhood;
+                for (int dx = -search_neighboorhood_ray; dx <= search_neighboorhood_ray; ++dx) {
+                    for (int dy = -search_neighboorhood_ray; dy <= search_neighboorhood_ray; ++dy) {
+                        for (int dz = -search_neighboorhood_ray; dz <= search_neighboorhood_ray; ++dz) {
+                            // Skip the current voxel
+                            if (dx == 0 && dy == 0 && dz == 0) continue;
+
+                            octomap::OcTreeKey adjKey(key.k[0] + dx, key.k[1] + dy, key.k[2] + dz);
+                            if (m_octree->search(adjKey)) { // Check if the adjacent voxel exists
+                                search_neighboorhood.insert(adjKey);
+                            }
+                        }
+                    }
+                }
+
+
+
+                // Get number of search neighboorhood keys with same key instance
+                int searchCurrentInstances = 0; // Count of adjacent voxels with the same instance as the considered voxel
+
+                // Iterate through the noise keys to count how many have the same instance
+                for (const auto& adjKey : search_neighboorhood) {
+                    if ((*extended_octomap_map)[adjKey].getInstance() == key_instance) {
+                        searchCurrentInstances++;
+                    }
+                }
+
+
+
+
+               
+                // Calculate the threshold value (number of voxels * threshold percentage)
+                int thresholdValue = static_cast<int>(search_neighboorhood.size() * threshold);
+
+
+                // Check if the number of matching instances is less than the threshold value
+                // In this case the voxel is an intruder
+                if (searchCurrentInstances < thresholdValue) {
+                    // Get the correction neighboorhood
+                    octomap::KeySet correction_neighboorhood;
+                    for (int dx = -correction_neighboorhood_ray; dx <= correction_neighboorhood_ray; ++dx) {
+                        for (int dy = -correction_neighboorhood_ray; dy <= correction_neighboorhood_ray; ++dy) {
+                            for (int dz = -correction_neighboorhood_ray; dz <= correction_neighboorhood_ray; ++dz) {
+                                // Skip the current voxel
+                                if (dx == 0 && dy == 0 && dz == 0) continue;
+
+                                octomap::OcTreeKey adjKey(key.k[0] + dx, key.k[1] + dy, key.k[2] + dz);
+                                if (m_octree->search(adjKey)) { // Check if the adjacent voxel exists
+                                    correction_neighboorhood.insert(adjKey);
+                                }
+                            }
+                        }
+                    }
+
+                    // Find the most frequent instance among the correction voxels
+                    int mostFrequentInstance = findMostFrequentInstance(*extended_octomap_map, correction_neighboorhood);
+
+
+                    if (key_instance != mostFrequentInstance) {
+
+                        for (auto it = extended_octomap_map->begin(); it != extended_octomap_map->end(); ++it) {
+                            ExtendedOctomapData& data = it->second;
+                            if (data.getInstance() == mostFrequentInstance) {
+                                // Set the confidence and semantic class based on the first match
+                                // RCLCPP_ERROR(this->get_logger(), "conf of neighboors: %f", data.getConfidence());
+                                // RCLCPP_ERROR(this->get_logger(), "color of neightboor: %f %f %f", data.confidence_r, data.confidence_g, data.confidence_b);
+                                // RCLCPP_ERROR(this->get_logger(), "old conf of key: %f", (*extended_octomap_map)[key].getConfidence());
+                                // RCLCPP_ERROR(this->get_logger(), "old color of key: %f %f %f", (*extended_octomap_map)[key].confidence_r, (*extended_octomap_map)[key].confidence_g, (*extended_octomap_map)[key].confidence_b);
+                                (*extended_octomap_map)[key].setConfidenceNoColor(data.getConfidence());
+                                (*extended_octomap_map)[key].setManualConfidenceColor(data.confidence_r, data.confidence_g, data.confidence_b);
+                                (*extended_octomap_map)[key].setSemanticClass(data.getSemanticClass(), colorMap);
+                                // RCLCPP_ERROR(this->get_logger(), "new conf of key: %f", (*extended_octomap_map)[key].getConfidence());
+                                // RCLCPP_ERROR(this->get_logger(), "new color of key: %f %f %f", (*extended_octomap_map)[key].confidence_r, (*extended_octomap_map)[key].confidence_g, (*extended_octomap_map)[key].confidence_b);
+                                break; // Exit the loop after setting the values
+                            }
+                        }
+                        (*extended_octomap_map)[key].setInstance(mostFrequentInstance);
+                    }
+                    
+                }
+
+            }
+            RCLCPP_INFO(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Outlier detection done.");
+        }
+
 
         
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Extended octomap map updated with segmented pointclouds array.");

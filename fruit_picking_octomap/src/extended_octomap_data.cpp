@@ -112,6 +112,13 @@ namespace extended_octomap_data {
         this->confidence_a = 1.0; // Assuming alpha is always full opacity
     }
 
+    void ExtendedOctomapData::setManualConfidenceColor(float r, float g, float b) {
+        this->confidence_r = r;
+        this->confidence_g = g;
+        this->confidence_b = b;
+        this->confidence_a = 1.0; // Assuming alpha is always full opacity
+    }
+
     void ExtendedOctomapData::setHeatConfidenceColor(float confidence) {
         // Map confidence to hue (0 to 240 degrees, where 0 is red and 240 is blue. 120 is green)
         float hue = confidence * 240.0f; // 0.0 -> 0° (red), 1.0 -> 120° (green)

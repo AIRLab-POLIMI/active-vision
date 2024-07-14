@@ -180,6 +180,10 @@ launch:
       message_filter_queue: '100'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      outlier_detection: "True"
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.2"
     
     rviz:
       ignition: "octomap_segmentation_color_filter_ignition.rviz"
@@ -249,6 +253,10 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      outlier_detection: "True"
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.2"
     
     rviz:
       ignition: "octomap_segmentation_lang_sam_ignition.rviz"
@@ -321,6 +329,10 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      outlier_detection: "True"
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.2"
     
     rviz:
       ignition: "octomap_segmentation_yolo_world_ignition.rviz"
@@ -390,6 +402,10 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      outlier_detection: "True"
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.2"
       # Rviz
       rviz:
         ignition: active_vision_predefined_planning_pipeline_ignition.rviz
@@ -462,6 +478,10 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      outlier_detection: "True"
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.15"
       # Rviz
       rviz:
         ignition: active_vision_nbv_planning_pipeline_ignition.rviz

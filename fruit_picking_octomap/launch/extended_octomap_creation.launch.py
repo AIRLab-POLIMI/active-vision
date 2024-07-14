@@ -72,6 +72,10 @@ def generate_launch_description():
         DeclareLaunchArgument('message_filter_queue', default_value='5'),
         DeclareLaunchArgument('insert_cloud_init', default_value='True'),
         DeclareLaunchArgument('insert_segmented_init', default_value='True'),
+        DeclareLaunchArgument('outlier_detection', default_value='False'),
+        DeclareLaunchArgument('search_neighboorhood_ray', default_value='5'),
+        DeclareLaunchArgument('correction_neighboorhood_ray', default_value='3'),
+        DeclareLaunchArgument('outlier_threshold', default_value='0.15'),
 
 
         Node(
@@ -149,6 +153,10 @@ def generate_launch_description():
                 'message_filter_queue': LaunchConfiguration('message_filter_queue'),
                 'insert_cloud_init': LaunchConfiguration('insert_cloud_init'),
                 'insert_segmented_init': LaunchConfiguration('insert_segmented_init'),
+                'outlier_detection': LaunchConfiguration('outlier_detection'),
+                'search_neighboorhood_ray': LaunchConfiguration('search_neighboorhood_ray'),
+                'correction_neighboorhood_ray': LaunchConfiguration('correction_neighboorhood_ray'),
+                'outlier_threshold': LaunchConfiguration('outlier_threshold'),
                 }]
         )
     ])

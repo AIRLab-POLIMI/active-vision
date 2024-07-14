@@ -78,6 +78,10 @@ def generate_launch_description():
         DeclareLaunchArgument('insert_cloud_init', default_value='True'),
         DeclareLaunchArgument('insert_segmented_init', default_value='True'),
         DeclareLaunchArgument('centralized_architecture', default_value='False'),
+        DeclareLaunchArgument('outlier_detection', default_value='False'),
+        DeclareLaunchArgument('search_neighboorhood_ray', default_value='5'),
+        DeclareLaunchArgument('correction_neighboorhood_ray', default_value='3'),
+        DeclareLaunchArgument('outlier_threshold', default_value='0.15'),
 
 
     # Predefined planning pipeline node
@@ -169,6 +173,10 @@ def generate_launch_description():
             'insert_cloud_init': LaunchConfiguration('insert_cloud_init'),
             'insert_segmented_init': LaunchConfiguration('insert_segmented_init'),
             'centralized_architecture': LaunchConfiguration('centralized_architecture'),
+            'outlier_detection': LaunchConfiguration('outlier_detection'),
+            'search_neighboorhood_ray': LaunchConfiguration('search_neighboorhood_ray'),
+            'correction_neighboorhood_ray': LaunchConfiguration('correction_neighboorhood_ray'),
+            'outlier_threshold': LaunchConfiguration('outlier_threshold'),
             }]
         )
     ])

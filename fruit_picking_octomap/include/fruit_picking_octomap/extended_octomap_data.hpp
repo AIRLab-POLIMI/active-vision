@@ -38,6 +38,8 @@ namespace extended_octomap_data{
 
         void setDirectConfidenceColor(float confidence);
 
+        void setManualConfidenceColor(float r, float g, float b);
+
         void setHeatConfidenceColor(float confidence);
 
         void setInstanceColor(int instance);

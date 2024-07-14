@@ -247,6 +247,11 @@ namespace extended_octomap_server{
         bool insertCloudActive;
         bool insertSegmentedActive;
 
+        bool outlier_detection;
+        int search_neighboorhood_ray; 
+        int correction_neighboorhood_ray;
+        double outlier_threshold;
+
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSegmentedActiveService_;
 

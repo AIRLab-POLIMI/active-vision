@@ -196,6 +196,18 @@ def launch_setup(context, *args, **kwargs):
             }.items(),
         )
         return_actions.append(moveit_launch_file)
+        if LaunchConfiguration("load_gazebo").perform(context) == 'false' and LaunchConfiguration("hardware_protocol").perform(context) == 'cri':
+            
+            # Realsense launch file
+            realsense_launch_file = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    FindPackageShare("realsense2_camera"), '/launch', '/rs_launch.py']),
+                launch_arguments={
+                    **use_sim_time_dict,
+                    **config_yaml['launch']['realsense_launch'],
+                }.items(),
+            )
+            return_actions.append(realsense_launch_file)
 
 
 

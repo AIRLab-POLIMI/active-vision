@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: DepthCloud (RGB)
 Visualization Manager:
   Class: ""
   Displays:
@@ -69,6 +69,10 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base_footprint:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_link:
             Alpha: 1
             Show Axes: false
@@ -95,7 +99,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          igus_rebel/link_8/depth_camera:
+          front_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -104,6 +108,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          inertial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           link_1:
             Alpha: 1
             Show Axes: false
@@ -134,6 +142,19 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          mobile_robot_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          rear_mount:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          rebel_support:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           soft_gripper_link:
             Alpha: 1
             Show Axes: false
@@ -148,22 +169,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          virtual_depth_camera_frame:
+          tower_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          virtual_depth_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          virtual_rgb_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
+            Value: true
           world:
             Alpha: 1
             Show Axes: false
@@ -264,6 +274,10 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
@@ -290,7 +304,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        igus_rebel/link_8/depth_camera:
+        front_mount:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -299,6 +313,10 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        inertial_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         link_1:
           Alpha: 1
           Show Axes: false
@@ -329,6 +347,19 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        mobile_robot_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rebel_support:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         soft_gripper_link:
           Alpha: 1
           Show Axes: false
@@ -343,22 +374,11 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        virtual_depth_camera_frame:
+        tower_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        virtual_depth_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         world:
           Alpha: 1
           Show Axes: false
@@ -403,6 +423,10 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
@@ -429,7 +453,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        igus_rebel/link_8/depth_camera:
+        front_mount:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -438,6 +462,10 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        inertial_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         link_1:
           Alpha: 1
           Show Axes: false
@@ -468,6 +496,19 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        mobile_robot_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rebel_support:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         soft_gripper_link:
           Alpha: 1
           Show Axes: false
@@ -482,22 +523,11 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        virtual_depth_camera_frame:
+        tower_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        virtual_depth_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        virtual_rgb_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         world:
           Alpha: 1
           Show Axes: false
@@ -523,11 +553,11 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz_default_plugins/DepthCloud
       Color: 255; 255; 255
-      Color Image Topic: /virtual_camera_link/rgbd_camera/image_raw
+      Color Image Topic: /camera/camera/color/image_raw
       Color Transformer: RGB8
       Color Transport Hint: raw
       Decay Time: 0
-      Depth Map Topic: /virtual_camera_link/rgbd_camera/depth_image
+      Depth Map Topic: /camera/camera/aligned_depth_to_color/image_raw
       Depth Map Transport Hint: raw
       Enabled: false
       Invert Rainbow: false
@@ -561,7 +591,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /virtual_camera_link/rgbd_camera/image_raw
+        Value: /camera/camera/color/image_raw
       Value: false
     - Class: rviz_default_plugins/Image
       Enabled: false
@@ -651,10 +681,7 @@ Visualization Manager:
       Enabled: true
       Name: Rviz visual tools
       Namespaces:
-        Path: true
-        Sphere: true
-        Text: true
-        search_pose: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -723,10 +750,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.39039865136146545
+      Pitch: 0.21039864420890808
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.428581237792969
+      Yaw: 5.368581771850586
     Saved:
       - Class: rviz_default_plugins/Orbit
         Distance: 1.8170918226242065
@@ -760,7 +787,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001a70000034dfc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000034d000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c005400720061006a006500630074006f007200790020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000000c00430061006d0065007200610100000264000000800000000000000000fb0000000c00200049006d00610067006500000002b2000000d80000002800fffffffb0000001e005300650067006d0065006e00740065006400200049006d0061006700650000000339000000510000002800fffffffb0000000a0049006d0061006700650000000000ffffffff000000000000000000000001000001fb0000034dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fc0000003d0000034d000000a400fffffffa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000000ffffffff000001f300fffffffb0000000a005600690065007700730100000670000001100000010000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073a0000004bfc0100000002fb0000000800540069006d006501000000000000073a000002fb00fffffffb0000000800540069006d006501000000000000045000000000000000000000038c0000034d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001a70000034dfc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000034d000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c005400720061006a006500630074006f007200790020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000000c00430061006d0065007200610100000264000000800000000000000000fb0000000c00200049006d00610067006500000002df000000ab0000002800fffffffb0000001e005300650067006d0065006e00740065006400200049006d0061006700650000000339000000510000002800fffffffb0000000a0049006d0061006700650000000000ffffffff000000000000000000000001000001fb0000034dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fc0000003d0000034d000000a400fffffffa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000000ffffffff000001f300fffffffb0000000a005600690065007700730100000670000001100000010000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073a0000004bfc0100000002fb0000000800540069006d006501000000000000073a000002fb00fffffffb0000000800540069006d006501000000000000045000000000000000000000038c0000034d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Segmented Image:
     collapsed: false
   Selection:

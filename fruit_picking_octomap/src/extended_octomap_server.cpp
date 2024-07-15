@@ -241,6 +241,9 @@ namespace extended_octomap_server {
         outlier_threshold = this->declare_parameter(
             "outlier_threshold", outlier_threshold);
 
+        weighted_confidence = this->declare_parameter(
+            "weighted_confidence", weighted_confidence);
+
 
         
         // Case when the semantic segmentation is required
@@ -1348,6 +1351,55 @@ namespace extended_octomap_server {
             }
             RCLCPP_INFO(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Outlier detection done.");
         }
+
+
+
+        if (weighted_confidence){
+            // Map to store all confidences for each instance with their counts
+            std::map<int, std::map<float, int>> instanceConfidencesCount;
+
+            // Iterate over the map to group confidences by instance, excluding instance 0
+            for (auto it = extended_octomap_map->begin(); it != extended_octomap_map->end(); ++it) {
+                int instance = it->second.getInstance();
+                if (instance == 0) continue; // Skip instance 0
+                float confidence = it->second.getConfidence();
+                instanceConfidencesCount[instance][confidence]++;
+            }
+
+            std::map<int, float> instanceToWeightedConfidence; // Map to store the weighted average confidence for each instance
+
+            // Calculate weighted average for each instance
+            for (auto& instanceConfidences : instanceConfidencesCount) {
+                int instance = instanceConfidences.first;
+                auto& confidencesCount = instanceConfidences.second;
+
+                float sumConfidences = 0;
+                float totalWeight = 0;
+                for (auto& confidenceCount : confidencesCount) {
+                    float confidence = confidenceCount.first;
+                    int count = confidenceCount.second;
+                    // Adjusting the weight to consider only the count of the confidence value
+                    sumConfidences += confidence * count; // Confidence value is still used for the sum
+                    totalWeight += count; // Only the count is used as weight
+                }
+
+                float weightedAverage = totalWeight > 0 ? sumConfidences / totalWeight : 0;
+                instanceToWeightedConfidence[instance] = weightedAverage;
+            }
+
+            // Update the map with the new weighted average confidences
+            for (auto it = extended_octomap_map->begin(); it != extended_octomap_map->end(); ++it) {
+                int instance = it->second.getInstance();
+                if (instanceToWeightedConfidence.find(instance) != instanceToWeightedConfidence.end()) {
+                    float newConfidence = instanceToWeightedConfidence[instance];
+                    it->second.setConfidenceNoColor(newConfidence);
+                    it->second.setHeatConfidenceColor(newConfidence);
+                }
+            }
+        }
+    
+
+
 
 
         

@@ -184,6 +184,7 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
+      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_color_filter_ignition.rviz"
@@ -257,6 +258,7 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
+      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_lang_sam_ignition.rviz"
@@ -333,6 +335,7 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
+      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_yolo_world_ignition.rviz"
@@ -406,6 +409,7 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
+      weighted_confidence: "True"
       # Rviz
       rviz:
         ignition: active_vision_predefined_planning_pipeline_ignition.rviz
@@ -482,6 +486,7 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.15"
+      weighted_confidence: "True"
       # Rviz
       rviz:
         ignition: active_vision_nbv_planning_pipeline_ignition.rviz

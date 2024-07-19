@@ -250,6 +250,8 @@ namespace extended_octomap_server{
         bool insertSegmentedActive;
 
         bool segmentedPointcloudOutlierRemoval;
+        bool useFrequencyThreshold;
+        double frequencyThreshold;
 
         bool outlier_detection;
         int search_neighboorhood_ray; 

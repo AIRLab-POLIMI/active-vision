@@ -232,6 +232,12 @@ namespace extended_octomap_server {
         segmentedPointcloudOutlierRemoval = this->declare_parameter(
             "segmented_pointcloud_outlier_removal", segmentedPointcloudOutlierRemoval);
 
+        useFrequencyThreshold = this->declare_parameter(
+            "use_frequency_threshold", useFrequencyThreshold);
+        
+        frequencyThreshold = this->declare_parameter(
+            "frequency_threshold", frequencyThreshold);
+
         outlier_detection = this->declare_parameter(
             "outlier_detection", outlier_detection);
 
@@ -2605,7 +2611,36 @@ namespace extended_octomap_server {
                 return a.second < b.second;
             });
         
-        return mostFrequent->first; // Return the instance (key) of the most frequent element
+        if (useFrequencyThreshold){
+            if (mostFrequent->first == 0){
+               // Remove the most frequent instance if it is 0
+                instanceFrequency.erase(mostFrequent);
+
+                // Find the new most frequent instance, which is now the second most frequent from the original map
+                if (!instanceFrequency.empty()) {
+                    auto secondMostFrequent = std::max_element(instanceFrequency.begin(), instanceFrequency.end(),
+                        [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                            return a.second < b.second;
+                        });
+                    // Check if second instance is at least %threshold of the instnce 0. If yes, that is the most frequent
+                    if (mostFrequent->second * frequencyThreshold < secondMostFrequent->second){
+                        return secondMostFrequent->first;
+                    }
+                    else {
+                        return mostFrequent->first;
+                    }
+                } else {
+                    // Handle the case where all instances were 0 or the map is empty
+                    return mostFrequent->first; // return 0
+                } 
+            }
+            else{
+                return mostFrequent->first; // Return the instance (key) of the most frequent element
+            }
+        }
+        else {
+            return mostFrequent->first; // Return the instance (key) of the most frequent element
+        }
     }
     
     

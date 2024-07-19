@@ -134,7 +134,7 @@ launch:
       publish_single_pointcloud: "True"
     
     extended_octomap_creation_launch:
-      resolution: '0.006'
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -250,7 +250,9 @@ launch:
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
       segmented_pointcloud_outlier_removal: "True"
-      outlier_detection: "True"
+      use_frequency_threshold: "False" # useful with real robot
+      frequency_threshold: "0.50" # an instance will be put in blank even if only the %threshold/2 overlaps with another portion of the instance
+      outlier_detection: "True" # Slow when the full octomap and not partial is used
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
@@ -327,7 +329,9 @@ launch:
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
       segmented_pointcloud_outlier_removal: "True"
-      outlier_detection: "True"
+      use_frequency_threshold: "True" # useful with real robot
+      frequency_threshold: "0.50" # an instance will be put in blank even if only the %threshold/2 overlaps with another portion of the instance
+      outlier_detection: "True" # Slow when the full octomap and not partial is used
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
@@ -350,89 +354,11 @@ launch:
       # Planning
       predefined_planning: "zig_zag_plane_narrow_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_plane_narrow_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
       # Segmentation
-      segmentation_prompt: "apple" 
-      confidence_threshold: "0.2" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
-      nms_threshold: "0.7" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
+      segmentation_prompt: "tomato" 
+      confidence_threshold: "0.002" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.3" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
       # Pipeline
-      resolution: '0.017' # for real scenarion better to use at least 0.015, for simulation 0.006
-      height_map: "False"
-      colored_map: "False"
-      color_factor: "0.8"
-      filter_ground: 'False'
-      filter_speckles: "False"
-      ground_filter/distance: "0.04"
-      ground_filter/angle: "0.15"
-      ground_filter/plane_distance: "0.07"
-      compress_map: "True"
-      incremental_2D_projection: "False"
-      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
-      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
-      sensor_model/max_range: "-1.0"
-      sensor_model/hit: "0.7"
-      sensor_model/miss: "0.4"
-      sensor_model/min: "0.12"
-      sensor_model/max: "0.97"
-      color/r: "1.0"
-      color/g: "1.0"
-      color/b: "1.0"
-      color/a: "1.0"
-      color_free/r: "0.0"
-      color_free/g: "0.0"
-      color_free/b: "1.0"
-      color_free/a: "1.0"
-      process_free_space: "False"
-      publish_free_space: "False"
-      publish_free_cells: "False"
-      publish_octomap_binary: "False"
-      publish_octomap_full: "False"
-      publish_centers_pointcloud: "False"
-      publish_2d_projected_map: "False"
-      publish_confidence: 'True'
-      publish_semantic: 'True'
-      publish_instances: 'True'
-      partial_pointcloud_subscription: 'True'
-      segmented_pointcloud_subscription: 'False'
-      segmented_pointclouds_array_subscription: 'True'
-      message_filter_queue: '200'
-      insert_cloud_init: 'True'
-      insert_segmented_init: 'True'
-      segmented_pointcloud_outlier_removal: "False"
-      outlier_detection: "True"
-      search_neighboorhood_ray: "5"
-      correction_neighboorhood_ray: "3"
-      outlier_threshold: "0.2"
-      weighted_confidence: "True"
-      # Rviz
-      rviz:
-        ignition: active_vision_predefined_planning_pipeline_ignition.rviz
-        real: active_vision_predefined_planning_pipeline.rviz
-
-    nbv_planning_pipeline_launch:
-      # Planning
-      candidate_viewpoints_number: "40"
-      plane_type_candidate_viewpoints: "square_random" # square, circle, square_random, circle_random
-      movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
-      # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
-      orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
-      max_ray_depth: "2.0"
-      ray_step_proportion: "1.0" # multiplier to the octomap resolution to define ray generation step during not-attention ray casting. 1 means octomap resolution
-      ray_casting_type: "full_attention" # full_attention_distance, full_attention, attention, normal, naive
-      central_attention_front_distance_ratio: "4.0"
-      central_attention_height_distance_ratio: "1.0"
-      central_attention_width_distance_ratio: "4.0"
-      ray_casting_vis: "False"
-      utility_type: "expected_semantic_information_gain"
-      utility_vis: "False"
-      # Segmentation
-      segmentation_prompt: "apple" 
-      confidence_threshold: "0.15" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
-      nms_threshold: "0.7" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
-      # Pipeline
-      resolution: '0.01' # for real scenarion better to use at least 0.015, for simulation 0.006
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -479,7 +405,89 @@ launch:
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
       segmented_pointcloud_outlier_removal: "True"
-      outlier_detection: "True"
+      use_frequency_threshold: "True" # useful with real robot
+      frequency_threshold: "0.30" # an instance will be put in blank even if only the %threshold/2 overlaps with another portion of the instance
+      outlier_detection: "True" # Slow when the full octomap and not partial is used
+      search_neighboorhood_ray: "5"
+      correction_neighboorhood_ray: "3"
+      outlier_threshold: "0.2"
+      weighted_confidence: "True"
+      # Rviz
+      rviz:
+        ignition: active_vision_predefined_planning_pipeline_ignition.rviz
+        real: active_vision_predefined_planning_pipeline.rviz
+
+    nbv_planning_pipeline_launch:
+      # Planning
+      candidate_viewpoints_number: "40"
+      plane_type_candidate_viewpoints: "square_random" # square, circle, square_random, circle_random
+      movement_range: "0.4" # lenght of the portion containing the candidate viewpoints
+      # the number of different orinetation that each candidate has. 4 means that the viewpoint is considered with straight orientation but also with 30 degree of angle in up, down, left amd right. 0 means that the viewpoint is considered only oriented straight.
+      orientations: "4" # 0: straight, 2: up and down, 4: up, down, left, right
+      max_ray_depth: "2.0"
+      ray_step_proportion: "1.0" # multiplier to the octomap resolution to define ray generation step during not-attention ray casting. 1 means octomap resolution
+      ray_casting_type: "full_attention" # full_attention_distance, full_attention, attention, normal, naive
+      central_attention_front_distance_ratio: "4.0" # tune for real robot, 4 for sim
+      central_attention_height_distance_ratio: "1.0"
+      central_attention_width_distance_ratio: "4.0" # tune for real robot, 4 for sim
+      ray_casting_vis: "False"
+      utility_type: "expected_semantic_information_gain"
+      utility_vis: "False"
+      # Segmentation
+      segmentation_prompt: "tomato" 
+      confidence_threshold: "0.002" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.3" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
+      # Pipeline
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
+      height_map: "False"
+      colored_map: "False"
+      color_factor: "0.8"
+      filter_ground: 'False'
+      filter_speckles: "False"
+      ground_filter/distance: "0.04"
+      ground_filter/angle: "0.15"
+      ground_filter/plane_distance: "0.07"
+      compress_map: "True"
+      incremental_2D_projection: "False"
+      # pointcloud_max_x: "1.1" # represents the world x max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
+      # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
+      # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
+      sensor_model/max_range: "-1.0"
+      sensor_model/hit: "0.7"
+      sensor_model/miss: "0.4"
+      sensor_model/min: "0.12"
+      sensor_model/max: "0.97"
+      color/r: "1.0"
+      color/g: "1.0"
+      color/b: "1.0"
+      color/a: "1.0"
+      color_free/r: "0.0"
+      color_free/g: "0.0"
+      color_free/b: "1.0"
+      color_free/a: "1.0"
+      process_free_space: "False"
+      publish_free_space: "False"
+      publish_free_cells: "False"
+      publish_octomap_binary: "False"
+      publish_octomap_full: "False"
+      publish_centers_pointcloud: "False"
+      publish_2d_projected_map: "False"
+      publish_confidence: 'True'
+      publish_semantic: 'True'
+      publish_instances: 'True'
+      partial_pointcloud_subscription: 'False'
+      segmented_pointcloud_subscription: 'False'
+      segmented_pointclouds_array_subscription: 'True'
+      message_filter_queue: '200'
+      insert_cloud_init: 'True'
+      insert_segmented_init: 'True'
+      segmented_pointcloud_outlier_removal: "True"
+      use_frequency_threshold: "True" # useful with real robot
+      frequency_threshold: "0.20" # an instance will be put in blank even if only the %threshold/2 overlaps with another portion of the instance
+      outlier_detection: "True" # Slow when the full octomap and not partial is used
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.15"

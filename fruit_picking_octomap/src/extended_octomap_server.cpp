@@ -229,6 +229,9 @@ namespace extended_octomap_server {
         insertSegmentedActive = this->declare_parameter(
             "insert_segmented_init", insertSegmentedActive);
 
+        segmentedPointcloudOutlierRemoval = this->declare_parameter(
+            "segmented_pointcloud_outlier_removal", segmentedPointcloudOutlierRemoval);
+
         outlier_detection = this->declare_parameter(
             "outlier_detection", outlier_detection);
 
@@ -722,6 +725,22 @@ namespace extended_octomap_server {
         pass_z.setInputCloud(pc.makeShared());
         pass_z.filter(pc);
 
+
+        // Pointcloud outlier removal
+        if (segmentedPointcloudOutlierRemoval){
+            // Create the filtering object
+            pcl::StatisticalOutlierRemoval<PCLPoint> sor;
+
+            // Directly create a shared_ptr from segmented_pc
+            std::shared_ptr<PCLPointCloud> input_cloud(new PCLPointCloud(pc));
+
+            sor.setInputCloud(input_cloud);
+            sor.setMeanK(50);
+            sor.setStddevMulThresh(1.0);
+            sor.filter(pc);
+        }
+
+
         pc_nonground = pc;
         // pc_nonground is empty without ground segmentation
         pc_ground.header = pc.header;
@@ -1111,6 +1130,21 @@ namespace extended_octomap_server {
             if (segmented_pc.empty()) {
                 RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Pointcloud after filtering is empty, skipping to next iteration.");
                 continue; // Go to the next iteration of the loop
+            }
+
+
+            // Pointcloud outlier removal
+            if (segmentedPointcloudOutlierRemoval){
+                // Create the filtering object
+                pcl::StatisticalOutlierRemoval<PCLPoint> sor;
+
+                // Directly create a shared_ptr from segmented_pc
+                std::shared_ptr<PCLPointCloud> input_cloud(new PCLPointCloud(segmented_pc));
+
+                sor.setInputCloud(input_cloud);
+                sor.setMeanK(50);
+                sor.setStddevMulThresh(1.0);
+                sor.filter(segmented_pc);
             }
 
 
@@ -2558,6 +2592,11 @@ namespace extended_octomap_server {
         for (const auto& key : pointcloudKeys) {
             int instance = map[key].getInstance(); // Get the object from the key
             instanceFrequency[instance]++; // Increment the frequency count for this instance
+        }
+
+        // Print the frequency of each instance
+        for (const auto& freq : instanceFrequency) {
+            RCLCPP_DEBUG(this->get_logger(), "Instance %d appears %d times", freq.first, freq.second);
         }
 
         // Find the instance with the highest frequency

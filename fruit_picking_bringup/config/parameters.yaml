@@ -249,6 +249,7 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      segmented_pointcloud_outlier_removal: "True"
       outlier_detection: "True"
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
@@ -325,6 +326,7 @@ launch:
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      segmented_pointcloud_outlier_removal: "True"
       outlier_detection: "True"
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
@@ -348,11 +350,11 @@ launch:
       # Planning
       predefined_planning: "zig_zag_plane_narrow_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_plane_narrow_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
       # Segmentation
-      segmentation_prompt: "tomato" 
-      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
-      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
+      segmentation_prompt: "apple" 
+      confidence_threshold: "0.2" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.7" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
       # Pipeline
-      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
+      resolution: '0.017' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -392,12 +394,13 @@ launch:
       publish_confidence: 'True'
       publish_semantic: 'True'
       publish_instances: 'True'
-      partial_pointcloud_subscription: 'False'
+      partial_pointcloud_subscription: 'True'
       segmented_pointcloud_subscription: 'False'
       segmented_pointclouds_array_subscription: 'True'
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      segmented_pointcloud_outlier_removal: "False"
       outlier_detection: "True"
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
@@ -425,11 +428,11 @@ launch:
       utility_type: "expected_semantic_information_gain"
       utility_vis: "False"
       # Segmentation
-      segmentation_prompt: "tomato" 
-      confidence_threshold: "0.002" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
-      nms_threshold: "0.3" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
+      segmentation_prompt: "apple" 
+      confidence_threshold: "0.15" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.7" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
       # Pipeline
-      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
+      resolution: '0.01' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
@@ -469,12 +472,13 @@ launch:
       publish_confidence: 'True'
       publish_semantic: 'True'
       publish_instances: 'True'
-      partial_pointcloud_subscription: 'False'
+      partial_pointcloud_subscription: 'True'
       segmented_pointcloud_subscription: 'False'
       segmented_pointclouds_array_subscription: 'True'
       message_filter_queue: '200'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
+      segmented_pointcloud_outlier_removal: "True"
       outlier_detection: "True"
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"

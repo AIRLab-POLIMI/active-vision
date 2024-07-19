@@ -30,6 +30,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/common/transforms.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+
 
 #include <eigen3/Eigen/Eigen>
 
@@ -246,6 +248,8 @@ namespace extended_octomap_server{
         // Bool that are used to activate or deactivate the insert semantic and insert cloud callbacks. They are set using some services
         bool insertCloudActive;
         bool insertSegmentedActive;
+
+        bool segmentedPointcloudOutlierRemoval;
 
         bool outlier_detection;
         int search_neighboorhood_ray; 

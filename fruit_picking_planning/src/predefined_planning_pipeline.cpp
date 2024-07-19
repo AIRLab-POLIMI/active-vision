@@ -307,6 +307,7 @@ namespace active_vision_predefined_planning_pipeline{
                     working_depth_msg, 
                     merged_masks_image_, 
                     working_camera_info_msg);
+                RCLCPP_INFO(this->get_logger(), "Partial pointcloud created.");
             } 
             else {
                 RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
@@ -315,6 +316,7 @@ namespace active_vision_predefined_planning_pipeline{
                     working_depth_msg, 
                     working_rgb_msg, 
                     working_camera_info_msg);
+                RCLCPP_INFO(this->get_logger(), "Full pointcloud created.");
             }
             RCLCPP_INFO(this->get_logger(), "Creating segmented pointclouds array...");
             

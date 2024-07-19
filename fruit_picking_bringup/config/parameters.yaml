@@ -78,7 +78,7 @@ launch:
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -89,8 +89,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -138,7 +138,7 @@ launch:
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -149,8 +149,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -180,11 +180,6 @@ launch:
       message_filter_queue: '100'
       insert_cloud_init: 'True'
       insert_segmented_init: 'True'
-      outlier_detection: "True"
-      search_neighboorhood_ray: "5"
-      correction_neighboorhood_ray: "3"
-      outlier_threshold: "0.2"
-      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_color_filter_ignition.rviz"
@@ -212,7 +207,7 @@ launch:
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -223,8 +218,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -258,7 +253,6 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
-      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_lang_sam_ignition.rviz"
@@ -276,8 +270,8 @@ launch:
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
       segmentation_prompt: "tomato" 
-      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
-      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
+      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001. Change to find more accurate instances
+      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2. Change to find more accurate instances
       confidence_normalization: "True"
 
     segmented_pointcloud_creation_launch:
@@ -289,7 +283,7 @@ launch:
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -300,8 +294,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -335,7 +329,6 @@ launch:
       search_neighboorhood_ray: "5"
       correction_neighboorhood_ray: "3"
       outlier_threshold: "0.2"
-      weighted_confidence: "True"
     
     rviz:
       ignition: "octomap_segmentation_yolo_world_ignition.rviz"
@@ -356,14 +349,14 @@ launch:
       predefined_planning: "zig_zag_plane_narrow_waypoints" #zig_zag_plane_wide_waypoints, zig_zag_plane_narrow_waypoints, zig_zag_curve_waypoints, square_plane_wide_waypoints, square_plane_narrow_waypoints
       # Segmentation
       segmentation_prompt: "tomato" 
-      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
-      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
+      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
       # Pipeline
-      resolution: '0.006'
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -374,8 +367,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"
@@ -433,14 +426,14 @@ launch:
       utility_vis: "False"
       # Segmentation
       segmentation_prompt: "tomato" 
-      confidence_threshold: "0.001" # for apple: 0.15, for tomato (sim): 0.001
-      nms_threshold: "0.2" # for apple: 0.7, for tomato (sim): 0.2
+      confidence_threshold: "0.002" # for apple: 0.15, for tomato (sim): 0.002. Change to find more accurate instances
+      nms_threshold: "0.3" # for apple: 0.7, for tomato (sim): 0.3. Change to find more accurate instances
       # Pipeline
-      resolution: '0.006'
+      resolution: '0.006' # for real scenarion better to use at least 0.015, for simulation 0.006
       height_map: "False"
       colored_map: "False"
       color_factor: "0.8"
-      filter_ground: 'True'
+      filter_ground: 'False'
       filter_speckles: "False"
       ground_filter/distance: "0.04"
       ground_filter/angle: "0.15"
@@ -451,8 +444,8 @@ launch:
       # pointcloud_min_x: "1.0" # represents the world x min positive values that will be considered and inserted into the octomap.
       # pointcloud_max_y: "1.7" # represents the world y max positive values that will be considered and inserted into the octomap.
       # pointcloud_min_y: "1.6" # represents the world y min positive values that will be considered and inserted into the octomap.
-      # pointcloud_max_z: "1.05" # represents the world z max positive values that will be considered and inserted into the octomap.
-      # pointcloud_min_z: "-0.28" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used
+      pointcloud_max_z: "3.00" # represents the world z max positive values that will be considered and inserted into the octomap.
+      pointcloud_min_z: "0.10" # represents the world z min positive values that will be considered and inserted into the octomap. Keep -0.28 if the base is used, 0.10 if not. With real robot base, keep at -0.20
       sensor_model/max_range: "-1.0"
       sensor_model/hit: "0.7"
       sensor_model/miss: "0.4"

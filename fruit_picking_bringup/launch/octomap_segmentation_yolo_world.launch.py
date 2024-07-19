@@ -190,20 +190,12 @@ def launch_setup(context, *args, **kwargs):
 
     
     # Frames
-    if LaunchConfiguration("load_gazebo").perform(context) == 'true' and LaunchConfiguration("hardware_protocol").perform(context) == 'ignition':
-        frame_id = config_yaml['frames']['frame_id']
-        base_frame_id = config_yaml['frames']['base_frame_id']
-    else:
-        if LaunchConfiguration("test_camera").perform(context) == 'true':
-            if LaunchConfiguration("camera").perform(context) == 'realsense':
-                frame_id = config_yaml['frames']['realsense_frame_id']
-                base_frame_id = config_yaml['frames']['realsense_base_frame_id'] 
-        elif LaunchConfiguration("test_camera").perform(context) == 'false' and LaunchConfiguration("hardware_protocol").perform(context) == 'cri':
-            if LaunchConfiguration("load_base").perform(context) == 'true':
-                frame_id = config_yaml['frames']['real_base_frame_id']
-            else:
-                frame_id = config_yaml['frames']['real_frame_id']
-            base_frame_id = config_yaml['frames']['base_frame_id']
+    frame_id = config_yaml['frames']['base_frame_id']
+    base_frame_id = config_yaml['frames']['base_frame_id']
+    if LaunchConfiguration("load_gazebo").perform(context) == 'true':
+        camera_frame_id = config_yaml['frames']['gazebo_ignition_camera_frame_id']
+    elif LaunchConfiguration("load_gazebo").perform(context) == 'false':
+        camera_frame_id = config_yaml['frames']['realsense_camera_frame_id']
 
     
 

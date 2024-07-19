@@ -1396,6 +1396,8 @@ namespace extended_octomap_server {
                     it->second.setHeatConfidenceColor(newConfidence);
                 }
             }
+            RCLCPP_INFO(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertSegmentedPointcloudsArrayCallback] Weighted average done.");
+
         }
     
 
@@ -1438,10 +1440,11 @@ namespace extended_octomap_server {
         }
 
         bool publishMarkerArray = m_markerPub->get_subscription_count() > 0;
-        bool publishFreeMarkerArray;
+        bool publishFreeMarkerArray = false;
         bool publishPointCloud = false;
         bool publishBinaryMap = false;
         bool publishFullMap = false;
+        m_publish2DMap = false;
         if (publishFreeCells){
             publishFreeMarkerArray = m_publishFreeSpace && m_fmarkerPub->get_subscription_count()  > 0;
         }

@@ -76,7 +76,7 @@ def generate_launch_description():
         DeclareLaunchArgument('search_neighboorhood_ray', default_value='5'),
         DeclareLaunchArgument('correction_neighboorhood_ray', default_value='3'),
         DeclareLaunchArgument('outlier_threshold', default_value='0.15'),
-        DeclareLaunchArgument('weighted_confidence', default_value='0.2'),
+        DeclareLaunchArgument('weighted_confidence', default_value='False'),
         Node(
             package='fruit_picking_octomap',
             executable='extended_octomap_server',

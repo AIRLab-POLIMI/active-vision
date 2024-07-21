@@ -24,6 +24,9 @@ class ActiveVisionPredefinedPlanningPipeline : public active_vision_pipeline::Ac
 
         // Function that creates a vector of planned positions
         std::vector<std::array<double, 6>> createPlanningPoses();
+
+        double reconstructionMetric(bool visualization);
+
     
     
     public:

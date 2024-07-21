@@ -261,6 +261,8 @@ namespace extended_octomap_server{
         bool weighted_confidence;
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertCloudActiveService_;
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr insertSegmentedActiveService_;
+        rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr saveOctomapDataService_;
+
 
         // Map to save octreekeys that contains collision points between different instances
         std::shared_ptr<CollisionOcTreeKeys> collisionKeys;
@@ -365,6 +367,10 @@ namespace extended_octomap_server{
 
         void setinsertSegmentedActive(
             const std::shared_ptr<rmw_request_id_t> request_header,
+            const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+            std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+        
+        void saveOctomapDataServiceCallback(
             const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
             std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
@@ -555,6 +561,10 @@ namespace extended_octomap_server{
         std::shared_ptr<OcTreeT> getOcTree();
 
         std::shared_ptr<ExtendedOctomapMap> getExtendedOctomapMap();
+
+
+        bool saveOctree(const std::string &filename);
+        std::shared_ptr<OcTreeT> loadOctree(const std::string &filename);
 
         
     };

@@ -94,6 +94,13 @@ namespace active_vision_pipeline{
         // Variable to store the total entropy at each step of planning
         std::vector<float> totalEntropies_;
 
+        bool reconstructionMetric_;
+        bool stepReconstructionMetricVis_;
+        std::shared_ptr<OcTreeT> octree_truth_;
+        std::vector<double> stepF1_;
+
+        geometry_msgs::msg::Pose textPose_;
+
 
         // Function that create the data subscriber
         void createDataSub();

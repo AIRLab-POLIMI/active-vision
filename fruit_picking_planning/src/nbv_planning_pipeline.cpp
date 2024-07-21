@@ -54,6 +54,10 @@ namespace active_vision_nbv_planning_pipeline{
         rayCastingVis_ = this->declare_parameter("ray_casting_vis", false); 
         utilityType_ = this->declare_parameter("utility_type", "expected_semantic_information_gain");
         utilityVis_ = this->declare_parameter("utility_vis", false); 
+        reconstructionMetric_ = this->declare_parameter("reconstruction_metric", false); 
+        stepReconstructionMetricVis_ = this->declare_parameter("step_reconstruction_metric_vis", false); 
+
+
 
 
 
@@ -82,6 +86,24 @@ namespace active_vision_nbv_planning_pipeline{
 
         RCLCPP_INFO(this->get_logger(), "Segmented and octomap visual tools initialized.");     
 
+
+        // Initialize Moveit2 variables
+        textPose_.position.x = 0.1;
+        textPose_.position.z = 1.1;
+        textPose_.orientation.x = 0.0;
+        textPose_.orientation.y = 0.0;
+        textPose_.orientation.z = 0.0;
+        textPose_.orientation.w = 1.0;
+
+        // Load truth octree
+        if (reconstructionMetric_){
+            RCLCPP_INFO(this->get_logger(), "Loading ground truth octomap data...");
+
+            std::string octree_truth_filename = "/home/michelelagreca/Documents/robotics/fruit_picking/src/fruit_picking_bringup/data/octree_tomato_obfuscated_truth.bt";
+            octree_truth_ = extended_octomap_node_->loadOctree(octree_truth_filename);
+
+            RCLCPP_INFO(this->get_logger(), "Octree truth saved.");
+        }
 
         // Initialize the maximum number of steps for the NBV planning
         maxNBVPlanningSteps_ = 8;   
@@ -336,6 +358,16 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+            // Calculate F1 score
+            if (reconstructionMetric_){
+                double currentF1 = reconstructionMetric(stepReconstructionMetricVis_);
+                stepF1_.push_back(currentF1);
+                RCLCPP_INFO(this->get_logger(), "--------------------------------------------------------------------------");
+                RCLCPP_INFO(this->get_logger(), "The current F1 score of the reconstruction is %f", currentF1);
+                RCLCPP_INFO(this->get_logger(), "--------------------------------------------------------------------------");
+            }
+
+
 
             // Generate candidate viewpoints
             candidateViewpoints_= generatePlaneCandidateViewpoints(
@@ -540,6 +572,17 @@ namespace active_vision_nbv_planning_pipeline{
             if (instanceConfidencePair.first == 0) continue; // Instance 0 refers to not semantic objects
             float instanceEntropy = (-instanceConfidencePair.second * std::log2(instanceConfidencePair.second)) - ((1 - instanceConfidencePair.second) * std::log2(1 - instanceConfidencePair.second));
             RCLCPP_WARN(this->get_logger(), "instance %d has confidence %f and entropy %f", instanceConfidencePair.first, instanceConfidencePair.second, instanceEntropy);
+        }
+
+
+        // Calculate final F2 score for reconstruction
+        if (reconstructionMetric_){
+            reconstructionMetric(true);
+            RCLCPP_WARN(this->get_logger(), "--------------------------------------------------------------------------");
+            for (size_t i = 0; i < stepF1_.size(); ++i) {
+                RCLCPP_WARN(this->get_logger(), "F1 score of the reconstruction at step %zu: %f", i+1, stepF1_[i]);
+            }
+            RCLCPP_WARN(this->get_logger(), "--------------------------------------------------------------------------");
         }
 
 
@@ -1722,6 +1765,151 @@ namespace active_vision_nbv_planning_pipeline{
             return bestPose;
         }
 
+    }
+
+
+    double ActiveVisionNbvPlanningPipeline::reconstructionMetric(bool visualization){
+        
+        // Save set of point referring to the truth and to the reconstruction
+        std::vector<Eigen::Vector3d> truth_points;
+        std::vector<Eigen::Vector3d> reconstruction_points;
+
+
+        
+        // Fill the octree truth points vector
+        for (auto it = octree_truth_->begin(octree_truth_->getResolution()), end = octree_truth_->end(); it != end; ++it) {
+            double x = it.getX();
+            double y = it.getY();
+            double z = it.getZ();
+            Eigen::Vector3d point_eigen(x, y, z);
+            truth_points.push_back(point_eigen);
+            if (visualization){
+                MoveIt2API_node_->visual_tools->publishSphere(point_eigen, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
+            }
+        }
+        if (visualization){
+            RCLCPP_INFO(this->get_logger(), "Visualizing octree truth...");
+            MoveIt2API_node_->visual_tools->publishText(textPose_, "GroundTruth", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
+        }
+
+
+
+        // Fill the reconstruction points vector
+        for (auto it = extendedOctomapMap_->begin(); it != extendedOctomapMap_->end(); ++it) {
+            const octomap::OcTreeKey& key = it->first;
+            ExtendedOctomapData& data = it->second;
+
+            // Check if the semantic class matches the target
+            if (data.getSemanticClass() == prompt_) {
+                // Retrieve the 3D position using the octree
+                octomap::point3d point = octree_->keyToCoord(key);
+                Eigen::Vector3d point_eigen(point.x(), point.y(), point.z());    
+                reconstruction_points.push_back(point_eigen);   
+                if (visualization){                 
+                    MoveIt2API_node_->visual_tools->publishSphere(point_eigen, rviz_visual_tools::BLUE, rviz_visual_tools::SMALL);
+                }
+            }
+        }
+        if (visualization){
+            RCLCPP_INFO(this->get_logger(), "Visualizing reconstruction octree...");
+            MoveIt2API_node_->visual_tools->publishText(textPose_, "Reconstruction", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+        }
+
+
+
+        // Calculate TP, FP, FN
+        std::vector<Eigen::Vector3d> true_positives;
+        std::vector<Eigen::Vector3d> false_positives;
+        std::vector<Eigen::Vector3d> false_negatives;
+
+        // Sort both vectors for binary search
+        auto pointComparator = [](const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+            return std::tie(a.x(), a.y(), a.z()) < std::tie(b.x(), b.y(), b.z());
+        };
+
+        std::sort(truth_points.begin(), truth_points.end(), pointComparator);
+        std::sort(reconstruction_points.begin(), reconstruction_points.end(), pointComparator);
+
+    
+        // Custom comparison function to compare points within a tolerance
+        auto pointComparatorWithTolerance = [](const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+            return (a - b).norm() < 1e-6;
+        };
+
+
+        // Find True Positives and False Negatives
+        for (const auto& point : truth_points) {
+            if (std::any_of(reconstruction_points.begin(), reconstruction_points.end(),
+                            [&](const Eigen::Vector3d& recon_point) {
+                                return pointComparatorWithTolerance(point, recon_point);
+                            })) {
+                true_positives.push_back(point);
+            } else {
+                false_negatives.push_back(point);
+            }
+        }
+
+        // Find False Positives
+        for (const auto& point : reconstruction_points) {
+            if (!std::any_of(truth_points.begin(), truth_points.end(),
+                            [&](const Eigen::Vector3d& truth_point) {
+                                return pointComparatorWithTolerance(point, truth_point);
+                            })) {
+                false_positives.push_back(point);
+            }
+        }
+
+
+        // Visualize TP, FP, FN
+        if (visualization){
+            RCLCPP_INFO(this->get_logger(), "Visualizing TP, FP, FN...");
+            for (auto point: true_positives){
+                MoveIt2API_node_->visual_tools->publishSphere(point, rviz_visual_tools::GREEN, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(textPose_, "TruePositive", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+            for (auto point: false_negatives){
+                MoveIt2API_node_->visual_tools->publishSphere(point, rviz_visual_tools::YELLOW, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(textPose_, "FalseNegative", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+            for (auto point: false_positives){
+                MoveIt2API_node_->visual_tools->publishSphere(point, rviz_visual_tools::RED, rviz_visual_tools::SMALL);
+            }
+            MoveIt2API_node_->visual_tools->publishText(textPose_, "FalsePositive", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            MoveIt2API_node_->visual_tools->trigger();
+            rclcpp::sleep_for(std::chrono::milliseconds(5000));
+            MoveIt2API_node_->visual_tools->deleteAllMarkers();
+            MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+            MoveIt2API_node_->visual_tools->trigger();
+        }
+
+
+        // Compute F1 score
+        auto TP = true_positives.size();
+        auto FN = false_negatives.size();
+        auto FP = false_positives.size();
+
+        double precision = TP + FP == 0 ? 0 : static_cast<double>(TP) / (TP + FP);
+        double recall = TP + FN == 0 ? 0 : static_cast<double>(TP) / (TP + FN);
+        double f1 = precision + recall == 0 ? 0 : 2 * (precision * recall) / (precision + recall);
+
+        return f1;
     }
 
 

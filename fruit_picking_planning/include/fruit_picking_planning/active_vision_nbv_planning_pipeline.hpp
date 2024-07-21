@@ -115,6 +115,7 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
 
         Eigen::Isometry3d chooseNBV(const std::vector<Eigen::Isometry3d>& poses, Eigen::Isometry3d current_pose);
 
+        double reconstructionMetric(bool visualization);
 
     
     

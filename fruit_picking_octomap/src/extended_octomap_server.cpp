@@ -481,6 +481,11 @@ namespace extended_octomap_server {
             "set_insert_cloud_active",
             std::bind(&ExtendedOctomapServer::setInsertCloudActive, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
+        saveOctomapDataService_ = this->create_service<std_srvs::srv::SetBool>(
+            "save_octomap_data_service",
+            std::bind(&ExtendedOctomapServer::saveOctomapDataServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+
         RCLCPP_INFO(this->get_logger(), "Services initialized.");
 
         RCLCPP_INFO(this->get_logger(), "The initialization is completed.");
@@ -2674,6 +2679,71 @@ namespace extended_octomap_server {
     std::shared_ptr<ExtendedOctomapMap> ExtendedOctomapServer::getExtendedOctomapMap(){
         return this->extended_octomap_map;
     }
+
+
+
+
+    bool ExtendedOctomapServer::saveOctree(const std::string &filename) {
+        if (!m_octree) {
+            RCLCPP_ERROR(this->get_logger(), "Octree is not initialized");
+            return false;
+        }
+        std::ofstream ofs(filename, std::ios::binary);
+        if (!ofs) {
+            RCLCPP_ERROR(this->get_logger(), "Could not open file for writing: %s", filename.c_str());
+            return false;
+        }
+        m_octree->writeBinary(ofs);
+        ofs.close();
+        return true;
+    }
+
+    std::shared_ptr<OcTreeT> ExtendedOctomapServer::loadOctree(const std::string &filename) {
+        std::ifstream ifs(filename, std::ios::binary);
+        if (!ifs) {
+            RCLCPP_ERROR(this->get_logger(), "Could not open file for reading: %s", filename.c_str());
+            return nullptr;
+        }
+        auto m_octree = std::make_shared<OcTreeT>(m_res);
+        m_octree->readBinary(ifs);
+        ifs.close();
+        return m_octree;
+    }
+
+
+    void ExtendedOctomapServer::saveOctomapDataServiceCallback(
+        const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+        std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+    {
+        if (request->data) { // If the request is true, perform the save and load operations
+
+            // Get the current time
+            std::time_t now = std::time(nullptr);
+            char buf[16]; // Buffer to hold the formatted time
+            // Format the time - Note: Year %y is two digits, for four digits use %Y
+            std::strftime(buf, sizeof(buf), "%y%m%d%H%M%S", std::localtime(&now));
+
+            // Create the filename
+            std::stringstream tree_filename;
+            tree_filename << "/home/michelelagreca/Documents/robotics/fruit_picking/src/fruit_picking_bringup/data/octree_" << buf << "_truth.bt";
+            
+            bool tree_save = saveOctree(tree_filename.str());
+
+            if (tree_save) {
+                response->success = true;
+                response->message = "Data saved.";
+            } else {
+                response->success = false;
+                response->message = "Failed to save the data";
+            }
+        } else {
+            response->success = false;
+            response->message = "Request data is false, not processing.";
+        }
+    }
+
+
+
 
 
 

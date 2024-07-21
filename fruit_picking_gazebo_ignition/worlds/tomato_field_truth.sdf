@@ -42,30 +42,24 @@
             <pose>5.0 5.0 0 0 0 0</pose>
         </include>
 
-        
         <include>
-            <uri>tomato_obfuscated_small_green</uri>
-            <name>tomato_obfuscated_small_green</name>
-            <pose>0.0 -3.0 0 0 0 0</pose>
-        </include>
-
-        <include>
-            <uri>tomato_obfuscated</uri>
-            <name>tomato_obfuscated</name>
+            <uri>tomato_obfuscated_truth</uri>
+            <name>tomato_obfuscated_truth</name>
             <pose>0.0 0.0 0 0 0 0</pose>
         </include>
         
         <include>
-            <uri>tomato_0</uri>
-            <name>tomato_0</name>
+            <uri>tomato_0_truth</uri>
+            <name>tomato_0_truth</name>
             <pose>0.0 3.0 0 0 0 0</pose>
         </include>
         
         <include>
-            <uri>tomato_0_few_fruits</uri>
-            <name>tomato_0_few_fruits</name>
+            <uri>tomato_0_few_fruits_truth</uri>
+            <name>tomato_0_few_fruits_truth</name>
             <pose>0.0 6.0 0 0 0 0</pose>
         </include>
+        
         
     </world>
 </sdf>

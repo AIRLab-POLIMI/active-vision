@@ -73,7 +73,8 @@ def generate_launch_description():
         DeclareLaunchArgument('correction_neighboorhood_ray', default_value='5'),
         DeclareLaunchArgument('outlier_threshold', default_value='0.2'),
         DeclareLaunchArgument('weighted_confidence', default_value='False'),
-
+        DeclareLaunchArgument('reconstruction_metric', default_value='False'),
+        DeclareLaunchArgument('step_reconstruction_metric_vis', default_value='False'),
 
 
     # Predefined planning pipeline node
@@ -160,6 +161,8 @@ def generate_launch_description():
             'correction_neighboorhood_ray': LaunchConfiguration('correction_neighboorhood_ray'),
             'outlier_threshold': LaunchConfiguration('outlier_threshold'),
             'weighted_confidence': LaunchConfiguration('weighted_confidence'),
+            'reconstruction_metric': LaunchConfiguration('reconstruction_metric'),
+            'step_reconstruction_metric_vis': LaunchConfiguration('step_reconstruction_metric_vis'),            
             }]
         )
     ])

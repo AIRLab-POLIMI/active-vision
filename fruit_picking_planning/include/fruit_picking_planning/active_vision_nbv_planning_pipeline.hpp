@@ -53,6 +53,8 @@ class ActiveVisionNbvPlanningPipeline : public active_vision_pipeline::ActiveVis
         // If this variable is false, if during the step no confidence is updated, the next pose will be not the previous one 
         // but a random one
         bool semanticFound_ = false;
+        double maxUtility_ = 0.0;
+
 
 
         void createDataSub();

@@ -160,28 +160,28 @@ namespace active_vision_nbv_planning_pipeline{
                 Eigen::Quaterniond(initialPositionCartesian_.rotation()).z(), 
                 Eigen::Quaterniond(initialPositionCartesian_.rotation()).w());
 
-        bool valid_motion = MoveIt2API_node_->robotPlanAndMove(
-            eigenIsometry3dToPoseStamped(initialPositionCartesian_), 
-            "initial_position",
-            false);
-        if (!valid_motion) {
-			RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
-			return;
-		}
-        RCLCPP_INFO(this->get_logger(), "Initial position reached.");
+        // bool valid_motion = MoveIt2API_node_->robotPlanAndMove(
+        //     eigenIsometry3dToPoseStamped(initialPositionCartesian_), 
+        //     "initial_position",
+        //     false);
+        // if (!valid_motion) {
+		// 	RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
+		// 	return;
+		// }
+        // RCLCPP_INFO(this->get_logger(), "Initial position reached.");
 
         Eigen::Isometry3d current_pose;
         current_pose = initialPositionCartesian_;
 
 
 
-	    // // Alternative way: with joint space goal
-        // bool valid_motion = MoveIt2API_node_->robotPlanAndMove(initialPosition_, "initial_position");
-        // if (!valid_motion) {
-		// 	RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
-		// 	return;
-		// }
-        // RCLCPP_INFO(this->get_logger(), "Initial position reached.");
+	    // Alternative way: with joint space goal
+        bool valid_motion = MoveIt2API_node_->robotPlanAndMove(initialPosition_, "initial_position");
+        if (!valid_motion) {
+			RCLCPP_ERROR(this->get_logger(), "Could not move to initial position");
+			return;
+		}
+        RCLCPP_INFO(this->get_logger(), "Initial position reached.");
 
 
         // Initialize data subscriber
@@ -492,11 +492,12 @@ namespace active_vision_nbv_planning_pipeline{
                     MoveIt2API_node_->visual_tools->publishArrow(start_point, end_point, rviz_visual_tools::WHITE, rviz_visual_tools::SMALL);
                 }
             }
-            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), "NBV_pose", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+            std::string nbvUtility = "NBV_pose(entropy=" + std::to_string(maxUtility_) + ")";
+            MoveIt2API_node_->visual_tools->publishText(findUpperCenterPose(validCandidateViewpoints_), nbvUtility, rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
             MoveIt2API_node_->visual_tools->trigger();
 
 
-            rclcpp::sleep_for(std::chrono::milliseconds(1500));
+            rclcpp::sleep_for(std::chrono::milliseconds(3000));
 
             MoveIt2API_node_->visual_tools->deleteAllMarkers();
             MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
@@ -1594,7 +1595,7 @@ namespace active_vision_nbv_planning_pipeline{
         }
 
         std::vector<float> poseUtilities;
-        double maxUtility = 0.0;
+        maxUtility_ = 0.0;
         Eigen::Isometry3d bestPose;
         bool isMaxUtilityUpdated = false;
 
@@ -1736,8 +1737,8 @@ namespace active_vision_nbv_planning_pipeline{
 
 
             // Check if the current pose's total utility is the highest
-            if (poseUtility > maxUtility) {
-                maxUtility = poseUtility;
+            if (poseUtility > maxUtility_) {
+                maxUtility_ = poseUtility;
                 bestPose = pose;
                 isMaxUtilityUpdated = true;
                 semanticFound_ = true;
@@ -1761,7 +1762,7 @@ namespace active_vision_nbv_planning_pipeline{
         }
         else{
             RCLCPP_INFO(this->get_logger(), 
-                "The NBV pose %f, %f, %f has utility %f", bestPose.translation().x(), bestPose.translation().y(), bestPose.translation().z(), maxUtility);
+                "The NBV pose %f, %f, %f has utility %f", bestPose.translation().x(), bestPose.translation().y(), bestPose.translation().z(), maxUtility_);
             return bestPose;
         }
 

@@ -53,7 +53,8 @@ namespace extended_octomap_server {
         RCLCPP_INFO(this->get_logger(), "Octomap server's constructor started.");
 
         rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME); // another structure to declare and define a shared pointer of type Clock
-        this->buffer_ = std::make_shared<tf2_ros::Buffer>(clock);
+        auto cache_time = std::chrono::minutes(1); // For example, setting it to 10 minutes
+        this->buffer_ = std::make_shared<tf2_ros::Buffer>(clock, tf2::durationFromSec(cache_time.count() * 60.0));
         this->buffer_->setUsingDedicatedThread(true); // tells the buffer that multiple thread will serve it
         this->m_tfListener = std::make_shared<tf2_ros::TransformListener>(
             *buffer_, this, false); // this refers to the class OctomapServer
@@ -567,13 +568,15 @@ namespace extended_octomap_server {
         Eigen::Matrix4f sensorToWorld; // matrix of size 4 composed of float
         geometry_msgs::msg::TransformStamped sensorToWorldTf;
         try {
+            RCLCPP_DEBUG(this->get_logger(), "Can transform?");
             if (!this->buffer_->canTransform(
                     m_worldFrameId, cloud->header.frame_id,
                     cloud->header.stamp)) {
+                RCLCPP_ERROR(this->get_logger(), "Can't transform");
                 throw "Failed";
             }
             
-            // RCLCPP_INFO(this->get_logger(), "Can transform");
+            RCLCPP_DEBUG(this->get_logger(), "Can transform");
 
             sensorToWorldTf = this->buffer_->lookupTransform(
                 m_worldFrameId, cloud->header.frame_id,

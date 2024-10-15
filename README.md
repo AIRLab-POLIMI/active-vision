@@ -4,88 +4,54 @@
 </h1>
 
 <p align="center">
-  ROS Wrapper for Intel(R) RealSense(TM) Cameras<br>
-  <a href="https://github.com/IntelRealSense/realsense-ros/releases">Latest release notes</a>
+  Implementation of the research project developed during the Master's thesis of Michele Carlo La Greca, corresponding to the <a href="https://arxiv.org/abs/2409.12602">preprint</a> available on <i>arXiv</i>.
 </p>
 
 <hr>
 
 
-[![rolling][rolling-badge]][rolling]
-[![iron][iron-badge]][iron]
 [![humble][humble-badge]][humble]
-[![foxy][foxy-badge]][foxy]
 [![ubuntu22][ubuntu22-badge]][ubuntu22]
-[![ubuntu20][ubuntu20-badge]][ubuntu20]
 
-![GitHubWorkflowStatus](https://img.shields.io/github/actions/workflow/status/IntelRealSense/realsense-ros/main.yml?logo=github&style=flat-square)
-[![GitHubcontributors](https://img.shields.io/github/contributors/IntelRealSense/realsense-ros?style=flat-square)](CONTRIBUTING.md)
-[![License](https://img.shields.io/github/license/IntelRealSense/realsense-ros?style=flat-square)](LICENSE)
+<!-- ![GitHubWorkflowStatus](https://img.shields.io/github/actions/workflow/status/AIRLab-POLIMI/active-vision/main.yml?logo=github&style=flat-square) -->
+[![GitHubcontributors](https://img.shields.io/github/contributors/AIRLab-POLIMI/active-vision?style=flat-square)](CONTRIBUTING.md)
+[![License](https://img.shields.io/github/license/AIRLab-POLIMI/active-vision?style=flat-square)](LICENSE)
 
 <hr>
 
 ## Table of contents
-  * [ROS1 and ROS2 legacy](#ros1-and-ros2-legacy)
-  * [Installation on Ubuntu](#installation-on-ubuntu)
-  * [Installation on Windows](#installation-on-windows)
-  * [Usage](#usage)
-     * [Starting the camera node](#start-the-camera-node)
-     * [Camera name and namespace](#camera-name-and-camera-namespace)
-     * [Parameters](#parameters)
-     * [ROS2-vs-Optical Coordination Systems](#ros2robot-vs-opticalcamera-coordination-systems)
-     * [TF from coordinate A to coordinate B](#tf-from-coordinate-a-to-coordinate-b)
-     * [Extrinsics from sensor A to sensor B](#extrinsics-from-sensor-a-to-sensor-b)
-     * [Topics](#published-topics)
-     * [RGBD Topic](#rgbd-topic)
-     * [Metadata Topic](#metadata-topic)
-     * [Post-Processing Filters](#post-processing-filters)
-     * [Available Services](#available-services)
-     * [Efficient intra-process communication](#efficient-intra-process-communication)
+  * [Introduction](#introduction)
+  * [Installation](#installation)
+     * [Dependencies](#dependencies)
+     * [Igus ReBeL](#igus-rebel) 
+     * [Gazebo Ignition](#gazebo-ignition)
+  * [Decentralized Usage](#decentralized-usage)
+     * 
+  * [Centralized Usage](#centralized-usage) 
   * [Contributing](CONTRIBUTING.md)
   * [License](LICENSE)
 
 <hr>
 
-# ROS1 and ROS2 Legacy
+# Introduction
 
-<details>
-  <summary>
-    Intel RealSense ROS1 Wrapper
-  </summary>
-    Intel Realsense ROS1 Wrapper is not supported anymore, since our developers team are focusing on ROS2 distro.<br>
-    For ROS1 wrapper, go to <a href="https://github.com/IntelRealSense/realsense-ros/tree/ros1-legacy">ros1-legacy</a> branch
-</details>
+Agriculture is essential to society. Robotics can boost productivity in agriculture, and robots must be able to accurately perceive the unstructured, dynamic, and possibly covered environment of plants and crops. This complexity presents significant challenges for traditional management methods. The proposed research introduces an approach to overcome the challenges and complexities of fruit perception through Active Vision (AV). Instead of relying on passive observation, AV allows robots to actively perceive, explore, and reconstruct at run-time their surroundings by planning the optimal position of the camera viewpoint using the Next-Best View (NBV) planning, which maximizes the information gained regarding plants and crops. This ensures that even hidden or occluded parts of the environment are effectively captured.
 
-<details>
-   <summary>
-     Moving from <a href="https://github.com/IntelRealSense/realsense-ros/tree/ros2-legacy">ros2-legacy</a> to ros2-master
-  </summary>
+This work applies Zero-Shot Learning (ZSL) to provide useful segmentation, enabling the robot to generalize and adapt to various crops or environmental features without requiring specific training data for each scenario. By leveraging both 3D and semantic data, the robot can reconstruct a detailed, semantic, and context-aware map of the environment, allowing it to strategically adjust its movements and positioning, leading to more effective interactions with the environment.
 
-* Changed Parameters:
-    - **"stereo_module"**, **"l500_depth_sensor"** are replaced by **"depth_module"**
-    - For video streams: **\<module>.profile** replaces **\<stream>_width**, **\<stream>_height**, **\<stream>_fps**
-        - **ROS2-legacy (Old)**:
-          - ros2 launch realsense2_camera rs_launch.py depth_width:=640 depth_height:=480 depth_fps:=30.0 infra1_width:=640 infra1_height:=480 infra1_fps:=30.0
-        - **ROS2-master (New)**:
-          - ros2 launch realsense2_camera rs_launch.py depth_module.profile:=640x480x30
-    - Removed paramets **\<stream>_frame_id**, **\<stream>_optical_frame_id**. frame_ids are now defined by camera_name
-    - **"filters"** is removed. All filters (or post-processing blocks) are enabled/disabled using **"\<filter>.enable"**
-    - **"align_depth"** is now a regular processing block and as such the parameter for enabling it is replaced with **"align_depth.enable"**
-    - **"allow_no_texture_points"**, **"ordered_pc"** are now belong to the pointcloud filter and as such are replaced by **"pointcloud.allow_no_texture_points"**, **"pointcloud.ordered_pc"**
-    - **"pointcloud_texture_stream"**, **"pointcloud_texture_index"** belong now to the pointcloud filter and were renamed to match their librealsense' names: **"pointcloud.stream_filter"**, **"pointcloud.stream_index_filter"**
-- Allow enable/disable of sensors in runtime (parameters **\<stream>.enable**)
-- Allow enable/disable of filters in runtime (parameters **\<filter_name>.enable**)
-- **unite_imu_method** parameter is now changeable in runtime.
-- **enable_sync** parameter is now changeable in runtime.
+This work focuses on the following contributions:  
+1. Developed a modular architecture in ROS 2, C++, and Python for Active Vision in agricultural robotics, addressing the challenge of detecting occluded fruits.  
+2. To the best of the author’s knowledge, this is the first work to integrate Zero-Shot Learning with Active Vision exploration, enabling environment-independent operation in agriculture.  
+3. Conducted extensive evaluations both in simulation and real-world scenarios, in contrast to state-of-the-art methods that primarily focus on simulated environments with supervised learning.  
+4. Set a benchmark standard for the lack of reproducibility and availability of open-source code in the context of Active Vision in agricultural robotics.
 
-</details>
     
 
 # Installation on Ubuntu
   
 <details>
   <summary>
-    Step 1: Install the ROS2 distribution 
+    Step 1: Install the ROS 2 Humble distribution. 
   </summary>
   
 - #### Ubuntu 22.04:

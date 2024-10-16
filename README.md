@@ -77,11 +77,37 @@ This work focuses on the following contributions:
 
 # Visualization
 
+- To visualize the Igus ReBeL only in Rviz:
+  ```bash
+  ros2 launch igus_rebel_description_ros2 visualize.launch.py load_base:=false mount:=none end_effector:=none camera:=none moveit:=false
+  ```
+  Change only these arguments.
+
+- To visualize the Igus ReBeL in Rviz and the simulated one in Gazebo Ignition:
+  ```bash
+  ros2 launch igus_rebel_description_ros2 visualize.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true moveit:=false
+  ```
+  Change only these arguments.
+
+- To visualize the Igus ReBeL in Rviz with MoveIt2:
+  ```bash
+  ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none
+  ```
+  Change only these arguments.
+
+- To visualize the Igus ReBeL in Rviz and control it in Gazebo Ignition:
+  ```bash
+  ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true hardware_protocol:=ignition
+  ```
+  The last 2 argument stays unchanged..
+
+
 
 # OctoMap Creation
 
 
 
+# Active Vision
 
 
 

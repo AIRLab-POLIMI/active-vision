@@ -82,34 +82,43 @@ This work focuses on the following contributions:
   ```
   - The command executes a launch file that visualize the Igus ReBeL robot on RViz2, controllable using the *Joint State Publisher* GUI.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
+  - If camera is inserted, no data will be shown due to the absence of a simulated or real-word environment from which the data comes.
   - The argument `moveit` should be kept `false` to not run MoveIt2 framework for control.
  
     
+<br>
 
 - ```bash
   ros2 launch igus_rebel_description_ros2 visualize.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true moveit:=false
   ```
   - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the *Joint Position Controller* GUI on Gazebo Ignition.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
+  - If camera is inserted, data will be shown coming from the simulated environment. Change topics if needed.
   - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
   - The additional argument `env_gazebo_package` specifies the package where the gazebo world and configuration to use are located. It requires the full name of the package, otherwise it will default to this package.
   - The additional argument `full_world_name` specifies the name of the world file to be loaded in Gazebo Ignition of the type: *name.sdf*.
   - The argument `moveit` should be kept `false` to not run MoveIt2 framework for control.
   - The argument `load_gazebo` must be `true` to run the simulation.
-  
+
+<br>
+
 
 - ```bash
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none
   ```
   - The command executes a launch file that run the Igus ReBeL robot on RViz2, controllable using the MoveIt2 framework directly from RViz2.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
+  - If camera is inserted, no data will be shown due to the absence of a simulated or real-word environment from which the data comes.
 
+
+<br>
 
 - ```bash
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true hardware_protocol:=ignition
   ```
   - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the the MoveIt2 framework directly from RViz2.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
+  - If camera is inserted, data will be shown coming from the simulated environment. Change topics if needed.
   - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
   - The additional argument `env_gazebo_package` specifies the package where the gazebo world and configuration to use are located. It requires the full name of the package, otherwise it will default to this package.
   - The additional argument `full_world_name` specifies the name of the world file to be loaded in Gazebo Ignition of the type: *name.sdf*.
@@ -119,6 +128,173 @@ This work focuses on the following contributions:
 
 
 # OctoMap Creation
+
+The first functionality of the architecture is to create and continuously update the occupancy and semantic OctoMap starting from the input data. A decentralized approach is used, based on topic communication between the nodes responsible for various functionalities, such as segmentation, point cloud creation, and OctoMap creation. The execution of these nodes is initiated from a ROS 2 launch file and spun indefinitely until a termination command is run. The methodology is based on four nodes communicating through topics: the sensors node, the segmentation node, the point cloud node, and the OctoMap node.
+<br>
+
+- For what concerns the `octomap_normal.launch.py`, the command to execute it is:
+  <br>
+
+  ```bash
+    ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true
+  ```
+    - The occupancy octomap is created and updated.
+    - Several parameters can be changed in the yaml configuration file ``.
+    - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+    - Add the extra arguments `load_gazebo:=false test_camera:=true` to start only the realsense and the data streaming.
+    - Add the extra arguments `load_gazebo:=false hardware_protocol:=cri moveit:=true` to start the real Igus ReBeL robot and the data streaming.
+    - Set `load_base`, `mount`, `camera`, `end_effector` arguments as preferred. In particular with `load_base:=true`, add also the parameter `pointcloud_min_z:=-0.28` in the yaml file.
+  <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the camera mounted on the simulated Igus ReBeL in Gazebo Ignition:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=none
+      ```
+      - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
+        <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the Realsense camera runned standalone without real robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ```
+      
+
+    - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ```
+      - It is possible to move the robot using the MoveIt2 commands in RViz2.
+
+<br>
+
+- For what concerns the `octomap_segmentation_color_filter.launch.py`, the command to execute it is:
+  <br>
+
+  ```bash
+    ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true
+  ```
+
+    - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the color-filtering segmentation node.
+    - Several parameters can be changed in the yaml configuration file ``.
+    - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+    - Add the extra arguments `load_gazebo:=false test_camera:=true` to start only the realsense and the data streaming.
+    - Add the extra arguments `load_gazebo:=false hardware_protocol:=cri moveit:=true` to start the real Igus ReBeL robot and the data streaming.
+    - Set `load_base`, `mount`, `camera`, `end_effector` arguments as preferred. In particular with `load_base:=true`, add also the parameter `pointcloud_min_z:=-0.28` in the yaml file.
+  <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the camera mounted on the simulated Igus ReBeL in Gazebo Ignition:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ```
+      - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
+        <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the Realsense camera runned standalone without real robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ```
+
+    - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ```
+      - It is possible to move the robot using the MoveIt2 commands in RViz2.
+
+<br>
+
+- For what concerns the `octomap_segmentation_lang_sam.launch.py`, the command to execute it is:
+  <br>
+
+  ```bash
+    ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true
+  ```
+
+    - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the Lang SAM segmentation node.
+    - Several parameters can be changed in the yaml configuration file ``.
+    - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+    - Add the extra arguments `load_gazebo:=false test_camera:=true` to start only the realsense and the data streaming.
+    - Add the extra arguments `load_gazebo:=false hardware_protocol:=cri moveit:=true` to start the real Igus ReBeL robot and the data streaming.
+    - Set `load_base`, `mount`, `camera`, `end_effector` arguments as preferred. In particular with `load_base:=true`, add also the parameter `pointcloud_min_z:=-0.28` in the yaml file.
+  <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the camera mounted on the simulated Igus ReBeL in Gazebo Ignition:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
+      ```
+      - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
+        <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the Realsense camera runned standalone without real robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ```
+
+    - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ```
+      - It is possible to move the robot using the MoveIt2 commands in RViz2.
+     
+<br>
+
+- For what concerns the `octomap_segmentation_yolo_world.launch.py`, the command to execute it is:
+  <br>
+
+  ```bash
+    ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true
+  ```
+
+    - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the YOLO World + EfficientViT SAM segmentation node.
+    - Several parameters can be changed in the yaml configuration file ``.
+    - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+    - Add the extra arguments `load_gazebo:=false test_camera:=true` to start only the realsense and the data streaming.
+    - Add the extra arguments `load_gazebo:=false hardware_protocol:=cri moveit:=true` to start the real Igus ReBeL robot and the data streaming.
+    - Set `load_base`, `mount`, `camera`, `end_effector` arguments as preferred. In particular with `load_base:=true`, add also the parameter `pointcloud_min_z:=-0.28` in the yaml file.
+  <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the camera mounted on the simulated Igus ReBeL in Gazebo Ignition:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
+      ```
+      - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
+        <br>
+
+    - Example command to execute the OctoMap creation functionality starting from the data coming from the Realsense camera runned standalone without real robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ```
+
+    - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
+      <br>
+
+      ```bash
+      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ```
+      - It is possible to move the robot using the MoveIt2 commands in RViz2.
+
+<br>
 
 
 

@@ -60,6 +60,20 @@ This work focuses on the following contributions:
 - #### Ubuntu 22.04:
   - [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
 </details>
+
+
+<details>
+  <summary>
+    Step 2: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
+  </summary>
+  
+#### TODO
+  
+  
+  
+</details>
+
+
   
 <details>
   <summary>
@@ -68,8 +82,6 @@ This work focuses on the following contributions:
   
 #### TODO
   
-  
-#### TODO
   
   
 </details>

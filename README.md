@@ -82,7 +82,6 @@ This work focuses on the following contributions:
   ```
   - The command executes a launch file that visualize the Igus ReBeL robot on RViz2, controllable using the *Joint State Publisher* GUI.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
-  - The argument `hardware_protocol` should be kept `simulation`.
   - The argument `moveit` should be kept `false` to not run MoveIt2 framework for control.
  
     
@@ -92,25 +91,30 @@ This work focuses on the following contributions:
   ```
   - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the *Joint Position Controller* GUI on Gazebo Ignition.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
-  - The arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
-  - The argument `env_gazebo_package` specifies the package where the gazebo world and configuration to use are located. It requires the full name of the package, otherwise it will default to this package.
-  - The argument `full_world_name` specifies the name of the world file to be loaded in Gazebo Ignition of the type: *name.sdf*.
-  - The argument `hardware_protocol` should be kept `simulation`.
+  - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+  - The additional argument `env_gazebo_package` specifies the package where the gazebo world and configuration to use are located. It requires the full name of the package, otherwise it will default to this package.
+  - The additional argument `full_world_name` specifies the name of the world file to be loaded in Gazebo Ignition of the type: *name.sdf*.
   - The argument `moveit` should be kept `false` to not run MoveIt2 framework for control.
   - The argument `load_gazebo` must be `true` to run the simulation.
   
 
-- To visualize the Igus ReBeL in Rviz with MoveIt2:
-  ```bash
+- ```bash
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none
   ```
-  Change only these arguments.
+  - The command executes a launch file that run the Igus ReBeL robot on RViz2, controllable using the MoveIt2 framework directly from RViz2.
+  - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
 
-- To visualize the Igus ReBeL in Rviz and control it in Gazebo Ignition:
-  ```bash
+
+- ```bash
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true hardware_protocol:=ignition
   ```
-  The last 2 argument stays unchanged..
+  - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the the MoveIt2 framework directly from RViz2.
+  - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
+  - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
+  - The additional argument `env_gazebo_package` specifies the package where the gazebo world and configuration to use are located. It requires the full name of the package, otherwise it will default to this package.
+  - The additional argument `full_world_name` specifies the name of the world file to be loaded in Gazebo Ignition of the type: *name.sdf*.
+  - The argument `hardware_protocol` must be kept `ignition`.
+  - The argument `load_gazebo` must be `true` to run the simulation.
 
 
 

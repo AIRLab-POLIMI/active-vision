@@ -312,6 +312,53 @@ The first functionality of the architecture is to create and continuously update
 
 # Active Vision
 
+The main functionality of the architecture is performing Active Vision for creating a 3D reconstruction of the agricultural environment using a centralized approach. Different from the decentralized approach,
+it combines all the functionalities related to the Active Vision into a single node using multi-threading. Regarding the *Active Vision Pipeline Block*, a MultiThreadedExecutor defined in the main node is
+used to allow multiple nodes to run in separate threads: *MoveIt2APICreator*, *SegmentationClient*, *PointcloudCreator*, *SegmentedPointcloudCreator*, *ExtendedOctomapCreator*, and *Pipeline*. For what concerns the *Segmentation Block*, an independent client-server node is employed, managed by using a ROS 2 service. Finally, the *Robot Block* consists of executing all the entities related to the Igus ReBeL robot. 
+
+## Simulation (Without mobile base)
+
+- To perform 3D reconstruction using the predefined planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_yaw:=0.0`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
+<br>
+
+- To perform 3D reconstruction using the NBV planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_yaw:=0.0`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
+
+
+
+
+## Simulation (With mobile base)
+
+- To perform 3D reconstruction using the predefined planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
+<br>
+
+- To perform 3D reconstruction using the NBV planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
+
+
+
+## Real-World (With mobile base)
+
+- To perform 3D reconstruction using the predefined planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`.
+<br>
+
+- To perform 3D reconstruction using the NBV planning:
+   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true load_gazebo:=false hardware_protocol:=cri`.
 
 
 

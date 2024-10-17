@@ -93,6 +93,7 @@ This work focuses on the following contributions:
   ros2 launch igus_rebel_description_ros2 visualize.launch.py load_base:=false mount:=none end_effector:=none camera:=none moveit:=false
   ```
   - The command executes a launch file that visualize the Igus ReBeL robot on RViz2, controllable using the *Joint State Publisher* GUI.
+  - The real Igus ReBeL robot can not be controlled using the *Joint State Publisher* GUI, thus the argument `hardware_protocol` should be kept `simulation` (default value).
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
   - If camera is inserted, no data will be shown due to the absence of a simulated or real-word environment from which the data comes.
   - The argument `moveit` should be kept `false` to not run MoveIt2 framework for control.
@@ -104,6 +105,7 @@ This work focuses on the following contributions:
   ros2 launch igus_rebel_description_ros2 visualize.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true moveit:=false
   ```
   - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the *Joint Position Controller* GUI on Gazebo Ignition.
+  - The real Igus ReBeL robot can not be controlled since Gazebo Ignition simulation is used, thus the argument `hardware_protocol` should be kept `simulation` (default value).
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
   - If camera is inserted, data will be shown coming from the simulated environment. Change topics if needed.
   - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.
@@ -119,6 +121,7 @@ This work focuses on the following contributions:
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none
   ```
   - The command executes a launch file that run the Igus ReBeL robot on RViz2, controllable using the MoveIt2 framework directly from RViz2.
+  - The real Igus ReBeL robot can be controlled using the MoveIt2 framework commands by changing the arguments to `hardware_protocol:=cri load_base:=true`.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
   - If camera is inserted, no data will be shown due to the absence of a simulated or real-word environment from which the data comes.
 
@@ -129,6 +132,7 @@ This work focuses on the following contributions:
   ros2 launch igus_rebel_moveit_config demo.launch.py load_base:=false mount:=none camera:=none end_effector:=none load_gazebo:=true hardware_protocol:=ignition
   ```
   - The command executes a launch file that run the simulation on Gazebo Ignition and visualizes the Igus ReBeL robot on RViz2, controllable using the the MoveIt2 framework directly from RViz2.
+  - The real Igus ReBeL robot can not be controlled since Gazebo Ignition simulation is used, thus the argument `hardware_protocol` should be kept `simulation` (default value).
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
   - If camera is inserted, data will be shown coming from the simulated environment. Change topics if needed.
   - The additional arguments `spawn_x`, `spawn_y`, `spawn_z`, `spawn_yaw` are used to set the position of the spawned robot on Gazebo Ignition.

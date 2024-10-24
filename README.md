@@ -76,7 +76,7 @@ This work focuses on the following contributions:
 
 <details>
   <summary>
-    Step 2: Install the dependencies of the Igus ReBeL ROS 2 repository.
+    Step 3: Install the dependencies of the Igus ReBeL ROS 2 repository.
   </summary>
   
 #### TODO
@@ -89,7 +89,7 @@ This work focuses on the following contributions:
   
 <details>
   <summary>
-    Step 3: Clone the main branch of this repository.
+    Step 4: Clone the main branch of this repository.
   </summary>
   
 #### TODO
@@ -101,7 +101,7 @@ This work focuses on the following contributions:
 
 <details>
   <summary>
-    Step 2: Install the dependencies of this repository.
+    Step 5: Install the dependencies of this repository.
   </summary>
   
 #### TODO

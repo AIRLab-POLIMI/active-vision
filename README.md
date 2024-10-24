@@ -74,10 +74,34 @@ This work focuses on the following contributions:
 </details>
 
 
+<details>
+  <summary>
+    Step 2: Install the dependencies of the Igus ReBeL ROS 2 repository.
+  </summary>
+  
+#### TODO
+  
+  
+  
+</details>
+
+
   
 <details>
   <summary>
     Step 3: Clone the main branch of this repository.
+  </summary>
+  
+#### TODO
+  
+  
+  
+</details>
+
+
+<details>
+  <summary>
+    Step 2: Install the dependencies of this repository.
   </summary>
   
 #### TODO

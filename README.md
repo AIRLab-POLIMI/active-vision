@@ -54,11 +54,33 @@ This work focuses on the following contributions:
   
 <details>
   <summary>
-    Step 1: Install the ROS 2 Humble distribution. 
+    Step 1: Install the ROS 2 Humble distribution for Ubuntu 22.04 and other useful elements. 
   </summary>
-  
-- #### Ubuntu 22.04:
-  - [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
+
+   - Guide at [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
+     - Regarding the sourcing, instead of always running the command `source /opt/ros/humble/setup.bash`, a good practice is to add this line in the end of the *bashrc* file that can be modified with the command `gedit ~/.bashrc`. After the modification, the file needs to be saved and the terminal restarted.
+   - Install RQt tools: `sudo apt install ros-humble-rqt*`.
+   - Install dev tools: `sudo apt update && sudo apt install -y python3-vcstool`.
+   - Install Gazebo Ignition Fortress:
+     - A full guide is at [Gazebo Ignition Fortress](https://gazebosim.org/docs/fortress/install_ubuntu).
+     - After the installation run the command: `export IGNITION_VERSION=fortress`.
+     - Install ROS 2 - Gazebo Ignition integration tools from [this repository](https://github.com/gazebosim/ros_gz/tree/humble):
+       - ```bash
+         sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+         ```
+       - ```bash
+         curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg > /dev/null
+         ```
+       - ```bash
+         sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+         ```
+       - ```bash
+         sudo apt-get update
+         ```
+       - ```bash
+         sudo apt install ros-humble-ros-gz
+         ```
+       
 </details>
 
 

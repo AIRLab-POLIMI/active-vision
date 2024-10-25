@@ -83,7 +83,7 @@ This work focuses on the following contributions:
 
 <details>
   <summary>
-    Step 2: Install the dependencies of the Igus ReBeL ROS 2 repository.
+    Step 2: Install the dependencies and requirements of the Igus ReBeL ROS 2 repository.
   </summary>
 
    - Install MoveIt2:
@@ -129,7 +129,10 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
    - Install ros2_controllers: `sudo apt install ros-$ROS_DISTRO-ros2-controllers`
    - Install tf_transformations: `sudo apt install ros-$ROS_DISTRO-tf-transformations`
   
-  
+   - Install AgileX Scout description package:
+     - Download the main branch and place only the folder `agilex_scout` into a new workspace `agilex_scout/src`
+     - In the workspace folder `agilex_scout`: `colcon build`
+     - Add in the *bashrc* file: `source ../agilex_scout/install/setup.bash`
   
   
 </details>

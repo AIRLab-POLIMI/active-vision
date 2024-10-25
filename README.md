@@ -121,9 +121,13 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
    - Install the hardware interface for controlling the Gazebo Ignition robot through MoveIt2:
      - Create a workspace (for example called `gz_ros2_control`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../gz_ros2_control/install/setup.bash`
-     - In `gz_ros2_control/src` folder clone the master branch of the repository containing the hardware interface for Gazebo Ignition: `git clone https://github.com/ros-controls/gz_ros2_control`
+     - In `gz_ros2_control/src` folder clone the humble branch of the repository containing the hardware interface for Gazebo Ignition: `git clone --single-branch --branch humble https://github.com/ros-controls/gz_ros2_control`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In `gz_ros2_control` folder: `colcon build`
+
+   - Install ros2_control: `sudo apt install ros-$ROS_DISTRO-ros2-control`
+   - Install ros2_controllers: `sudo apt install ros-$ROS_DISTRO-ros2-controllers`
+   - Install tf_transformations: `sudo apt install ros-$ROS_DISTRO-tf-transformations`
   
   
   

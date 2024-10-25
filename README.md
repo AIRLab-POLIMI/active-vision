@@ -83,34 +83,41 @@ This work focuses on the following contributions:
 
 <details>
   <summary>
-    Step 2: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
+    Step 2: Install the dependencies of the Igus ReBeL ROS 2 repository.
+  </summary>
+
+   - Install MoveIt2:
+     - Guide at [MoveIt2](https://moveit.ros.org/install-moveit2/source/)
+     - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
+     - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
+     - In `movit2_ws/src` clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
+     - In the same folder: 
+   - Install Realsense
+  
+  
+  
+  
+</details>
+
+
+<details>
+  <summary>
+    Step 3: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
   </summary>
    
    - While the master branch is the general integration of the Igus ReBeL robotic arm into ROS 2, the active vision branch has some elements strictly related to the current project and some packages have been removed (servo, commander and gripper controller).
-   - Create a workspace (for example called `ros2_igus_rebel`) and create a folder `src` inside.
+   - Create a workspace (for example called `ros2_igus_rebel`) and create a folder `src` inside
    - Add in the *bashrc* file: `source ../ros2_igus_rebel/install/setup.bash`
-   - In `ros2_igus_rebel/src` folder run: `git clone https://github.com/AIRLab-POLIMI/FRE-2023.git`
+   - In `ros2_igus_rebel/src` folder run: `git clone --single-branch --branch active-vision-config https://github.com/AIRLab-POLIMI/ros2-igus-rebel.git`
    - `sudo rosdep init`
    - `rosdep update`
    - `rosdep install -i --from-path src --rosdistro humble -y` to install the dependencies
    - `pip install xacro`
    - In the workspace folder run: `colcon build`
-   - `source ~/.bashrc` to make effective the changes (or restart the terminal).
+   - `source ~/.bashrc` to make effective the changes (or restart the terminal)
        
 </details>
 
-
-
-<details>
-  <summary>
-    Step 3: Install the dependencies of the Igus ReBeL ROS 2 repository.
-  </summary>
-  
-#### TODO
-  
-  
-  
-</details>
 
 
   

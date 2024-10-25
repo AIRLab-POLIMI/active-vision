@@ -25,9 +25,6 @@
 ## Table of contents
   * [Introduction](#introduction)
   * [Installation](#installation)
-     * [Dependencies](#dependencies)
-     * [Igus ReBeL](#igus-rebel) 
-     * [Gazebo Ignition](#gazebo-ignition)
   * [Visualization](#visualization)
   * [OctoMap Creation](#octomap-creation)
   * [Active Vision](#active-vision) 
@@ -88,12 +85,20 @@ This work focuses on the following contributions:
   <summary>
     Step 2: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
   </summary>
-  
-#### TODO
-  
-  
-  
+   
+   - While the master branch is the general integration of the Igus ReBeL robotic arm into ROS 2, the active vision branch has some elements strictly related to the current project and some packages have been removed (servo, commander and gripper controller).
+   - Create a workspace (for example called `ros2_igus_rebel`) and create a folder `src` inside.
+   - Add in the *bashrc* file: `source ../ros2_igus_rebel/install/setup.bash`
+   - In `ros2_igus_rebel/src` folder run: `git clone https://github.com/AIRLab-POLIMI/FRE-2023.git`
+   - `sudo rosdep init`
+   - `rosdep update`
+   - `rosdep install -i --from-path src --rosdistro humble -y` to install the dependencies
+   - `pip install xacro`
+   - In the workspace folder run: `colcon build`
+   - `source ~/.bashrc` to make effective the changes (or restart the terminal).
+       
 </details>
+
 
 
 <details>

@@ -90,8 +90,21 @@ This work focuses on the following contributions:
      - Guide at [MoveIt2](https://moveit.ros.org/install-moveit2/source/)
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
-     - In `movit2_ws/src` clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
-     - In the same folder: 
+     - In `movit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
+     - In the same folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done
+rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
+     - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
+   - Install MoveIt Visual Tools:
+     - Go in `moveit2_ws` folder and clone the repository: `git clone -b ros2 https://github.com/ros-planning/moveit_visual_tools`
+     - In the same folder: `vcs import < moveit_visual_tools/moveit_visual_tools.repos`
+     - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
+     - In the folder `movit2_ws`:
+       - `colcon build --packages-select rviz_visual_tools`
+       - `colcon build --packages-select graph_msgs`
+       - `colcon build --packages-select moveit_visual_tools`
+         -  If an error raises with respect to *trajectory* variable, change it manually in the source code.
+   - Install *MoveIt2APIs*:
+   
    - Install Realsense
   
   

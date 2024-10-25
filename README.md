@@ -94,6 +94,8 @@ This work focuses on the following contributions:
      - In the same folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done
 rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
+
+       
    - Install MoveIt Visual Tools:
      - Go in `moveit2_ws` folder and clone the repository: `git clone -b ros2 https://github.com/ros-planning/moveit_visual_tools`
      - In the same folder: `vcs import < moveit_visual_tools/moveit_visual_tools.repos`
@@ -103,9 +105,25 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
        - `colcon build --packages-select graph_msgs`
        - `colcon build --packages-select moveit_visual_tools`
          -  If an error raises with respect to *trajectory* variable, change it manually in the source code.
-   - Install *MoveIt2APIs*:
    
-   - Install Realsense
+   
+   - Install the ROS 2 wrapper of the Realsense D435 used in the project:
+     - Guide at [this repository](https://github.com/IntelRealSense/realsense-ros)
+     - First, install the latest Intel® RealSense™ SDK 2.0. Use the Option 2, consisting of installing librealsense2:
+       - `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list`
+       - `sudo apt install curl # if you haven't already installed curl`
+       - `curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -`
+       - `sudo apt install ros-humble-librealsense2*`
+     - Install the ROS 2 wrapper:
+       - `sudo apt install ros-humble-realsense2-*`
+
+         
+   - Install the hardware interface for controlling the Gazebo Ignition robot through MoveIt2:
+     - Create a workspace (for example called `gz_ros2_control`) and create a folder `src` inside
+     - Add in the *bashrc* file: `source ../gz_ros2_control/install/setup.bash`
+     - In `gz_ros2_control/src` folder clone the master branch of the repository containing the hardware interface for Gazebo Ignition: `git clone https://github.com/ros-controls/gz_ros2_control`
+     - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
+     - In `gz_ros2_control` folder: `colcon build`
   
   
   
@@ -132,11 +150,22 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
 </details>
 
 
+<details>
+  <summary>
+    Step 4: Install the dependencies of this repository.
+  </summary>
+   
+   - Install *MoveIt2APIs*:
+
+  
+  
+  
+</details>
 
   
 <details>
   <summary>
-    Step 4: Clone the main branch of this repository.
+    Step 5: Clone the main branch of this repository.
   </summary>
   
 #### TODO
@@ -145,17 +174,6 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
   
 </details>
 
-
-<details>
-  <summary>
-    Step 5: Install the dependencies of this repository.
-  </summary>
-  
-#### TODO
-  
-  
-  
-</details>
 
 
 # Visualization

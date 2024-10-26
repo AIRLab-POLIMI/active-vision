@@ -107,6 +107,8 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/include/stomp_moveit/stomp_moveit_planning_context.hpp` replace the void type of the two solve functions (line 59 and 61) in bool, as well as in the corresponding source file (lines 280 and 215). Moreover, in the src file change the returns of these modified 2 function from empty to false and return true at the end of the function at line 279.
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/src/stomp_moveit_planning_context.cpp` comment line 220 removing *planning_id*, change all `res.error_code` in `res.error_code_`, all `res.planning_time` in `res.planning_time_`, and all `res.trajectory` in `res.trajectory_`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
+     - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
+       - Download and put the package into the `moveit_ws/src`, then build only this: `colcon build --packages-select mobile_manipulation_interfaces`
      
 
        
@@ -234,6 +236,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
   - The real Igus ReBeL robot can be controlled using the MoveIt2 framework commands by changing the arguments to `hardware_protocol:=cri load_base:=true`.
   - It is possible to change the arguments: `load_base`, `mount`, `end_effector`, `camera`.
   - If camera is inserted, no data will be shown due to the absence of a simulated or real-word environment from which the data comes.
+  - When running MoveIt2 with a mount and a end effector that is not of that mount and a camera, there is the collision fixed of the camera link. EG v2, realsense and toucher dont enable collision of the camera link. Not a big problem.
 
 
 <br>

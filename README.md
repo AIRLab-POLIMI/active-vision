@@ -109,6 +109,123 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
      - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
        - Download and put the package into the `moveit_ws/src`, then build only this: `colcon build --packages-select mobile_manipulation_interfaces`
+     - Install `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
+       <details>
+         <summary>
+           OPTION 1: Use the active-vision-config branch:
+         </summary>
+          
+       - Download from the active-vision-branch the specific package folder and put it into the `moveit_ws/src` folder
+       - TODO
+         
+       </details>
+       <details>
+         <summary>
+           OPTION 2: Use the active-vision-config branch:
+         </summary>
+          
+       - Download from the main branch the specific package folder and put it into the `moveit_ws/src`
+       - Into the `moveit2_api.hpp` file:
+         - Change `visual_tools` variable from private to public
+         - Remove `const` from the declaration of variable `camera_frame_name` (line 57)
+         - in the 3 functions `robotPlanAndMove()`, add a string argument to define the name of the target pose. Same in the `moveit2_api.cpp` file:
+           - ```bash
+               bool robotPlanAndMove(geometry_msgs::msg::PoseStamped::SharedPtr target_pose, std::string target, bool compensation=true);
+               ...
+            	double robotPlanAndMove(std::vector<geometry_msgs::msg::Pose> pose_waypoints, std::string target);
+               ...
+            	bool robotPlanAndMove(std::array<double, 6> joint_space_goal, std::string target);
+             ``` 
+       - Into the `moveit2_api.cpp` file:
+         - Remove the publish text from the init method of the visual tools
+         - ```bash
+           # from
+            camera_frame_name(get_parameter("camera_frame").as_string()) { //line 11
+            ...
+            load_base_arg = this->get_parameter("load_base").as_bool(); //line 13
+            ...
+            bool loaded = moveit2_node_->get_parameter("planning_plugin", planner_plugin_name); //line 133
+            
+            
+            # to
+            camera_frame_name("camera_frame") { // line 11
+            
+            # load base = true if the robotic arm is mounted on the mobile robot base, false if it's mounted on a table
+            camera_frame_name = this->declare_parameter("camera_frame", camera_frame_name);
+            load_base_arg = this->declare_parameter<bool>("load_base", load_base_arg);
+
+            ...
+            planner_plugin_name = moveit2_node_->declare_parameter("planning_plugin", planner_plugin_name);
+            bool loaded = moveit2_node_->get_parameter("planning_plugin", planner_plugin_name); 
+           ```
+         - Create a function that convert a goal in the joint space into a goal in the cartesian space:
+           ```bash
+           Eigen::Isometry3d MoveIt2APIs::fromJointSpaceGoalToCartesianPose(std::array<double, 6> joint_space_goal) {
+            	moveit::core::RobotState goal_state(*move_group->getCurrentState());
+            	std::vector<double> joint_space_goal_vector(joint_space_goal.begin(), joint_space_goal.end());
+            	goal_state.setJointGroupPositions(joint_model_group, joint_space_goal_vector);
+            
+            	move_group->setStartState(*move_group->getCurrentState());
+            	move_group->setGoalPositionTolerance(position_tolerance);		// meters ~ 5 mm
+            	move_group->setGoalOrientationTolerance(orientation_tolerance); // radians ~ 5 degrees
+            	move_group->setPlanningTime(timeout_seconds);
+            	move_group->setPlanningPipelineId("stomp");
+            	move_group->setPlannerId("STOMP");
+            	move_group->setMaxVelocityScalingFactor(max_velocity_scaling_joint_space);
+            	move_group->setMaxAccelerationScalingFactor(max_acceleration_scaling);
+            
+            	bool valid_motion = move_group->setJointValueTarget(goal_state);
+            	if (!valid_motion) {
+            		throw std::runtime_error("Target joints outside their physical limits");
+            	}
+            
+            	const Eigen::Isometry3d goal_pose = goal_state.getGlobalLinkTransform(end_effector_link);
+            	Eigen::Isometry3d goal_pose_tf2;
+            
+            	geometry_msgs::msg::TransformStamped tf_base_footprint_msg;
+            	try {
+            		// lookup transform from root base frame (base_footprint when load_base = true) to fixed base frame (igus rebel base link)
+            		tf_base_footprint_msg = tf_buffer_->lookupTransform(fixed_base_frame, root_base_frame, tf2::TimePointZero);
+            	} catch (const tf2::TransformException &ex) {
+            		RCLCPP_ERROR(LOGGER, "%s", ex.what());
+            		throw std::runtime_error(ex.what());
+            	}
+            
+            	tf2::doTransform(goal_pose, goal_pose_tf2, tf_base_footprint_msg); // in, out, transform
+            
+            	return goal_pose_tf2;
+            }
+           ```
+         - Add a bool compensation to the robotPlanAndMove function, that by default is true
+           ```bash
+            # Definition
+            bool robotPlanAndMove(geometry_msgs::msg::PoseStamped::SharedPtr target_pose, std::string target, bool compensation=true);
+            
+            # Implementation
+            bool MoveIt2APIs::robotPlanAndMove(geometry_msgs::msg::PoseStamped::SharedPtr target_pose, std::string target, bool compensation) {
+            	RCLCPP_INFO(LOGGER, "Planning and moving to %s pose", target.c_str());
+            
+            	geometry_msgs::msg::PoseStamped::UniquePtr compensated_target_pose;
+            	if (compensation){
+            		// apply offset compensation to the cartesian space target pose
+            		compensated_target_pose = compensateTargetPose(*target_pose);
+            	}
+            	else{
+            		compensated_target_pose = std::make_unique<geometry_msgs::msg::PoseStamped>(*target_pose);
+            	}
+            
+            	if (!checkIKSolution(compensated_target_pose->pose)) {
+            		RCLCPP_ERROR(LOGGER, "No valid IK solution for the %s pose", target.c_str());
+            		//return false;
+            	}
+            	...
+           ```
+         - Add to each of the 3 robotPlanAndMove function at the beginning:
+           ```bash
+           RCLCPP_INFO(LOGGER, "Planning and moving to %s pose", target.c_str());
+           ```
+         - Change `trajectory` to `trajectory_` in line, 539, 540, 717.
+       - Go in `moveit2_ws` and build: `colcon build --packages-select moveit2_api`
      
 
        

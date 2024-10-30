@@ -297,9 +297,68 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
     Step 4: Install the dependencies of this repository.
   </summary>
    
-   - Install *MoveIt2APIs*:
-
-  
+   - Install *depth_image_proc* package:
+      ```bash
+       sudo apt install ros-humble-depth-image-proc*
+       ```
+   - Install *Octomap* library:
+     - From [this repostory](https://github.com/octomap/octomap/releases) download the latest version as source file (.zip)
+     - Create a workspace `octomap_ws/src` where the content of the .zip file is extracted
+     - In folder `octomap_ws`: `colcon build`
+     - Ignore the varning of deprecated functions used in the packages
+     - Re-build with `colcon build --cmake-arg -DCMAKE_BUILD_TYPE=Release` if it is needed to have the flag release
+       <details>
+         <summary>
+           a warning may raise:
+         </summary>
+       
+            ```bash
+            CMake Warning at CMakeLists.txt:39 (add_library):
+            Cannot generate a safe runtime search path for target moveit_visual_tools
+            because there is a cycle in the constraint graph:
+            ...
+            
+            dir 0 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/graph_msgs/lib]
+            dir 1 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_ros_planning/lib]
+            dir 2 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/rviz_visual_tools/lib]
+            dir 3 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_ros_occupancy_map_monitor/lib]
+            dir 4 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_core/lib]
+            dir 5 is [/opt/ros/humble/lib]
+              dir 7 must precede it due to runtime library [libimage_transport.so]
+            dir 6 is [/home/michelelagreca/Documents/robotics/octomap_ws/install/octomap-distribution/lib]
+              dir 7 must precede it due to runtime library [liboctomap.so.1.9]
+            dir 7 is [/opt/ros/humble/lib/x86_64-linux-gnu]
+              dir 6 must precede it due to runtime library [liboctomap.so.1.9]
+            dir 8 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_msgs/lib]
+            dir 9 is [/opt/ros/humble/opt/rviz_ogre_vendor/lib]
+            ...
+                        
+            Some of these libraries may not be found correctly.
+            
+            CMake Warning at CMakeLists.txt:52 (add_executable):
+            Cannot generate a safe runtime search path for target
+            moveit_visual_tools_demo because there is a cycle in the constraint graph:
+            ...
+            
+            dir 0 is [/home/michelelagreca/Documents/robotics/movit2_ws/build/moveit_visual_tools]
+            dir 1 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/graph_msgs/lib]
+            dir 2 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_ros_planning/lib]
+            dir 3 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/rviz_visual_tools/lib]
+            dir 4 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_ros_occupancy_map_monitor/lib]
+            dir 5 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_core/lib]
+            dir 6 is [/opt/ros/humble/lib]
+              dir 8 must precede it due to runtime library [libimage_transport.so]
+            dir 7 is [/home/michelelagreca/Documents/robotics/octomap_ws/install/octomap-distribution/lib]
+              dir 8 must precede it due to runtime library [liboctomap.so.1.9]
+            dir 8 is [/opt/ros/humble/lib/x86_64-linux-gnu]
+              dir 7 must precede it due to runtime library [liboctomap.so.1.9]
+            dir 9 is [/home/michelelagreca/Documents/robotics/movit2_ws/install/moveit_msgs/lib]
+            dir 10 is [/opt/ros/humble/opt/rviz_ogre_vendor/lib]
+            ...
+            
+            Some of these libraries may not be found correctly. 
+            ```
+        </details>
   
   
 </details>

@@ -305,8 +305,9 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - From [this repostory](https://github.com/octomap/octomap/releases) download the latest version as source file (.zip)
      - Create a workspace `octomap_ws/src` where the content of the .zip file is extracted
      - In folder `octomap_ws`: `colcon build`
-     - Ignore the varning of deprecated functions used in the packages
-     - Re-build with `colcon build --cmake-arg -DCMAKE_BUILD_TYPE=Release` if it is needed to have the flag release
+     - Source: `source ../octomap_ws/install/setup.bash`
+     - Ignore the warnings of the deprecated functions used in the package
+     - Re-build with `colcon build --cmake-arg -DCMAKE_BUILD_TYPE=Release` if it is needed to have the flag release (suggested)
        <details>
          <summary>
            a warning may raise:

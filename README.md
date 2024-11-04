@@ -83,7 +83,17 @@ This work focuses on the following contributions:
 
 <details>
   <summary>
-    Step 2: Install the dependencies and requirements of the Igus ReBeL ROS 2 repository.
+    Step 2: Setup Real Robot configuration (for Igus ReBeL and Standalone Realsense 435). 
+  </summary>
+
+   - For what concerns the real robot... TODO
+       
+</details>
+
+
+<details>
+  <summary>
+    Step 3: Install the dependencies and requirements of the Igus ReBeL ROS 2 repository.
   </summary>
 
    - Install MoveIt2:
@@ -274,7 +284,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
 
 <details>
   <summary>
-    Step 3: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
+    Step 4: Clone the active vision branch of the <a href="https://github.com/AIRLab-POLIMI/ros2-igus-rebel">Igus ReBeL ROS 2</a> repository.
   </summary>
    
    - While the master branch is the general integration of the Igus ReBeL robotic arm into ROS 2, the active vision branch has some elements strictly related to the current project and some packages have been removed (servo, commander and gripper controller).
@@ -293,7 +303,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
 
 <details>
   <summary>
-    Step 4: Install the dependencies of this repository.
+    Step 5: Install the dependencies of this repository.
   </summary>
    
    - Install *depth_image_proc* package:
@@ -406,7 +416,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
   
 <details>
   <summary>
-    Step 5: Clone the main branch of this repository.
+    Step 6: Clone the main branch of this repository.
   </summary>
   
 #### TODO

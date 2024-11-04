@@ -300,6 +300,10 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
       ```bash
        sudo apt install ros-humble-depth-image-proc*
        ```
+   - Install *PCL*:
+      ```bash
+      sudo apt-get install ros-humble-pcl-ros
+      ```
    - Install *Octomap* library:
      - From [this repostory](https://github.com/octomap/octomap/releases) download the latest version as source file (.zip)
      - Create a workspace `octomap_ws/src` where the content of the .zip file is extracted
@@ -365,7 +369,9 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In the folder `octomap_server2_ws/src`: `git clone https://github.com/iKrishneel/octomap_server2.git`
      - In the folder `octomap_server2_ws/src`: `git clone --single-branch --branch ros2 https://github.com/OctoMap/octomap_msgs.git`
      - Install dependencies: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
-     - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_msgs octomap_server2`
+     - In folder `octomap_server2_ws`: `sudo apt-get purge --auto-remove ros-humble-octomap-msgs`
+     - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_msgs`
+     - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_server2`
      - Ignore warnings
      - Source: `source ../octomap_server2_ws/install/setup.bash`
   

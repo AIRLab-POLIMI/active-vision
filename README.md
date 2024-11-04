@@ -117,7 +117,6 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
           
        - Download from the active-vision-branch the specific package folder `moveit2_api` and put it into the `moveit_ws/src` folder
        - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api`
-       - **TODO**: this option is not available yet in the project.
          
        </details>
        <details>

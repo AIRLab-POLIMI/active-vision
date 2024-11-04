@@ -374,6 +374,32 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_server2`
      - Ignore warnings
      - Source: `source ../octomap_server2_ws/install/setup.bash`
+
+   - Install *Lang SAM*:
+     - ```bash
+       pip install torch torchvision
+       pip install -U git+https://github.com/luca-medeiros/lang-segment-anything.git
+       ```
+     - Add `/home/.../.local/bin` to the PATH
+       - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:
+         ```bash
+         gedit ~/.bashrc
+       - Add the following line at the end of the file:
+         ```bash
+         export PATH="$PATH:/home/michelelagreca/.local/bin"
+         ```
+       - ```bash
+         source ~/.bashrc
+         ```
+    
+   - Install *YOLO World + EfficentViT SAM*:
+     - Move inside the `../.local/lib/pythonX.XX/site-packages` folder
+     - Create a folder, for example `yolo_world_efficient_sam`
+     - Into this folder: `git clone https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git`
+     - Move to the folder: `yolo_world_with_efficient_sam` where the file `Requirements.txt` is located
+     - `pip install -r requirements.txt`
+     - In `https://github.com/CVHub520/efficientvit` download the *EfficientViT-L0* model checkpoint and rename it `efficient_SAM_l0.pt` 
+     - Place the model in a *models* folder. This folder should be in the folder containing all the other workspaces used in the project
   
 </details>
 

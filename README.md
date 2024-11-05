@@ -387,8 +387,10 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
 
    - Install *Lang SAM*:
      - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
-     - Download the repository `https://github.com/luca-medeiros/lang-segment-anything && cd lang-segment-anything` and copy the folder `lang_sam` into the site-packages folder
+     - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` and copy the folder `lang_sam` into the `site-packages` folder
      - `pip install torch torchvision`
+     - Install dependencies:
+       
      - Add `/home/.../.local/bin` to the PATH
        - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:
          ```bash

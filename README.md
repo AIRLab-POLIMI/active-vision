@@ -418,8 +418,17 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
   <summary>
     Step 6: Clone the main branch of this repository.
   </summary>
+   
+   - Create a workspace (for example called `active_vision`) and create a folder `src` inside
+   - Add in the *bashrc* file: `source ../active_vision/install/setup.bash`
+   - In `active_vision/src` folder run: `git clone https://github.com/AIRLab-POLIMI/active-vision.git`
+   - Copy the content of the cloned `active_vision` folder (also *.git* and *.gitignore* files) into `src` folder, adn remove the folder `images`
+   - Downgrade *setuptools* (from 70.0.0 to a lower version): `python3 -m pip install setuptools==69.5.1`
+   - In the workspace folder run: `colcon build --packages-select fruit_picking_interfaces`
+   - In the workspace folder run: `colcon build`
+   - Ignore warnings
+   - `source ~/.bashrc` to make effective the changes (or restart the terminal)
   
-#### TODO
   
   
   

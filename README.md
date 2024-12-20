@@ -389,7 +389,49 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
      - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` and copy the folder `lang_sam` into the `site-packages` folder
      - `pip install torch torchvision`
-     - Install dependencies:
+     - <details>
+         <summary>
+           Install dependencies:
+         </summary>
+       
+            ```bash
+            pip install addict==2.4.0 aiofiles==23.1.0 aiohttp==3.8.4 aiosignal==1.3.1 \
+            altair==5.0.1 anyio==3.7.1 arrow==1.2.3 async-timeout==4.0.2 attrs==23.1.0 \
+            backoff==2.2.1 beautifulsoup4==4.12.2 blessed==1.20.0 certifi==2023.5.7 \
+            charset-normalizer==3.2.0 click==8.1.4 cmake==3.26.4 contourpy==1.1.0 \
+            croniter==1.4.1 cycler==0.11.0 dateutils==0.6.12 deepdiff==6.3.1 \
+            exceptiongroup==1.1.2 fastapi==0.100.0 ffmpy==0.3.0 filelock==3.12.2 \
+            fonttools==4.41.0 frozenlist==1.4.0 fsspec==2023.6.0 gradio==3.32.0 \
+            gradio-client==0.2.9 groundingdino-py==0.1.0 h11==0.14.0 httpcore==0.17.3 \
+            httpx==0.24.1 huggingface-hub==0.13.4 idna==3.4 importlib-metadata==6.8.0 \
+            importlib-resources==6.0.0 inquirer==3.1.3 itsdangerous==2.1.2 jinja2==3.1.2 \
+            jsonschema==4.18.2 jsonschema-specifications==2023.6.1 kiwisolver==1.4.4 \
+            lightning==2.0.5 lightning-cloud==0.5.37 \
+            lightning-utilities==0.9.0 linkify-it-py==2.0.2 lit==16.0.6 \
+            markdown-it-py==2.2.0 markupsafe==2.1.3 matplotlib==3.7.2 \
+            mdit-py-plugins==0.3.3 mdurl==0.1.2 mpmath==1.3.0 multidict==6.0.4 \
+            networkx==3.1 numpy==1.24.4 nvidia-cublas-cu11==11.10.3.66 \
+            nvidia-cuda-cupti-cu11==11.7.101 nvidia-cuda-nvrtc-cu11==11.7.99 \
+            nvidia-cuda-runtime-cu11==11.7.99 nvidia-cudnn-cu11==8.5.0.96 \
+            nvidia-cufft-cu11==10.9.0.58 nvidia-curand-cu11==10.2.10.91 \
+            nvidia-cusolver-cu11==11.4.0.1 nvidia-cusparse-cu11==11.7.4.91 \
+            nvidia-nccl-cu11==2.14.3 nvidia-nvtx-cu11==11.7.91 opencv-python==4.8.0.74 \
+            ordered-set==4.1.0 orjson==3.9.2 pandas==2.0.3 pillow==9.3.0 \
+            pkgutil-resolve-name==1.3.10 platformdirs==3.8.1 pycocotools==2.0.6 \
+            pydantic==1.10.11 pydub==0.25.1 pyjwt==2.7.0 pyparsing==3.0.9 \
+            python-editor==1.0.4 python-multipart==0.0.6 pytorch-lightning==2.0.5 \
+            pytz==2023.3 pyyaml==6.0 readchar==4.0.5 referencing==0.29.1 regex==2023.6.3 \
+            requests==2.31.0 rich==13.4.2 rpds-py==0.8.10 safetensors==0.3.1 \
+            segment-anything==1.0 semantic-version==2.10.0 sniffio==1.3.0 \
+            soupsieve==2.4.1 spectral==0.23.1 starlette==0.27.0 starsessions==1.3.0 \
+            supervision==0.6.0 sympy==1.12 timm==0.9.2 tokenizers==0.13.3 \
+            tomli==2.0.1 toolz==0.12.0 torch==2.0.1 torchmetrics==1.0.0 \
+            torchvision==0.15.2 tqdm==4.65.0 transformers==4.29.0 triton==2.0.0 \
+            tzdata==2023.3 uc-micro-py==1.0.2 urllib3==2.0.3 uvicorn==0.22.0 \
+            websocket-client==1.6.1 websockets==11.0.3 yapf==0.40.1 yarl==1.9.2 \
+            zipp==3.16.1 lang-sam==0.1.0 
+            ```
+        </details>
        
      - Add `/home/.../.local/bin` to the PATH
        - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:

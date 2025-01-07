@@ -455,6 +455,9 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - Copy the `efficientvit` folder of the repository `https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git` into the site-packages folder
      - From `https://github.com/CVHub520/efficientvit` download the *EfficientViT-L0* model checkpoint and rename it `efficient_SAM_l0.pt` 
      - Place the model in a *models* folder. This folder should be in the folder containing all the other workspaces used in the project
+     - If there are problems related to the package `pydantic`: `pip install --upgrade pydantic`
+     - If there are problems related to the package `supervision`: `pip install --upgrade supervision`
+
   
 </details>
 

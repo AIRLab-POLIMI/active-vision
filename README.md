@@ -387,7 +387,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
 
    - Install *Lang SAM*:
      - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
-     - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` and copy the folder `lang_sam` into the `site-packages` folder
+     - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` at the commit `134a48a` made on Nov 1st 2023, and copy the folder `lang_sam` into the `site-packages` folder
      - `pip install torch torchvision`
      - <details>
          <summary>
@@ -429,9 +429,11 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
             torchvision==0.15.2 tqdm==4.65.0 transformers==4.29.0 triton==2.0.0 \
             tzdata==2023.3 uc-micro-py==1.0.2 urllib3==2.0.3 uvicorn==0.22.0 \
             websocket-client==1.6.1 websockets==11.0.3 yapf==0.40.1 yarl==1.9.2 \
-            zipp==3.16.1 lang-sam==0.1.0 
+            zipp==3.16.1 lang-sam==0.1.0
             ```
         </details>
+
+     - At the first run of this model, sometime is required to download the models.
        
      - Add `/home/.../.local/bin` to the PATH
        - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:

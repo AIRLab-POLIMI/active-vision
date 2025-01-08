@@ -413,6 +413,7 @@ launch:
       outlier_threshold: "0.2"
       weighted_confidence: "True"
       reconstruction_metric: "True" # false for real robot
+      ground_truth_path: "/home/michelelagreca/Documents/robotics/active_vision/src/fruit_picking_bringup/data/octree_tomato_3.bt"
       step_reconstruction_metric_vis: "False"
       # Rviz
       rviz:
@@ -495,6 +496,7 @@ launch:
       outlier_threshold: "0.15"
       weighted_confidence: "True"
       reconstruction_metric: "True" # false for real robot
+      ground_truth_path: "/home/michelelagreca/Documents/robotics/active_vision/src/fruit_picking_bringup/data/octree_tomato_3.bt"
       step_reconstruction_metric_vis: "False"
       # Rviz
       rviz:

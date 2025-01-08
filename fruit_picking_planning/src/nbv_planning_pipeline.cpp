@@ -55,6 +55,7 @@ namespace active_vision_nbv_planning_pipeline{
         utilityType_ = this->declare_parameter("utility_type", "expected_semantic_information_gain");
         utilityVis_ = this->declare_parameter("utility_vis", false); 
         reconstructionMetric_ = this->declare_parameter("reconstruction_metric", false); 
+        octree_truth_filename = this->declare_parameter("ground_truth_path", "none");
         stepReconstructionMetricVis_ = this->declare_parameter("step_reconstruction_metric_vis", false); 
 
 
@@ -99,7 +100,6 @@ namespace active_vision_nbv_planning_pipeline{
         if (reconstructionMetric_){
             RCLCPP_INFO(this->get_logger(), "Loading ground truth octomap data...");
 
-            std::string octree_truth_filename = "/home/michelelagreca/Documents/robotics/fruit_picking/src/fruit_picking_bringup/data/octree_tomato_obfuscated_truth.bt";
             octree_truth_ = extended_octomap_node_->loadOctree(octree_truth_filename);
 
             RCLCPP_INFO(this->get_logger(), "Octree truth saved.");

@@ -95,6 +95,7 @@ namespace active_vision_pipeline{
         std::vector<float> totalEntropies_;
 
         bool reconstructionMetric_;
+        std::string octree_truth_filename;
         bool stepReconstructionMetricVis_;
         std::shared_ptr<OcTreeT> octree_truth_;
         std::vector<double> stepF1_;

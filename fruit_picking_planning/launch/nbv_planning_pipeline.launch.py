@@ -87,6 +87,7 @@ def generate_launch_description():
         DeclareLaunchArgument('outlier_threshold', default_value='0.15'),
         DeclareLaunchArgument('weighted_confidence', default_value='False'),
         DeclareLaunchArgument('reconstruction_metric', default_value='False'),
+        DeclareLaunchArgument('ground_truth_path', default_value='none'),
         DeclareLaunchArgument('step_reconstruction_metric_vis', default_value='False'),
 
 
@@ -188,6 +189,7 @@ def generate_launch_description():
             'outlier_threshold': LaunchConfiguration('outlier_threshold'),
             'weighted_confidence': LaunchConfiguration('weighted_confidence'),
             'reconstruction_metric': LaunchConfiguration('reconstruction_metric'),
+            'ground_truth_path': LaunchConfiguration('ground_truth_path'),
             'step_reconstruction_metric_vis': LaunchConfiguration('step_reconstruction_metric_vis'),            
             }]
         )

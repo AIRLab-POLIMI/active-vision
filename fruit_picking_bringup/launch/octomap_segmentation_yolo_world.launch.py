@@ -87,6 +87,30 @@ def generate_launch_description():
         description="Name of the world to be loaded in Gazebo Ignition of the type: name.sdf",
     )
 
+    spawn_x_arg = DeclareLaunchArgument(
+        name="spawn_x",
+        default_value="-0.7",
+        description="x position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_y_arg = DeclareLaunchArgument(
+        name="spawn_y",
+        default_value="3.0",
+        description="y position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_z_arg = DeclareLaunchArgument(
+        name="spawn_z",
+        default_value="0.0",
+        description="z position for the robot spawned in Gazebo Ignition",
+    )
+
+    spawn_yaw_arg = DeclareLaunchArgument(
+        name="spawn_yaw",
+        default_value="0.0",
+        description="Yaw orientation for the robot spawned in Gazebo Ignition",
+    )
+
     test_camera_arg = DeclareLaunchArgument(
         name="test_camera",
         default_value="false",
@@ -149,6 +173,10 @@ def generate_launch_description():
             moveit_arg,
             env_gazebo_package_arg,
             full_world_name_arg,
+            spawn_x_arg,
+            spawn_y_arg,
+            spawn_z_arg,
+            spawn_yaw_arg,
             test_camera_arg,
             run_robot_arg,
             run_yolo_world_arg,

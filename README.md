@@ -472,7 +472,7 @@ rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
    - In `active_vision/src` folder run: `git clone https://github.com/AIRLab-POLIMI/active-vision.git`
    - Copy the content of the cloned `active_vision` folder (also *.git* and *.gitignore* files) into `src` folder, adn remove the folder `images`
    - Downgrade *setuptools* (from 70.0.0 to a lower version): `python3 -m pip install setuptools==69.5.1`
-   - In the workspace folder run: `colcon build --packages-select fruit_picking_interfaces`
+   - In the workspace folder run: `colcon build --packages-select av_interfaces`
    - In the workspace folder run: `colcon build`
    - Ignore warnings
    - `source ~/.bashrc` to make effective the changes (or restart the terminal)
@@ -550,7 +550,7 @@ The first functionality of the architecture is to create and continuously update
   <br>
 
   ```bash
-    ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true
+    ros2 launch av_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true
   ```
     - The occupancy octomap is created and updated.
     - Several parameters can be changed in the yaml configuration file ``.
@@ -564,7 +564,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=none
+      ros2 launch av_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=none
       ```
       - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
         <br>
@@ -573,7 +573,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ros2 launch av_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
       ```
       
 
@@ -581,7 +581,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ros2 launch av_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
       ```
       - It is possible to move the robot using the MoveIt2 commands in RViz2.
 
@@ -591,7 +591,7 @@ The first functionality of the architecture is to create and continuously update
   <br>
 
   ```bash
-    ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true
+    ros2 launch av_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true
   ```
 
     - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the color-filtering segmentation node.
@@ -606,7 +606,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ros2 launch av_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
       ```
       - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
         <br>
@@ -615,14 +615,14 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ros2 launch av_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
       ```
 
     - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ros2 launch av_bringup octomap_segmentation_color_filter.launch.py run_robot:=true run_rviz:=true run_color_filter:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
       ```
       - It is possible to move the robot using the MoveIt2 commands in RViz2.
 
@@ -632,7 +632,7 @@ The first functionality of the architecture is to create and continuously update
   <br>
 
   ```bash
-    ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true
+    ros2 launch av_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true
   ```
 
     - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the Lang SAM segmentation node.
@@ -647,7 +647,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
+      ros2 launch av_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
       ```
       - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
         <br>
@@ -656,14 +656,14 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ros2 launch av_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
       ```
 
     - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ros2 launch av_bringup octomap_segmentation_lang_sam.launch.py run_robot:=true run_rviz:=true run_lang_sam:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
       ```
       - It is possible to move the robot using the MoveIt2 commands in RViz2.
      
@@ -673,7 +673,7 @@ The first functionality of the architecture is to create and continuously update
   <br>
 
   ```bash
-    ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true
+    ros2 launch av_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true
   ```
 
     - The occupancy octomap and the semantic OctoMap is created and updated. The semantic information comes from the YOLO World + EfficientViT SAM segmentation node.
@@ -688,7 +688,7 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
+      ros2 launch av_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=soft_gripper spawn_x:=-1.0 spawn_yaw:=0.0 spawn_y:=3.0
       ```
       - It is possible to move the robot using the *Joint Position Controller* GUI in Gazebo Ignition.
         <br>
@@ -697,14 +697,14 @@ The first functionality of the architecture is to create and continuously update
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
+      ros2 launch av_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false test_camera:=true
       ```
 
     - Example command to execute the OctoMap creation funcionality starting from the data coming from the Realsense camera mounted on the real Igus ReBeL robot:
       <br>
 
       ```bash
-      ros2 launch fruit_picking_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
+      ros2 launch av_bringup octomap_segmentation_yolo_world.launch.py run_robot:=true run_rviz:=true run_yolo_world:=true run_pt:=true run_s_pt:=true run_octomap:=true load_gazebo:=false hardware_protocol:=cri moveit:=true load_base:=true mount:=mount_v2 camera:=realsense end_effector:=soft_gripper
       ```
       - It is possible to move the robot using the MoveIt2 commands in RViz2.
 
@@ -721,15 +721,15 @@ used to allow multiple nodes to run in separate threads: *MoveIt2APICreator*, *S
 ## Simulation (Without mobile base)
 
 - To perform 3D reconstruction using the predefined planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_yaw:=0.0`;
-   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_y:=3.0 spawn_yaw:=0.0`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
 <br>
 
 - To perform 3D reconstruction using the NBV planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_yaw:=0.0`;
-   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_y:=3.0 spawn_yaw:=0.0`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true`.
 
 
 
@@ -737,30 +737,30 @@ used to allow multiple nodes to run in separate threads: *MoveIt2APICreator*, *S
 ## Simulation (With mobile base)
 
 - To perform 3D reconstruction using the predefined planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
-   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
 <br>
 
 - To perform 3D reconstruction using the NBV planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
-   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_yaw:=0.0 load_base:=true`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
 
 
 
 ## Real-World (With mobile base)
 
 - To perform 3D reconstruction using the predefined planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
-   - Run the active vision pipeline with predefined planning: `ros2 launch fruit_picking_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
+   - Run the active vision pipeline with predefined planning: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`.
 <br>
 
 - To perform 3D reconstruction using the NBV planning:
-   - Run the segmentation server: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
-   - Run the active vision pipeline with NBV planning: `ros2 launch fruit_picking_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true load_gazebo:=false hardware_protocol:=cri`.
+   - Run the segmentation server: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true load_base:=true hardware_protocol:=cri load_gazebo:=false`;
+   - Run the active vision pipeline with NBV planning: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true load_gazebo:=false hardware_protocol:=cri`.
 
 
 

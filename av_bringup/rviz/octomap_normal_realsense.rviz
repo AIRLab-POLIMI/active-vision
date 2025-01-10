@@ -248,7 +248,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /fruit_picking/pointcloud/pointcloud
+        Value: /active_vision/pointcloud/pointcloud
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
@@ -262,7 +262,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/octomap/occupied_cells_vis
+        Value: /active_vision/octomap/occupied_cells_vis
       Value: false
   Enabled: true
   Global Options:

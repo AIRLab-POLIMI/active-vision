@@ -198,7 +198,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/segmentation/lang_sam/rgb_image
+        Value: /active_vision/segmentation/lang_sam/rgb_image
       Value: false
     - Alpha: 1
       Auto Size:
@@ -306,7 +306,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /fruit_picking/pointcloud/pointcloud
+        Value: /active_vision/pointcloud/pointcloud
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
@@ -340,7 +340,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /fruit_picking/pointcloud/segmented_pointcloud
+        Value: /active_vision/pointcloud/segmented_pointcloud
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
@@ -354,7 +354,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/octomap/occupied_cells_vis
+        Value: /active_vision/octomap/occupied_cells_vis
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: false
@@ -366,7 +366,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/octomap/lang_sam/semantic_class_cells_vis
+        Value: /active_vision/octomap/lang_sam/semantic_class_cells_vis
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: false
@@ -378,7 +378,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/octomap/lang_sam/confidence_cells_vis
+        Value: /active_vision/octomap/lang_sam/confidence_cells_vis
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: false
@@ -390,7 +390,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fruit_picking/octomap/lang_sam/instances_cells_vis
+        Value: /active_vision/octomap/lang_sam/instances_cells_vis
       Value: false
   Enabled: true
   Global Options:

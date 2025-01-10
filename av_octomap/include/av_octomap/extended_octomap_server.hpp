@@ -59,6 +59,9 @@
 #include <std_srvs/srv/set_bool.hpp>
 #include "message_filters/sync_policies/approximate_time.h"
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
+
 #ifndef COLOR_OCTOMAP_SERVER
 // #define COLOR_OCTOMAP_SERVER
 #include <octomap/ColorOcTree.h>

@@ -60,6 +60,13 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    ld.add_action(
+        DeclareLaunchArgument(
+            "model_path",
+            default_value="none",
+        )
+    )
+
 
     # Nodes
     
@@ -83,6 +90,7 @@ def generate_launch_description() -> LaunchDescription:
                     "yolo_world_model_type": LaunchConfiguration("yolo_world_model_type"),
                     "efficient_SAM_model_type": LaunchConfiguration("efficient_SAM_model_type"),
                     "confidence_normalization": LaunchConfiguration("confidence_normalization"),
+                    "model_path": LaunchConfiguration("model_path"),
                 }
             ]
         )

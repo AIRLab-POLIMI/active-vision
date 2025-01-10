@@ -2728,7 +2728,8 @@ namespace extended_octomap_server {
 
             // Create the filename
             std::stringstream tree_filename;
-            tree_filename << "/home/michelelagreca/Documents/robotics/active_vision/src/av_bringup/data/octree_" << buf << "_truth.bt";
+            std::string package_path = ament_index_cpp::get_package_share_directory("av_bringup");
+            tree_filename << package_path << "/data/octree_" << buf << "_truth.bt";
             
             bool tree_save = saveOctree(tree_filename.str());
 

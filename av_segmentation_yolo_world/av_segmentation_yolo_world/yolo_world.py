@@ -63,6 +63,7 @@ class YOLOWorldNode(Node):
                 ("confidence_threshold", 0.001),
                 ("nms_threshold", 0.2),
                 ("confidence_normalization", False),
+                ("model_path", "none"),
             ],
         )
 
@@ -86,6 +87,8 @@ class YOLOWorldNode(Node):
         self._yolo_world_confidence_threshold = self.get_parameter("confidence_threshold").value
         self._yolo_world_nms_threshold = self.get_parameter("nms_threshold").value
         self._yolo_world_confidence_normalization = self.get_parameter("confidence_normalization").value
+        self._yolo_world_model_path = self.get_parameter("model_path").value
+
 
 
 
@@ -100,7 +103,7 @@ class YOLOWorldNode(Node):
 
 
         # Load Efficient SAM model and annotators
-        efficient_sam_path = f"../michelelagreca/Documents/robotics/models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
+        efficient_sam_path = f"{self._yolo_world_model_path}/models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
         efficient_sam_path_alternative = f"../models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
 
         self.get_logger().info(

@@ -270,6 +270,7 @@ launch:
       publish_original_depth_image: "True"
       publish_original_depth_image_camera_info: "True"
       publish_original_tf: "True"
+      model_path: "/home/michelelagreca/Documents/robotics"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
       segmentation_prompt: "tomato" 
@@ -349,6 +350,7 @@ launch:
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
       confidence_normalization: "True"
+      model_path: "/home/michelelagreca/Documents/robotics"
 
     predefined_planning_pipeline_launch:
       # Planning

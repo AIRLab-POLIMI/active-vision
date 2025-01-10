@@ -41,6 +41,7 @@ class YOLOWorldServer(Node):
                 ("yolo_world_model_type", "yolo_world/l"),
                 ("efficient_SAM_model_type", "l0"),
                 ("confidence_normalization", False),
+                ("model_path", "none"),
             ],
         )
 
@@ -49,6 +50,8 @@ class YOLOWorldServer(Node):
         self._yolo_world_model_type = self.get_parameter("yolo_world_model_type").value
         self._efficient_SAM_model_type = self.get_parameter("efficient_SAM_model_type").value
         self._yolo_world_confidence_normalization = self.get_parameter("confidence_normalization").value
+        self._yolo_world_model_path = self.get_parameter("model_path").value
+
 
 
 
@@ -64,7 +67,7 @@ class YOLOWorldServer(Node):
 
 
         # Load Efficient SAM model and annotators
-        efficient_sam_path = f"../michelelagreca/Documents/robotics/models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
+        efficient_sam_path = f"{self._yolo_world_model_path}/models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
         efficient_sam_path_alternative = f"../models/efficient_SAM_{self._efficient_SAM_model_type}.pt"
 
         self.get_logger().info(

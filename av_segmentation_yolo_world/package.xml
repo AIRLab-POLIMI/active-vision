@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>av_segmentation_yolo_world</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="michelelagreca.work@gmail.com">michelelagreca</maintainer>
-  <license>TODO: License declaration</license>
+  <version>1.0.1</version>
+  <description>The av_segmentation_yolo_world package is responsible for performing segmentation using the YOLO World model. This package includes source code, launch files, and configuration files required for the segmentation process.</description>
+  <maintainer email="michelelagreca.work@gmail.com">Michele Carlo La Greca</maintainer>
+  <license>Apache 2.0</license>
 
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>rclpy</exec_depend>

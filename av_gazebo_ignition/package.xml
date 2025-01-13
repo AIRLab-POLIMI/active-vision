@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>av_gazebo_ignition</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="michelelagreca.work@gmail.com">michelelagreca</maintainer>
-  <license>TODO: License declaration</license>
+  <version>1.0.1</version>
+  <description>The av_gazebo_ignition package is responsible for providing the environment elements needed for the simulation of the Igus ReBeL robot in a Gazebo Ignition environment. This package includes configuration files, models, and world definitions required for the simulation.</description>
+  <maintainer email="michelelagreca.work@gmail.com">Michele Carlo La Greca</maintainer>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

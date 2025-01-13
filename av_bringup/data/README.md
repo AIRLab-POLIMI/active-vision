@@ -1,4 +1,4 @@
-## Ground Truth Details
+# Ground Truth Details
 
 There are 4 ground truth corresponding to 4 different tomato plants:
 - `octree_tomato_1.bt` contains the ground truth of the reconstructed octree related to the occluded tomato plant, placed at coordinates (0.0, 0.0). This ground truth has been saved with the robot arm placed at coordinates (-0.6, 0.0).
@@ -8,7 +8,7 @@ There are 4 ground truth corresponding to 4 different tomato plants:
 
 To test the active vision pipeline using these ground truth, it is necessary to spawn the robotic arm in Gazebo at the same coordinate where the ground truth has been recorded (using command line parameters `spawn_x`, `spawn_y`)
 
-### Save new ground truth
+## Save new ground truth
 
 - Firstly, it is needed to execute the octomap creation node to simulate the environment in Gazebo: `ros2 launch av_bringup octomap_normal.launch.py run_robot:=true run_rviz:=true run_pt:=true run_octomap:=true load_base:=false mount:=mount_v2 camera:=realsense end_effector:=none`
   - Change spawn position to move the robot, getting a different ground truth

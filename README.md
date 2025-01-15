@@ -99,8 +99,8 @@ This work focuses on the following contributions:
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
      - In `movit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
-     - In the same folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done
-rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
+     - In the same folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
+     - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
      - Install STOMP planner and, since it is not supported for the humble version of ROS 2, some manual modifications are needed:
        - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2) in the same folder)

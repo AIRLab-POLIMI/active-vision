@@ -95,7 +95,51 @@ class LANGSAMPubSub(Node):
 
 
 
-        # Define clock callback group for multi-threading and initialize clock subscriber
+        """
+        In order to create a segmented pointcloud combining the segmented RGB image (both with SAM or color filtering) 
+        and the depth image coming from the camera, the two data need to have the same timestamp.
+
+        Infact, right before publish the segmented RGB image into the topic, the header timestamp has to be set to 
+        the current ROS time. 
+
+        - This is not a problem for the color filter processing, because it is a fast approach and the timestamp 
+          before the publication can be set also equal to the timestamp of the original image before the processing, 
+          even though **the current time would be the best theoric setting**.
+        - Using the current ROS time is mandatory for the segmented RGB image with SAM, because between the start of 
+          the inference and its end there could be some processing time. Thus, using the original image timestamp could 
+          lead in using an old timestamp, and in such a way the final processed RGB image would have a timestamp different 
+          to the current depth image.
+          - The case becomes as the color filter segmentation if the inference is done using a GPU, and as a result the 
+            inference time becomes negligible.
+
+        This is doable if ROS time is used (`use_sim_time` parameter set to `False`)
+
+        When the `use_sim_time` parameter is set to `True`, everything change. Infact, in this case, getting the 
+        current ROS time in the node is not as simple as before, because:
+
+        - with `use_sim_time` set to `False`, the time is the ROS time, and it is internal and handled by the ROS system.
+          It can be accessed anytime by each node even inside the callbacks without subscribing to any topic 
+          (eg without subscribing to `/clock` topic). This time is always updated.
+    
+        - with `use_sim_time` set to `True`, the time is the simulation time (eg the Gazebo Ignition time). 
+          ROS obtain the time subscribing to the `/clock` topic.
+    
+          Thus, a node in order to get the ROS time has to subscribe to this topic. This subscription is done 
+          internally in each node. The problem is that by default nodes are mono-threaded. So when a node is busy 
+          doing a callback, until it finish this callback the simulated clock cannot be updated (the internal callback of 
+          the `/clock` topic cannot be served in parallel of the current callback). This problem is visible when the 
+          `lang_sam_pub_sub.py` file is executed, and the `LANGSAMPubSub` node is created.
+    
+            - This node is by default mono-threaded
+            - When this node executed the callback segment, the unique thread is becoming busy for some second to do inference.
+            - Inside the callback, if the node want to access the ROS time (using `get_clock().now()` for example), 
+              it will access the ROS time published before the start of the current callcback, since the node can not 
+              subscibe to the /clock topic because is already in a callback.
+
+        The solution is multi-threading. In this way segment() will not have overlap with itself, and it will execute in 
+        parallel with clock_callback()
+        """
+
         clock_subscriber_group = MutuallyExclusiveCallbackGroup()
         self.clock_subscriber = self.create_subscription(Clock, '/clock', self.clock_sub, 10, callback_group=clock_subscriber_group)
 
@@ -170,6 +214,67 @@ class LANGSAMPubSub(Node):
 
     def clock_sub(self, msg):
         pass
+
+
+
+    """
+    To solve the problem of multithreading between clock and segment callbacks, and the discrepancy between the resulting 
+    segmented rgb image and the depth, camera and tf messages that needs to have the timestamp of the original image, 
+    a possible solution is a subscription to 3 different topics in the `lang_sam_pub_sub.py` node. 
+    The topics are `/depth_image`, `/rgb_image`, `/camera_info`. The idea is that, in this way, after the processing, 
+    the mask are published, together with the original depth image and camera info topics, since these two messages 
+    will be the exact data related to the processed RGB image. Infact this will avoid the fact that the depth image 
+    and camera info taken will be new data not related to the processed image.
+
+    Note that this problem is only when a decentralized apporach (suing topics) is used, and in the project this approach
+    is used to perform octomap creation.
+
+    - Instead of a subscriber to the RGB image topic, a synchronizer needs to be used, since the callback need to be 
+      called after the reception of 3 messages from different topics.
+    - In order to let the callback be executed on a different thread to deal with the previous case of subscription to 
+      the `/clock` topic, a new approach has been used:
+        - The previous setup used two mutually exclusive callback groups, one for the clock callback and another 
+            for the segmentation callback. This ensured that each callback could be executed in separate threads, 
+            allowing them to run concurrently without blocking each other. The segmentation callback was directly 
+            subscribed to a topic that published RGB images, triggering the callback whenever a new image was published.
+        - The current implementation explicitly defines only one mutually exclusive callback group for the clock subscriber. 
+            This suggests that the primary intention is to isolate the clock callback execution, ensuring it runs 
+            independently of other operations.
+        - Instead of using a callback group for the segmentation operation, the current implementation employs a 
+            custom threading solution.
+            - It uses `message_filters` to synchronize messages from multiple topics.
+            - The synchronization mechanism waits for three messages (presumably RGB image, depth image, and camera 
+                info, based on the context) that arrive within a specified time frame. This ensures that the data being 
+                processed is temporally coherent, which is often critical for tasks like image segmentation where data from 
+                multiple sensors must align.
+            - Once the synchronized messages are received, the wrapper function `segmentation_wrapper()` is triggered. 
+                This function's role is to package these messages together (also with the related tf) and insert them into 
+                a queue. The queue serves as a thread-safe mechanism for transferring data between threads, ensuring that 
+                the data is not corrupted and that access is managed correctly across threads.
+            - A separate thread runs continuously in the background executing the function `segmentation_thread_func()`, 
+                monitoring the queue for new data. When new data arrives (i.e., the queue is not empty), this thread 
+                retrieves the data and executes the semantic segmentation callback with it.
+            - The semantic segmentation callback, which is executed by the dedicated thread, processes the synchronized 
+                messages. Since this processing is done in a separate thread, it does not block or interfere with other 
+                operations, such as receiving new messages or handling other callbacks (e.g., the clock callback).
+        - To avoid the fact that the synchronizer put each message received into the queue, and instead put a single 
+            message that will be immediately processed by `segmentation_thread_func`, a flag is used:
+            - This flag is a boolean variable that is set to true initially
+            - `segmentation_wrapper` is entered only if the lock is true, and after putting the current synchronized 
+                data into the queue, it sets the lock to false
+            - `segmentation_thread_func` is entered only if the lock is false. After the segment callback is executed, 
+                the lock is set to true
+        - This approach ensures that the `segmentation_wrapper` will only add items to the queue when the 
+            `segmentation_thread_func` has processed the current item and explicitly signaled that it's safe to do so. 
+            This approach does not guarantee atomicity and the same performances of the mutex. Still, for simplicity it 
+            works (in the semantic segmentation approach).
+
+    Another important element is getting the transforms of the system related to the specific input data 
+    (RGB, depth and camera info). For this, the `lang_sam_pub_sub.py` node is also listening for the tf of the system. 
+    Whenever a tuple of RGB, depth and camera info data is obtained by the callback and processed, in that moment also 
+    the tf of the system is saved and published when the segmented image is available, since it is then used in the 
+    octomap node to transform in a correct way the data.
+    """
              
 
 

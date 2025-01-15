@@ -2,7 +2,23 @@
 
 namespace extended_octomap_server {
 
-    // Constructor of extended octomap server
+    /**
+     * @brief Constructor for the ExtendedOctomapServer class.
+     * 
+     * This constructor initializes the ExtendedOctomapServer class, setting up various parameters and configurations
+     * required for managing and processing OctoMaps with extended data. It declares ROS 2 parameters, initializes
+     * the OctoMap object, and sets up the tf2 buffer and listener for transformation handling.
+     * 
+     * Key initializations include:
+     * - Setting default values for parameters such as map resolution, color settings, and filtering options.
+     * - Declaring ROS 2 parameters for configuration.
+     * - Initializing the OctoMap object with specified resolution and probability parameters.
+     * - Setting up the tf2 buffer and listener for transformation handling.
+     * - Configuring various settings such as point cloud boundaries, ground filtering, and map compression.
+     * 
+     * @param options Node options for ROS 2 node initialization.
+     * @param node_name Name of the ROS 2 node.
+     */
     ExtendedOctomapServer::ExtendedOctomapServer(const rclcpp::NodeOptions &options, const std::string node_name):
         Node(node_name, options),
         m_octree(NULL),
@@ -278,13 +294,25 @@ namespace extended_octomap_server {
     }
 
 
-    // Destructor of extended octomap server
+    /**
+     * @brief Destructor for the ExtendedOctomapServer class.
+     * 
+     * This destructor cleans up the ExtendedOctomapServer class, releasing resources and memory allocated during
+     * the lifetime of the class. It also performs cleanup operations such as clearing the OctoMap object and
+     * releasing the tf2 buffer and listener.
+     */
     ExtendedOctomapServer::~ExtendedOctomapServer(){}
 
 
 
-
-    // Initialization of the extended octomap server elements
+    /**
+     * @brief Creates the publishers and subscribers for the ExtendedOctomapServer class.
+     * 
+     * This function creates the publishers and subscribers for the ExtendedOctomapServer class, setting up the
+     * necessary communication channels for handling OctoMap data and extended information. It creates publishers
+     * for binary and full OctoMaps, point clouds, and 2D maps, as well as subscribers for point clouds and segmented
+     * point clouds. It also creates services for handling OctoMap data requests.
+     */
     void ExtendedOctomapServer::createPubSub() {
 
         // Publishers
@@ -354,6 +382,8 @@ namespace extended_octomap_server {
             message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
                 this, "cloud_in", rmw_qos_profile_sensor_data);
 
+        // If the partial pointcloud is not required, the subscriber to the partial tf is created using 
+        // the tf2_ros::MessageFilter
         if (!partialPointcloudSubscription){
             auto create_timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
                 this->get_node_base_interface(),
@@ -373,6 +403,7 @@ namespace extended_octomap_server {
 
 
         }
+        // If the partial pointcloud is required, the subscriber to the partial tf is created using a synchronizer
         else{  
             this->partialTfSub = std::make_shared<
                 message_filters::Subscriber<geometry_msgs::msg::TransformStamped>>(
@@ -407,6 +438,8 @@ namespace extended_octomap_server {
 
         RCLCPP_INFO(this->get_logger(), "Creating extended octomap server subscribers...");
 
+        // If the segmented pointclouds array is required, the subscriber to the segmented pointclouds array and 
+        // segmented tf is created using a synchronizer
         if (segmentedPointcloudsArraySubscription){
 
             this->segmentedPointcloudsArraySub = std::make_shared<
@@ -431,7 +464,7 @@ namespace extended_octomap_server {
         }
 
 
-
+        
         if (segmentedPointcloudSubscription){
             
             this->segmentedPointcloudSub = std::make_shared<
@@ -496,7 +529,13 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Creates the visualization publishers for the ExtendedOctomapServer class.
+     * 
+     * This function creates the visualization publishers for the ExtendedOctomapServer class, setting up the
+     * necessary communication channels for visualizing OctoMap data and extended information. It creates publishers
+     * for occupied and free cells, confidence markers, semantic class markers, and instance markers.
+     */
     void ExtendedOctomapServer::createVisualizations(){
 
         // Visualization publishers
@@ -544,11 +583,22 @@ namespace extended_octomap_server {
 
 
 
-
-    // Callback called when the pointcloud is the whole scan
+    /**
+     * @brief Callback function for the insertion of a pointcloud used to update the occupancy OctoMap.
+     * 
+     * The function takes a sensor_msgs/PointCloud2
+     * point cloud message as input and inserts it into a PCL point cloud object. Coordinate
+     * frame transformations are performed, specifically between the sensor frame and the world
+     * frame. Filters are defined to remove points outside a specified range along each dimension
+     * (x, y, z) of the point cloud. If ground filtering is enabled, the point cloud is filtered to
+     * remove ground points, creating separate ground and non-ground point clouds.
+     * 
+     * @param cloud The pointcloud message to be processed.
+     */
     void ExtendedOctomapServer::insertCloudCallback(
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud){
 
+        // Variable to handle a service called to activate and deactivate the insertion of the pointcloud
         if (!insertCloudActive){
             return;
         }
@@ -559,9 +609,7 @@ namespace extended_octomap_server {
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][insertCloudCallback] Pointcloud callback started.");
 
 
-        //
-        // ground filtering in base frame
-        //
+        // Ground filtering in base frame
         PCLPointCloud pc; // input cloud for filtering and ground-detection
         pcl::fromROSMsg(*cloud, pc);
         
@@ -587,7 +635,7 @@ namespace extended_octomap_server {
             return;
         }
 
-        // set up filter for height range, also removes NANs:
+        // Set up filter for height range, also removes NANs:
         pcl::PassThrough<PCLPoint> pass_x;
         pass_x.setFilterFieldName("x");
         pass_x.setFilterLimits(m_pointcloudMinX, m_pointcloudMaxX);
@@ -685,7 +733,22 @@ namespace extended_octomap_server {
         
     }
 
-    // Callback called when the pointcloud is the partial one
+
+    /**
+     * @brief Callback function for the insertion of a segmented pointcloud used to update the occupancy OctoMap.
+     * 
+     * This function is introduced to calculate the occupancy OctoMap starting from a smaller point cloud in order to 
+     * decrease the computational load. The resulting occupancy OctoMap is composed of the portion of space related to 
+     * the segmented image coming from the segmentation process. This procedure can be useful for testing
+     * purposes whenever it is not necessary to have an occupancy OctoMap containing the entire occupied portion 
+     * of the space. If the color-filtering approach is used, the point cloud
+     * produced is simply passed to this function. If the zero-shot segmentation approach is used,
+     * instead of passing the array of point clouds, the point cloud produced from the merged
+     * masks needs to be passed.
+     * 
+     * @param cloud The full pointcloud message to be processed.
+     * @param segmented_tf the tf related to the pointcloud message to be processed.
+     */
     void ExtendedOctomapServer::insertPartialCloudCallback(
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud,
         const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf
@@ -785,6 +848,39 @@ namespace extended_octomap_server {
     }
 
 
+    /**
+     * @brief Callback function for the insertion of a pointcloud used to update the occupancy OctoMap.
+     * 
+     * First, the function obtains the ground and non-ground point cloud objects. Then, two unordered
+     * sets are created, containing the addresses or keys of unoccupied and occupied voxels.
+     * A loop iterates through the ground point cloud object. For each point, a ray is generated
+     * from the sensor origin to itself. The ray is inserted into the unoccupied voxel keys’ set.
+     * A loop iterates through the non-ground point cloud object. For each point, a ray from
+     * the sensor origin to itself is created. This ray is inserted into the unoccupied voxel keys’
+     * set, while the point is added to the occupied voxel keys’ set. The discrete voxel keys
+     * representing the position of the minimum and maximum values of the bounding box of
+     * all known space in the x, y, and z dimensions are updated.
+     * Next, a loop iterates through the unoccupied voxel keys’ set. Each key is checked against
+     * the occupied voxel keys’. If a key is only in the unoccupied voxel keys’ set, the occupancy
+     * probability is updated and will presumably decrease toward 0. A loop iterates through
+     * the occupied voxel keys’ set.
+     * 
+     * If segmentation is required, the keys of the hash map related to the semantic OctoMap need to be initialized.
+     * A loop through the occupied voxels’ keys calculated in this specific scan is performed. A
+     * check regarding the presence of each key in the global set containing the occupied voxels’
+     * keys found during all computation (even during the previous scans) is executed. If it is
+     * not present, this means that the key has been found in the current scan and needs to be
+     * added to the global set. In this way, a set stores the occupied voxels’ keys found during
+     * the entire execution of the plugin.
+     * Next, a loop through the global occupied voxels’ keys is executed. If a key is not present
+     * in the hash map related to the semantic OctoMap, a new entry is added with this key,
+     * setting the value in this way: the semantic class is ’none’, the confidence is 0.0, the
+     * instance number is 0, the colors related to class, confidence and instance are white.
+     * 
+     * @param sensorOriginTf the tf related to the pointcloud message to be processed.
+     * @param ground the ground pointcloud message to be processed.
+     * @param nonground the non-ground pointcloud message to be processed.
+     */
     void ExtendedOctomapServer::insertScan(
         const geometry_msgs::msg::Vector3 &sensorOriginTf,
         const PCLPointCloud& ground,
@@ -945,6 +1041,22 @@ namespace extended_octomap_server {
 
 
 
+    /**
+     * @brief Callback used to insert a single segmented-image point cloud into the semantic OctoMap.
+     * 
+     * The function takes as input a sensor_msgs/PointCloud2 segmented-image point cloud message related 
+     * to the color-filtering segmentation. Coordinate frame transformations are performed, specifically 
+     * between the sensor frame and the world frame. Filters are defined to remove points outside a 
+     * specified range along each dimension (x, y, z) of the point cloud. A loop through this segmented 
+     * point cloud is performed. Each point is converted into a voxel, and if the voxel’s key is present in 
+     * the hash map related to the semantic OctoMap, it is skipped, otherwise the semantic class of value of 
+     * this key is set with a string different from ’none’. In this way, all the points that have been segmented
+     * using the color-filtering approach correspond to semantic voxels.
+     * 
+     * @param segmented_pointcloud The segmented pointcloud message to be processed.
+     * @param segmented_tf the tf related to the pointcloud message to be processed.
+     * @param cloud the full pointcloud message to be processed.
+     */
     void ExtendedOctomapServer::insertSegmentedPointcloudCallback(
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &segmented_pointcloud, 
         const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
@@ -1036,7 +1148,52 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Callback related to the insertion of an array of point clouds obtained by the zero-shot segmentation process.
+     * 
+     * The function starts by taking as input the custom message containing the array of point clouds, the semantic class, 
+     * and the dictionary of confidences. Each point cloud refers to a mask found during the zero-shot segmentation. 
+     * For each point cloud, the main procedure is executed as follows:
+     * 
+     * 1. **Store Confidences and Semantic Class**: The confidences and the semantic class coming from the input custom message are stored.
+     * 2. **Convert and Transform Point Cloud**: Each point cloud message sensor_msgs/PointCloud2 is converted into a PCL point cloud object, 
+     *    transformed from sensor frame to world frame, and filtered based on the parameters related to the minimum and maximum possible values 
+     *    admitted for the points. The outlier removal is applied to the point cloud object.
+     * 3. **Loop Through Points**: A loop through the points is executed. If the node related to a point is not present in the hash map related 
+     *    to the semantic OctoMap, a new entry is added with this key, setting the value in this way: the semantic class is 'none', the confidence 
+     *    is 0.0, the instance number is 0, the colors related to class, confidence, and instance are white. The key of the voxel located at the 
+     *    point is retrieved and stored in a utility set.
+     * 4. **Store Voxel Keys**: At the end of the loop, the utility set contains all the keys of the voxels located at the point cloud being analyzed. 
+     *    The next operations use this set and not the point cloud since it is more efficient.
+     * 5. **Find Most Frequent Instance Number**: The most frequent instance number of the voxels inside the utility set is saved using a specific function. 
+     *    The function stores the frequency of each instance number by iterating through the keys of the utility set, retrieving the associated instance 
+     *    number, and incrementing the count for that instance number. The function finds the instance number with the highest frequency.
+     * 6. **Handle Frequency Threshold**: The function has an optional feature controlled by the useFrequencyThreshold argument. This is useful when an 
+     *    instance has the majority of voxels with instance number 0 (no semantic), but the actual instance is different from the non-semantic one (0). 
+     *    If the most frequent instance number is 0, this instance number is removed, making the second the new most frequent instance number. The function 
+     *    then compares the frequency of this second most frequent instance number to the original frequency of the instance number 0. If the second most 
+     *    frequent instance number has a frequency that is at least a certain percentage (frequencyThreshold argument) of the original instance 0’s frequency, 
+     *    the function returns the second most frequent instance number. Otherwise, it still returns the instance 0 as the most frequent one.
+     * 7. **Update OctoMap Data**: The function iterates through the voxel keys of the utility set and updates the OctoMap data. The semantic information 
+     *    (class, confidence, instance number, number of points present in the voxel associated with the object instance number) is stored in specific variables.
+     *    - If the voxel instance number is equal to the most frequent instance number found using the previous procedure, its confidence and semantic class 
+     *      are updated using max fusion. The number of points present in the voxel associated with the object instance number is also updated. If the instance 
+     *      number of the voxel is 0, the instance needs to be initialized with the current maximum (and free) instance number.
+     *    - If the voxel’s instance number is not equal to the most frequent instance number, it may happen that the most frequent instance number is 0, and 
+     *      this means that the current instance has not been initialized. The voxel goes to the collision map to decide if it needs to remain with the already 
+     *      existing instance number or be considered with the most frequent instance number.
+     * 8. **Check for Voxel Collisions**: The function checks for voxel collisions. The collision map is a map where the keys are voxels, and the values are tuples: 
+     *    one element refers to the current values of the voxel, and the other refers to the values that the voxel will obtain if it would be considered as part of 
+     *    the instance defined by the most frequent instance number. Each element of the tuple has a count representing the number of points in the voxel related 
+     *    to the current voxel’s instance and the instance identified by the most frequent instance number. This voxel is set with the instance number of the tuple 
+     *    element that has the greater count value. The collision map is cleared to free memory and prepare for the next iteration.
+     * 9. **Outlier Detection and Removal**: The final steps of the iteration are the outlier detection and removal in the semantic OctoMap and the function to 
+     *    weight the confidence of the voxels of an instance with the same value.
+     * 
+     * @param segmented_pointclouds_array The segmented pointclouds array message to be processed.
+     * @param segmented_tf The tf related to the pointcloud message to be processed.
+     * @param cloud The full pointcloud message to be processed.
+     */
     void ExtendedOctomapServer::insertSegmentedPointcloudsArrayCallback(
         const av_interfaces::msg::PointcloudArray::ConstSharedPtr &segmented_pointclouds_array, 
         const geometry_msgs::msg::TransformStamped::ConstSharedPtr &segmented_tf,
@@ -1303,7 +1460,30 @@ namespace extended_octomap_server {
 
 
 
-        // outlier_detection for noise removal
+        // Outlier detection and removal
+        // The algorithm starts by initializing a threshold from the outlier_threshold argument. 
+        // This is used to determine whether a voxel should be considered an outlier.
+        // The loop starts iterating through all the nodes of the occupied OctoMap.
+        // • A search neighborhood is constructed around the current voxel. This neighborhood
+        // is a cubic region centered on the voxel, extending search_neighborhood_ray units
+        // in each direction. The algorithm iterates through each neighboring position and
+        // checks if the corresponding voxel exists. If it does, the voxel’s key is added to the
+        // search neighborhood set.
+        // • Next, a count variable containing how many voxels in the search neighborhood have
+        // the same instance number as the current voxel is stored. The threshold value is cal-
+        // culated as a percentage of the total number of voxels in the search neighborhood. If
+        // the count of neighbor voxels with the same instance number is below this threshold,
+        // the voxel is considered an outlier.
+        // • If the voxel is identified as an outlier, a correction neighborhood is
+        // built similarly to the search neighborhood but with a different radius
+        // correction_neighborhood_ray. The most frequent instance number in this cor-
+        // rection neighborhood is calculated similarly to how it was done in Algorithm 3.1.
+        // If the most frequent instance number in the correction neighborhood differs from
+        // the current voxel’s instance number, the voxel is considered an outlier. The voxel’s
+        // instance number is updated to the most frequent instance number from the correc-
+        // tion neighborhood. Additionally, the voxel’s confidence, color, and semantic class
+        // are updated based on the most frequent instance in the correction neighborhood.
+        // This ensures that the voxel’s properties are consistent with its corrected instance.
         if (outlier_detection) {
             double threshold = outlier_threshold;
             // Iterate through all leaf nodes
@@ -1471,7 +1651,16 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Publishes all relevant occupancy OctoMap data including markers, point clouds, and maps.
+     * 
+     * This function is responsible for publishing various representations of the OctoMap data, such as marker arrays for 
+     * occupied and free nodes, point clouds, and binary and full maps. It checks the subscription counts for different 
+     * topics to determine which data needs to be published and prepares the data accordingly.
+     * 
+     * 
+     * @param rostime The current ROS time to be used for the headers of the published messages.
+     */
     void ExtendedOctomapServer::publishAll(
         const rclcpp::Time &rostime) {
 
@@ -1734,7 +1923,12 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Publishes the markers related to the confidence of the voxels.
+     * 
+     * 
+     * @param rostime The current ROS time to be used for the headers of the published messages.
+     */
     void ExtendedOctomapServer::publishConfidenceMarkers(const rclcpp::Time &rostime) const {
         
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishConfidenceMarkers] Publishing markers of confidence...");
@@ -1823,7 +2017,12 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Publishes the markers related to the semantic class of the voxels.
+     * 
+     * 
+     * @param rostime The current ROS time to be used for the headers of the published messages.
+     */
     void ExtendedOctomapServer::publishSemanticClassMarkers(const rclcpp::Time &rostime) const {
         
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishSemanticClassMarkers] Publishing markers of classes...");
@@ -1909,7 +2108,12 @@ namespace extended_octomap_server {
 
     } 
 
-
+    /**
+     * @brief Publishes the markers related to the instance of the voxels.
+     * 
+     * 
+     * @param rostime The current ROS time to be used for the headers of the published messages.
+     */
     void ExtendedOctomapServer::publishInstancesMarkers(const rclcpp::Time &rostime) const {
         
         RCLCPP_DEBUG(this->get_logger(), "[EXTENDED OCTOMAP SERVER][publishInstancesMarkers] Publishing markers of instances...");
@@ -1997,7 +2201,7 @@ namespace extended_octomap_server {
     }
 
 
-
+    
     bool ExtendedOctomapServer::octomapBinarySrv(
         const std::shared_ptr<OctomapSrv::Request> /*req*/, // This tells the compiler that the parameter is intentionally unused.
         std::shared_ptr<OctomapSrv::Response> res) {
@@ -2598,7 +2802,19 @@ namespace extended_octomap_server {
 
 
 
-    // Function to find the most frequent instance of a set of octree nodes (using the octreekey as address)
+    /**
+     * @brief Finds the most frequent instance in the given set of point cloud keys.
+     * 
+     * This function iterates over the provided set of point cloud keys, retrieves the instance associated with each key,
+     * and counts the frequency of each instance. It then determines the most frequent instance. If the useFrequencyThreshold
+     * parameter is enabled, the function handles cases where the most frequent instance is 0 by checking if the second most
+     * frequent instance meets a specified threshold.
+     * 
+     * 
+     * @param map The extended OctoMap containing the voxels.
+     * @param pointcloudKeys The set of point cloud keys to analyze.
+     * @return The instance (key) of the most frequent element.
+     */
     int ExtendedOctomapServer::findMostFrequentInstance(ExtendedOctomapMap& map, const octomap::KeySet& pointcloudKeys) {
         std::map<int, int> instanceFrequency; // Map to store frequency of each instance
 
@@ -2652,8 +2868,18 @@ namespace extended_octomap_server {
     }
     
     
-    
-    // Function to count the number of points inside a octree node (using the octreekey as address)
+    /**
+     * @brief Counts the number of points in a voxel.
+     * 
+     * This function iterates over the provided point cloud and counts the number of points that fall within the specified voxel.
+     * It converts each point in the point cloud to an OcTree key and compares it with the target key. If they match, the count is incremented.
+     * 
+     * 
+     * @param pointcloud The point cloud to analyze.
+     * @param targetKey The OcTree key of the target voxel.
+     * @param m_octree The shared pointer to the OcTree.
+     * @return The number of points in the specified voxel.
+     */
     int ExtendedOctomapServer::countPointsInVoxel(const PCLPointCloud& pointcloud, const octomap::OcTreeKey& targetKey, std::shared_ptr<OcTreeT> m_octree) {
         int count = 0;
         for (const auto& point : pointcloud) {
@@ -2685,7 +2911,15 @@ namespace extended_octomap_server {
 
 
 
-
+    /**
+     * @brief Saves the OctoMap to a binary file.
+     * 
+     * This function saves the current state of the OctoMap to a specified binary file. It checks if the OctoMap is initialized,
+     * opens the file for writing, and writes the OctoMap data in binary format.
+     * 
+     * @param filename The name of the file to save the OctoMap to.
+     * @return True if the OctoMap was successfully saved, false otherwise.
+     */
     bool ExtendedOctomapServer::saveOctree(const std::string &filename) {
         if (!m_octree) {
             RCLCPP_ERROR(this->get_logger(), "Octree is not initialized");
@@ -2701,6 +2935,16 @@ namespace extended_octomap_server {
         return true;
     }
 
+
+    /**
+     * @brief Loads the OctoMap from a binary file.
+     * 
+     * This function loads the state of the OctoMap from a specified binary file. It opens the file for reading, creates a new 
+     * OctoMap object, and reads the OctoMap data from the file in binary format.
+     * 
+     * @param filename The name of the file to load the OctoMap from.
+     * @return A shared pointer to the loaded OctoMap object, or nullptr if the file could not be opened.
+     */
     std::shared_ptr<OcTreeT> ExtendedOctomapServer::loadOctree(const std::string &filename) {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs) {
@@ -2713,7 +2957,16 @@ namespace extended_octomap_server {
         return m_octree;
     }
 
-
+    /**
+     * @brief Callback for saving OctoMap data via a service request.
+     * 
+     * This function handles service requests to save the current state of the OctoMap. If the request data is true, it performs
+     * the save operation by generating a filename based on the current time, saving the OctoMap to a binary file, and setting
+     * the response message accordingly.
+     * 
+     * @param request The service request containing the data to process.
+     * @param response The service response to be populated with the result of the operation.
+     */
     void ExtendedOctomapServer::saveOctomapDataServiceCallback(
         const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
         std::shared_ptr<std_srvs::srv::SetBool::Response> response)

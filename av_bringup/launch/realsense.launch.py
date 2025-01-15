@@ -1,6 +1,11 @@
 # Based on the visualize_franka script licensed under the Apache license which can be found here:
 # https://github.com/frankaemika/franka_ros2/blob/develop/franka_description/launch/visualize_franka.launch.py
 
+# This launch is responsible for launching the realsense camera, the robot state publisher, the imu filter. In this way it
+# is possible to visualize the camera in rviz. The imu filter is used to create a TF between the camera and the container, 
+# and it is useful to visualize the camera in the correct position in rviz, and using the IMU the rotational movement that are 
+# performed in reality are visualized also in Rviz. The robot state publisher is used to publish the robot state in rviz.
+
 from launch import LaunchDescription
 from launch.substitutions import (
     PathJoinSubstitution,

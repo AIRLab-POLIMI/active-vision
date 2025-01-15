@@ -2,7 +2,30 @@
 
 namespace active_vision_predefined_planning_pipeline{
     
-    // Constructor
+    
+    /**
+     * @brief Constructor for the ActiveVisionPredefinedPlanningPipeline class.
+     * 
+     * This constructor initializes the ActiveVisionPredefinedPlanningPipeline class, setting up various parameters and 
+     * configurations required for the predefined planning pipeline. It initializes the necessary nodes, 
+     * reads parameters, and sets up publishers and clients for segmentation and visualization.
+     * 
+     * Key steps include:
+     * 1. **Initialize Nodes**: Store the provided nodes into member variables.
+     * 2. **Read Parameters**: Declare and read various parameters required for the predefined planning pipeline.
+     * 3. **Initialize Segmentation Service**: Set up the client for the YOLO World segmentation service.
+     * 4. **Initialize Publishers**: Create publishers for segmented images, point clouds, and octomap visualizations.
+     * 5. **Initialize Octomap**: Set up the octomap data structure and load ground truth data if required.
+     * 6. **Initialize MoveIt2 Variables**: Set up initial positions and orientations for MoveIt2.
+     * 
+     * @param MoveIt2API_creator Shared pointer to the MoveIt2APIs object.
+     * @param pointcloud_creator Shared pointer to the FullPointcloud object.
+     * @param segmented_pointcloud_creator Shared pointer to the SegmentedPointcloud object.
+     * @param extended_octomap_creator Shared pointer to the ExtendedOctomapServer object.
+     * @param segmentationClientNode Shared pointer to the segmentation client node.
+     * @param options Node options for ROS 2 node initialization.
+     * @param node_name Name of the ROS 2 node.
+     */
     ActiveVisionPredefinedPlanningPipeline::ActiveVisionPredefinedPlanningPipeline(
         std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
@@ -95,7 +118,13 @@ namespace active_vision_predefined_planning_pipeline{
         
     }
 
-
+    /**
+     * @brief Create a data subscriber to obtain data from the robot.
+     * 
+     * This function creates a data subscriber to obtain data from the robot. It subscribes to the RGB image, depth image, and camera info topics.
+     * The subscriber saves the data once it is received and notifies the main thread to continue.
+     * 
+     */
     void ActiveVisionPredefinedPlanningPipeline::createDataSub(){
         try {
             data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_rgb_, sub_depth_, sub_camera_info_);
@@ -124,7 +153,15 @@ namespace active_vision_predefined_planning_pipeline{
     }
 
 
-
+    /**
+     * @brief Save the data once it is received and notify the main thread to continue.
+     * 
+     * This function saves the data once it is received and notifies the main thread to continue.
+     * 
+     * @param rgb_msg Shared pointer to the RGB image message.
+     * @param depth_msg Shared pointer to the depth image message.
+     * @param camera_info_msg Shared pointer to the camera info message.
+     */
     void ActiveVisionPredefinedPlanningPipeline::saveData(
         const Image::ConstSharedPtr & rgb_msg,
         const Image::ConstSharedPtr & depth_msg,
@@ -182,7 +219,32 @@ namespace active_vision_predefined_planning_pipeline{
 
 
 
-
+    /**
+     * @brief Main thread for the predefined planning pipeline.
+     * 
+     * This function is the main thread for the predefined planning pipeline. It executes the predefined planning pipeline, 
+     * moving the robot to predefined positions and obtaining data from the robot. It then sends the data to the segmentation server, 
+     * updates the octomap, and calculates the total entropy of the scene. It also calculates the F1 score for the reconstruction 
+     * if the reconstruction metric is enabled.
+     * 1. Initialize the initial position and visualize the planning viewpoints.
+     * 2. Visualize the initial position and move the robot to it.
+     * 3. Create a data subscriber to obtain data from the robot.
+     * 4. Enter a loop to perform predefined planning steps.
+     * 5. Obtain data from the robot.
+     * 6. Create a segmentation request for the server.
+     * 7. Wait for the server to be active.
+     * 8. Send the data to the segmentation server.
+     * 9. Wait for the response and save the segmented images.
+     * 10. Publish the segmented image (for visualization).
+     * 11. Create full and segmented point clouds.
+     * 12. Update the octomap and publish visualization.
+     * 13. Calculate the total entropy of the scene.
+     * 14. Calculate the F1 score for the reconstruction.
+     * 15. Move the robot to the next predefined viewpoint.
+     * 16. Repeat the loop for the maximum number of predefined planning poses.
+     * 17. Output the step entropies and number of instances found with final confidence.
+     * 
+     */
     void ActiveVisionPredefinedPlanningPipeline::ActiveVisionPredefinedPlanningPipelineThread(){
         
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
@@ -500,6 +562,15 @@ namespace active_vision_predefined_planning_pipeline{
 
 
 
+    /**
+     * @brief Create a vector of planned positions.
+     * 
+     * This function creates a vector of planned positions based on the predefined planning waypoints configuration. 
+     * It reads the joint limits and planning waypoints from the configuration files and calculates the planning positions 
+     * based on the joint limits and planning waypoints.
+     * 
+     * @return std::vector<std::array<double, 6>> Vector of planned positions.
+     */
     std::vector<std::array<double, 6>> ActiveVisionPredefinedPlanningPipeline::createPlanningPoses(){
 
 
@@ -556,6 +627,27 @@ namespace active_vision_predefined_planning_pipeline{
 
 
 
+    /**
+     * @brief Calculates the reconstruction metric by comparing the ground truth octomap with the reconstructed octomap.
+     * 
+     * This function calculates the reconstruction metric by comparing the ground truth octomap with the reconstructed octomap.
+     * It identifies true positives, false positives, and false negatives, and computes the F1 score based on these values.
+     * Optionally, it visualizes the points in RViz.
+     * 
+     * Key steps include:
+     * 1. **Initialize Point Vectors**: Initialize vectors to store points from the ground truth and reconstructed octomaps.
+     * 2. **Fill Ground Truth Points**: Iterate through the ground truth octomap and fill the vector with points.
+     * 3. **Visualize Ground Truth Points (Optional)**: Optionally, visualize the ground truth points in RViz.
+     * 4. **Fill Reconstruction Points**: Iterate through the reconstructed octomap and fill the vector with points.
+     * 5. **Visualize Reconstruction Points (Optional)**: Optionally, visualize the reconstructed points in RViz.
+     * 6. **Calculate TP, FP, FN**: Identify true positives, false positives, and false negatives by comparing the two sets of points.
+     * 7. **Visualize TP, FP, FN (Optional)**: Optionally, visualize the true positives, false positives, and false negatives in RViz.
+     * 8. **Compute F1 Score**: Calculate the precision, recall, and F1 score based on the TP, FP, and FN values.
+     * 9. **Return F1 Score**: Return the computed F1 score.
+     * 
+     * @param visualization A boolean flag to enable or disable visualization in RViz.
+     * @return The F1 score representing the reconstruction metric.
+     */
     double ActiveVisionPredefinedPlanningPipeline::reconstructionMetric(bool visualization){
         
         // Save set of point referring to the truth and to the reconstruction

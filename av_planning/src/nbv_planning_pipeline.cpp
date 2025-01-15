@@ -3,7 +3,30 @@
 
 namespace active_vision_nbv_planning_pipeline{
     
-    // Constructor
+    /**
+     * @brief Constructor for the ActiveVisionNbvPlanningPipeline class.
+     * 
+     * This constructor initializes the ActiveVisionNbvPlanningPipeline class, setting up various parameters and 
+     * configurations required for the next-best-view (NBV) planning pipeline. It initializes the necessary nodes, 
+     * reads parameters, and sets up publishers and clients for segmentation and visualization.
+     * 
+     * Key steps include:
+     * 1. **Initialize Nodes**: Store the provided nodes into member variables.
+     * 2. **Read Parameters**: Declare and read various parameters required for the NBV planning pipeline.
+     * 3. **Initialize Segmentation Service**: Set up the client for the YOLO World segmentation service.
+     * 4. **Initialize Publishers**: Create publishers for segmented images, point clouds, and octomap visualizations.
+     * 5. **Initialize Octomap**: Set up the octomap data structure and load ground truth data if required.
+     * 6. **Initialize MoveIt2 Variables**: Set up initial positions and orientations for MoveIt2.
+     * 7. **Set Maximum NBV Planning Steps**: Define the maximum number of steps for the NBV planning process.
+     * 
+     * @param MoveIt2API_creator Shared pointer to the MoveIt2APIs object.
+     * @param pointcloud_creator Shared pointer to the FullPointcloud object.
+     * @param segmented_pointcloud_creator Shared pointer to the SegmentedPointcloud object.
+     * @param extended_octomap_creator Shared pointer to the ExtendedOctomapServer object.
+     * @param segmentationClientNode Shared pointer to the segmentation client node.
+     * @param options Node options for ROS 2 node initialization.
+     * @param node_name Name of the ROS 2 node.
+     */
     ActiveVisionNbvPlanningPipeline::ActiveVisionNbvPlanningPipeline(
         std::shared_ptr<MoveIt2APIs> MoveIt2API_creator,
         std::shared_ptr<full_pointcloud::FullPointcloud> pointcloud_creator,
@@ -114,9 +137,35 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-
-
-
+    /**
+     * @brief Main thread for the NBV planning pipeline.
+     * 
+     * This function is the main thread for the NBV planning pipeline. It performs the following steps:
+     * 1. Initialize the initial position and candidate viewpoints.
+     * 2. Visualize the initial position and move the robot to it.
+     * 3. Create a data subscriber to obtain data from the robot.
+     * 4. Enter a loop to perform NBV planning steps.
+     * 5. Obtain data from the robot.
+     * 6. Create a segmentation request for the server.
+     * 7. Wait for the server to be active.
+     * 8. Send the data to the segmentation server.
+     * 9. Wait for the response and save the segmented images.
+     * 10. Publish the segmented image (for visualization).
+     * 11. Create full and segmented point clouds.
+     * 12. Update the octomap and publish visualization.
+     * 13. Calculate the total entropy of the scene.
+     * 14. Calculate the F1 score for the reconstruction.
+     * 15. Generate candidate viewpoints.
+     * 16. Visualize candidate viewpoints.
+     * 17. Calculate valid candidate viewpoints.
+     * 18. Visualize valid candidate viewpoints.
+     * 19. Choose the next best view (NBV) viewpoint.
+     * 20. Visualize the NBV and candidate viewpoints.
+     * 21. Move the robot to the NBV.
+     * 22. Repeat the loop for the maximum number of NBV planning steps.
+     * 23. Output the step entropies and number of instances found with final confidence.
+     * 
+     */
     void ActiveVisionNbvPlanningPipeline::ActiveVisionNbvPlanningPipelineThread(){
         
         RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------");
@@ -592,6 +641,13 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Create a data subscriber to obtain data from the robot.
+     * 
+     * This function creates a data subscriber to obtain data from the robot. It subscribes to the RGB image, depth image, and camera info topics.
+     * The subscriber saves the data once it is received and notifies the main thread to continue.
+     * 
+     */
     void ActiveVisionNbvPlanningPipeline::createDataSub(){
         try {
             data_sync_ = std::make_shared<DataSynchronizer>(DataSyncPolicy(queue_size_), sub_rgb_, sub_depth_, sub_camera_info_);
@@ -621,6 +677,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Save the data once it is received and notify the main thread to continue.
+     * 
+     * This function saves the data once it is received and notifies the main thread to continue.
+     * 
+     * @param rgb_msg Shared pointer to the RGB image message.
+     * @param depth_msg Shared pointer to the depth image message.
+     * @param camera_info_msg Shared pointer to the camera info message.
+     */
     void ActiveVisionNbvPlanningPipeline::saveData(
         const Image::ConstSharedPtr & rgb_msg,
         const Image::ConstSharedPtr & depth_msg,
@@ -673,7 +738,12 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
-
+    
+    /**
+     * @brief Get the initial position from the config file.
+     * 
+     * @return The PoseStamped message.
+     */
     std::array<double, 6> ActiveVisionNbvPlanningPipeline::getInitialPosition(){
 
         // Load yaml configuration files
@@ -717,6 +787,19 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Generate candidate viewpoints in a plane around the reference pose.
+     * 
+     * This function generates candidate viewpoints in a plane around the reference pose.
+     * The function generates the candidate viewpoints based on the plane type, number of viewpoints, and side length.
+     * 
+     * @param referencePose The reference pose around which the candidate viewpoints are generated.
+     * @param orientations The number of orientations for each candidate viewpoint.
+     * @param planeTypeCandidateViewpoints_ The type of plane for the candidate viewpoints.
+     * @param N The number of candidate viewpoints.
+     * @param sideLength The side length of the plane.
+     * @return A vector of Eigen poses representing the candidate viewpoints.
+     */
     std::vector<Eigen::Isometry3d> ActiveVisionNbvPlanningPipeline::generatePlaneCandidateViewpoints(
         const Eigen::Isometry3d referencePose, 
         int orientations,
@@ -842,6 +925,13 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Find the point representing the uppest and centered point with respect to some poses.
+     * 
+     * 
+     * @param poses The list of viewpoints.
+     * @return The uppest centered point.
+     */
     geometry_msgs::msg::Pose ActiveVisionNbvPlanningPipeline::findUpperCenterPose(const std::vector<Eigen::Isometry3d>& poses) {
         if (poses.empty()) {
             throw std::invalid_argument("Poses vector is empty.");
@@ -891,6 +981,14 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Convert an Eigen::Isometry3d to a geometry_msgs::msg::PoseStamped.
+     * 
+     * This function converts an Eigen::Isometry3d to a geometry_msgs::msg::PoseStamped.
+     * 
+     * @param isometry The Eigen::Isometry3d to convert.
+     * @return The converted geometry_msgs::msg::PoseStamped.
+     */
     geometry_msgs::msg::PoseStamped::SharedPtr ActiveVisionNbvPlanningPipeline::eigenIsometry3dToPoseStamped(const Eigen::Isometry3d& isometry) {
         auto pose_msg = std::make_shared<geometry_msgs::msg::PoseStamped>();
 
@@ -915,6 +1013,17 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Visualizes an arrow representing the pose's forward direction in RViz.
+     * 
+     * This function visualizes an arrow in RViz to represent the forward direction of a given pose. It calculates the start and end points
+     * of the arrow based on the pose's translation and orientation, and then publishes the arrow using RViz visual tools.
+     * 
+     * @param pose The pose to visualize, represented as an Eigen::Isometry3d.
+     * @param length The length of the arrow.
+     * @param color The color of the arrow.
+     * @param scale The scale of the arrow.
+     */
     void ActiveVisionNbvPlanningPipeline::visualizeArrowPose(const Eigen::Isometry3d& pose, double length,
         rviz_visual_tools::Colors color, rviz_visual_tools::Scales scale)
     {
@@ -941,6 +1050,17 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Chooses a random next-best-view (NBV) pose from a given list of poses.
+     * 
+     * This function selects a random pose from a provided vector of poses. It initializes a random number generator,
+     * generates a random index, and returns the pose at that index.
+     * 
+     * 
+     * @param poses A vector of Eigen::Isometry3d poses to choose from.
+     * @return The randomly selected Eigen::Isometry3d pose.
+     * @throws std::runtime_error if the input vector of poses is empty.
+     */
     Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBVRandom(const std::vector<Eigen::Isometry3d>& poses) {
         // Check if the input vector is empty
         if (poses.empty()) {
@@ -961,6 +1081,18 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Visualizes a frustum representing the field of view (FOV) in RViz.
+     * 
+     * This function visualizes a frustum in RViz to represent the field of view of a given pose. It calculates the direction vectors
+     * for the frustum sides based on the FOV angles and depth, normalizes these vectors, and then publishes the frustum lines using
+     * RViz visual tools.
+     * 
+     * @param starting_pose The starting pose of the frustum, represented as an Eigen::Isometry3d.
+     * @param fov_w_deg The field of view width in degrees.
+     * @param fov_h_deg The field of view height in degrees.
+     * @param frustum_depth The depth of the frustum.
+     */
     void ActiveVisionNbvPlanningPipeline::visualizeFrustum(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth) {
         // Convert FOV from degrees to radians
         double fov_w_rad = fov_w_deg * (M_PI / 180.0);
@@ -1006,7 +1138,18 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
-
+    /**
+     * @brief Visualizes the base of a frustum representing the field of view (FOV) in RViz.
+     * 
+     * This function visualizes the base of a frustum in RViz to represent the field of view of a given pose. It calculates the offsets
+     * for the frustum corners based on the FOV angles and depth, transforms these corners to the world frame, and then publishes the
+     * frustum base as a rectangle using RViz visual tools.
+     * 
+     * @param starting_pose The starting pose of the frustum, represented as an Eigen::Isometry3d.
+     * @param fov_w_deg The field of view width in degrees.
+     * @param fov_h_deg The field of view height in degrees.
+     * @param frustum_depth The depth of the frustum.
+     */
     void ActiveVisionNbvPlanningPipeline::visualizeFrustumBase(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double frustum_depth) {
         // Convert FOV from degrees to radians
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
@@ -1046,7 +1189,21 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
-
+    
+    /**
+     * @brief Generates a grid of points on the base of a frustum representing the field of view (FOV).
+     * 
+     * This function generates a grid of points on the base of a frustum representing the field of view (FOV). It calculates the offsets
+     * for the frustum corners based on the FOV angles and depth, and then generates a grid of points on the frustum base using the
+     * resolution provided.
+     * 
+     * @param starting_pose The starting pose of the frustum, represented as an Eigen::Isometry3d.
+     * @param fov_w_deg The field of view width in degrees.
+     * @param fov_h_deg The field of view height in degrees.
+     * @param resolution_m The resolution of the grid in meters.
+     * @param frustum_depth The depth of the frustum.
+     * @return A vector of Eigen::Vector3d points on the frustum base.
+     */
     std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::generateFrustumBaseGrid(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m, double frustum_depth) {
         // Convert FOV from degrees to radians
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
@@ -1092,11 +1249,22 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Perform naive ray casting to find the closest occupied voxel to the starting point.
+     * 
+     * This function performs naive ray casting to find the closest occupied voxel to the starting point. It generates ray end points
+     * at a large-enough distance from the starting point to cover the common possible front area, and then casts rays to find the closest
+     * occupied voxel to the starting point. This approach ensures that each ray is cast within the FOV from the starting point to a enough-distant ending point, 
+     * effectively covering the common possible front area.
+     * 
+     * @param pose The starting pose for ray casting, represented as an Eigen::Isometry3d.
+     * @param fov_w The field of view width in degrees.
+     * @param fov_h The field of view height in degrees.
+     * @param visualization A boolean flag to enable visualization of the ray end points.
+     * @return A set of octomap::OcTreeKey keys representing the occupied voxels found by ray casting.
+     */
     octomap::KeySet ActiveVisionNbvPlanningPipeline::performNaiveRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization=false){
 
-        // Generate ray's end point at a large-enough distance from the starting point
-        // This approach ensures that each ray is cast within the FOV from the starting point to a enough-distant ending point, 
-        // effectively covering the common possible front area.
         octomap::KeySet finalSet;
         double ray_depth = maxRayDepth_;
         std::vector<Eigen::Vector3d> end_points = generateFrustumBaseGrid(pose, fov_w, fov_h, extended_octomap_node_->getRes(), ray_depth);
@@ -1147,6 +1315,19 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Generates direction vectors for the base of a frustum representing the field of view (FOV).
+     * 
+     * This function generates direction vectors for the base of a frustum in RViz to represent the field of view of a given pose.
+     * It calculates the offsets for the frustum corners based on the FOV angles and voxel resolution, transforms these directions to the
+     * world frame, and returns the direction vectors.
+     * 
+     * @param starting_pose The starting pose of the frustum, represented as an Eigen::Isometry3d.
+     * @param fov_w_deg The field of view width in degrees.
+     * @param fov_h_deg The field of view height in degrees.
+     * @param resolution_m The resolution in meters.
+     * @return A vector of Eigen::Vector3d direction vectors for the frustum base.
+     */
     std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::generateFrustumBaseDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, double resolution_m) {
         // Convert FOV from degrees to radians
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
@@ -1189,6 +1370,14 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Calculates the center of the occupied nodes in the occupancy map.
+     * 
+     * This function iterates through all the leaf nodes in the octree, accumulates the coordinates of the occupied nodes,
+     * and calculates the average coordinates to determine the center of the occupied nodes in the occupancy map.
+     * 
+     * @return The center of the occupied nodes as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::getOccupancyMapCenter() {
         double sumX = 0, sumY = 0, sumZ = 0; // Accumulators for the sum of coordinates
         unsigned int count = 0; // Count of occupied nodes
@@ -1218,6 +1407,15 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
+    /**
+     * @brief Finds the furthest occupied point in the octree from the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the furthest point along the x-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The furthest occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findFurthestPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d rightmostPoint = Eigen::Vector3d(-std::numeric_limits<double>::infinity(), 0, 0);
         Eigen::Vector3d localPoint;
@@ -1245,6 +1443,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Finds the closest occupied point in the octree to the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the closest point along the x-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The closest occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findClosestPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d leftmostPoint = Eigen::Vector3d(std::numeric_limits<double>::infinity(), 0, 0);
         Eigen::Vector3d localPoint;
@@ -1272,6 +1479,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Finds the highest occupied point in the octree from the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the highest point along the z-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The highest occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findHighestPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d aheadPoint = Eigen::Vector3d(0, 0, -std::numeric_limits<double>::infinity());
         Eigen::Vector3d localPoint;
@@ -1299,6 +1515,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Finds the lowest occupied point in the octree from the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the lowest point along the z-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The lowest occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findLowestPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d behindPoint = Eigen::Vector3d(0, 0, std::numeric_limits<double>::infinity());
         Eigen::Vector3d localPoint;
@@ -1326,6 +1551,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Finds the leftmost occupied point in the octree from the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the leftmost point along the y-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The leftmost occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findLeftMostPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d highestPoint(0, -std::numeric_limits<double>::infinity(), 0);
         Eigen::Vector3d localPoint;
@@ -1353,6 +1587,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Finds the rightmost occupied point in the octree from the current pose.
+     * 
+     * This function iterates through all the leaf nodes in the octree, transforms the coordinates of the occupied nodes to the local frame
+     * of the current pose, and finds the rightmost point along the y-axis. It then transforms this point back to the global frame and returns it.
+     * 
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The rightmost occupied point as an Eigen::Vector3d.
+     */
     Eigen::Vector3d ActiveVisionNbvPlanningPipeline::findRightMostPoint(const Eigen::Isometry3d& current_pose) {
         Eigen::Vector3d lowestPoint(0, std::numeric_limits<double>::infinity(), 0);
         Eigen::Vector3d localPoint;
@@ -1380,6 +1623,15 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Retrieves the positions of points in the octomap that match the target semantic class.
+     * 
+     * This function iterates through all entries in the extended octomap map, checks if the semantic class of each entry matches
+     * the target class, and retrieves the 3D positions of matching points. Optionally, it visualizes the points in RViz.
+     * 
+     * @param visualization A boolean flag to enable or disable visualization in RViz.
+     * @return A vector of Eigen::Vector3d positions of points that match the target semantic class.
+     */
     std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::getSemanticArea(bool visualization=false) {
         std::vector<Eigen::Vector3d> target_positions;
 
@@ -1417,7 +1669,19 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
-
+    /**
+     * @brief Generates direction vectors for the base of a frustum representing the field of view (FOV) with attention to specific target points.
+     * 
+     * This function generates direction vectors for the base of a frustum in RViz to represent the field of view of a given pose, focusing on specific
+     * target points that match a semantic class. It calculates the offsets for the frustum corners based on the FOV angles, transforms these directions
+     * to the world frame, and returns the direction vectors. Optionally, it visualizes the points and directions in RViz.
+     * 
+     * @param starting_pose The starting pose of the frustum, represented as an Eigen::Isometry3d.
+     * @param fov_w_deg The field of view width in degrees.
+     * @param fov_h_deg The field of view height in degrees.
+     * @param visualization A boolean flag to enable or disable visualization in RViz.
+     * @return A vector of Eigen::Vector3d direction vectors for the frustum base.
+     */
     std::vector<Eigen::Vector3d> ActiveVisionNbvPlanningPipeline::generateFrustumBaseAttentionDirections(const Eigen::Isometry3d& starting_pose, double fov_w_deg, double fov_h_deg, bool visualization=false) {
         // Convert FOV from degrees to radians
         double fov_h_rad = fov_h_deg * (M_PI / 180.0);
@@ -1485,12 +1749,21 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Performs ray casting to find the closest occupied voxel to the starting point with attention to specific target points.
+     * 
+     * This function performs ray casting to find the closest occupied voxel to the starting point with attention to specific target points.
+     * It generates ray end points at a large-enough distance from the starting point to cover the area of the semantic objects, and then casts rays
+     * to find the closest occupied voxel to the starting point. This approach ensures that each ray is cast within the FOV from the starting point 
+     * to a enough-distant ending point. The process is speed-up using OMP
+     * 
+     * @param pose The starting pose for ray casting, represented as an Eigen::Isometry3d.
+     * @param fov_w The field of view width in degrees.
+     * @param fov_h The field of view height in degrees.
+     * @return A set of octomap::OcTreeKey keys representing the occupied voxels found by ray casting.
+     */
     octomap::KeySet ActiveVisionNbvPlanningPipeline::performRayCasting(Eigen::Isometry3d pose, double fov_w, double fov_h){
 
-        // Based of the FOV, generate directions
-        // This approach ensures that each ray is cast along directions within the FOV, 
-        // effectively covering the common possible front area. This is doen without calculating end points of the rays.
-        // The process is speed-up using OMP
         octomap::KeySet finalSet;
         double ray_depth = maxRayDepth_;
         std::vector<Eigen::Vector3d> directions = generateFrustumBaseDirections(pose, fov_w, fov_h, extended_octomap_node_->getRes()*rayStepProportion_);
@@ -1520,14 +1793,20 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
-
+    /**
+     * @brief Performs ray casting with attention to specific target points within the field of view (FOV).
+     * 
+     * This function performs ray casting based on the semantic area, generating directions toward the starting point and ensuring that each ray
+     * is cast within the FOV, effectively covering only the area of the semantic objects. The process is parallelized using OpenMP for efficiency.
+     * 
+     * @param pose The starting pose for ray casting, represented as an Eigen::Isometry3d.
+     * @param fov_w The field of view width in degrees.
+     * @param fov_h The field of view height in degrees.
+     * @param visualization A boolean flag to enable or disable visualization in RViz.
+     * @return An octomap::KeySet containing the keys of the hit points.
+     */
     octomap::KeySet ActiveVisionNbvPlanningPipeline::performRayCastingAttention(Eigen::Isometry3d pose, double fov_w, double fov_h, bool visualization=false){
 
-        // Based of the semantic area, generate directions toward the starting point,
-        // ensuring that each ray is cast within the FOV, 
-        // effectively covering only the area of the semantic objects. 
-        // This is doen without calculating end points of the rays.
-        // The process is speed-up using OMP.
         octomap::KeySet finalSet;
         double ray_depth = maxRayDepth_;
         std::vector<Eigen::Vector3d> directions = generateFrustumBaseAttentionDirections(pose, fov_w, fov_h, visualization);
@@ -1558,6 +1837,16 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
+    /**
+     * @brief Calculates the utility of a set of voxels based on a specified utility type.
+     * 
+     * This function calculates the utility of a set of voxels based on a specified utility type. The utility is calculated based on the confidence
+     * of each voxel, and the type of utility calculation is determined by the utility_type parameter. The function returns the total utility value.
+     * 
+     * @param voxels A set of octomap::OcTreeKey keys representing the voxels.
+     * @param utility_type The type of utility calculation to perform.
+     * @return The total utility value as a float.
+     */
     float ActiveVisionNbvPlanningPipeline::utilityCalculation(octomap::KeySet voxels, std::string utility_type){
 
         float utility = 0.0;
@@ -1587,7 +1876,31 @@ namespace active_vision_nbv_planning_pipeline{
 
 
 
-
+    /**
+     * @brief Chooses the next-best-view (NBV) pose from a given list of poses based on utility calculation.
+     * 
+     * This function selects the next-best-view (NBV) pose from a provided vector of poses by calculating the utility of each pose.
+     * It performs ray casting to determine the visibility of semantic objects and calculates the utility based on the specified utility type.
+     * The pose with the highest utility is selected as the NBV. If no better pose is found, it returns the current pose or a random pose.
+     * 
+     * Key steps include:
+     * 1. **Check Input Vector**: Ensure the input vector of poses is not empty.
+     * 2. **Initialize Variables**: Initialize variables for storing pose utilities, maximum utility, and the best pose.
+     * 3. **Calculate FOV**: Calculate the horizontal and vertical field of view (FOV) for the viewpoint frustum.
+     * 4. **Calculate Scene Bounds**: If central attention is needed, calculate the bounds of the scene and adjust them with specified ratios.
+     * 5. **Loop Through Poses**: For each candidate viewpoint pose:
+     *    - Visualize the frustum if visualization is enabled.
+     *    - Perform ray casting to determine the visibility of semantic objects.
+     *    - Calculate the utility of the pose based on the specified utility type.
+     *    - Visualize the result of the ray casting and utility calculation if visualization is enabled.
+     *    - Update the maximum utility and best pose if the current pose has a higher utility.
+     * 6. **Return Best Pose**: Return the pose with the highest utility. If no better pose is found, return the current pose or a random pose.
+     * 
+     * @param poses A vector of Eigen::Isometry3d poses to choose from.
+     * @param current_pose The current pose represented as an Eigen::Isometry3d.
+     * @return The next-best-view (NBV) pose as an Eigen::Isometry3d.
+     * @throws std::runtime_error if the input vector of poses is empty.
+     */
     Eigen::Isometry3d ActiveVisionNbvPlanningPipeline::chooseNBV(const std::vector<Eigen::Isometry3d>& poses, Eigen::Isometry3d current_pose) {
         // Check if the input vector is empty
         if (poses.empty()) {
@@ -1769,6 +2082,27 @@ namespace active_vision_nbv_planning_pipeline{
     }
 
 
+    /**
+     * @brief Calculates the reconstruction metric by comparing the ground truth octomap with the reconstructed octomap.
+     * 
+     * This function calculates the reconstruction metric by comparing the ground truth octomap with the reconstructed octomap.
+     * It identifies true positives, false positives, and false negatives, and computes the F1 score based on these values.
+     * Optionally, it visualizes the points in RViz.
+     * 
+     * Key steps include:
+     * 1. **Initialize Point Vectors**: Initialize vectors to store points from the ground truth and reconstructed octomaps.
+     * 2. **Fill Ground Truth Points**: Iterate through the ground truth octomap and fill the vector with points.
+     * 3. **Visualize Ground Truth Points (Optional)**: Optionally, visualize the ground truth points in RViz.
+     * 4. **Fill Reconstruction Points**: Iterate through the reconstructed octomap and fill the vector with points.
+     * 5. **Visualize Reconstruction Points (Optional)**: Optionally, visualize the reconstructed points in RViz.
+     * 6. **Calculate TP, FP, FN**: Identify true positives, false positives, and false negatives by comparing the two sets of points.
+     * 7. **Visualize TP, FP, FN (Optional)**: Optionally, visualize the true positives, false positives, and false negatives in RViz.
+     * 8. **Compute F1 Score**: Calculate the precision, recall, and F1 score based on the TP, FP, and FN values.
+     * 9. **Return F1 Score**: Return the computed F1 score.
+     * 
+     * @param visualization A boolean flag to enable or disable visualization in RViz.
+     * @return The F1 score representing the reconstruction metric.
+     */
     double ActiveVisionNbvPlanningPipeline::reconstructionMetric(bool visualization){
         
         // Save set of point referring to the truth and to the reconstruction

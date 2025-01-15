@@ -1,6 +1,14 @@
 # Based on the visualize_franka script licensed under the Apache license which can be found here:
 # https://github.com/frankaemika/franka_ros2/blob/develop/franka_description/launch/visualize_franka.launch.py
 
+# This launch is responsible for launching the OctoMap creation process for the 
+# Igus ReBeL robot. This launch file includes various arguments and configurations to customize the launch process, 
+# such as enabling or disabling specific components, setting the robot's initial position, and selecting the camera 
+# and end effector. The launch file is structured such that is is possible to run the entire process or individual elements
+# such as the pointcloud creation or the extended octomap creation.
+
+
+
 from launch import LaunchDescription
 from launch.substitutions import (
     PathJoinSubstitution,

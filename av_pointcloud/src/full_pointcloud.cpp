@@ -48,6 +48,15 @@
 namespace full_pointcloud {
 
 
+/**
+ * @brief Constructor for the FullPointcloud class.
+ * 
+ * This constructor initializes the FullPointcloud class, setting up various parameters and configurations required for the full point cloud processing.
+ * It initializes the ROS 2 node, declares parameters, and sets up initial values for member variables.
+ * 
+ * 
+ * @param options Node options for ROS 2 node initialization.
+ */
 FullPointcloud::FullPointcloud(const rclcpp::NodeOptions & options): 
     rclcpp::Node("FullPointcloud", options),
     centralizedArchitecture(false)
@@ -61,6 +70,14 @@ FullPointcloud::FullPointcloud(const rclcpp::NodeOptions & options):
 
 
 
+/**
+ * @brief Creates publishers and subscribers for the FullPointcloud class.
+ * 
+ * This function sets up the necessary publishers and subscribers for the FullPointcloud class. It reads parameters, initializes
+ * synchronization policies, and sets up the subscribers for depth, RGB, and camera info topics. It also creates the publisher for
+ * the point cloud data.
+ * 
+ */
 void FullPointcloud::createPubSub()
 {
 
@@ -147,7 +164,27 @@ void FullPointcloud::createPubSub()
 
 
 
-
+/**
+ * @brief Callback function for processing synchronized depth, RGB, and camera info messages.
+ * 
+ * This function processes synchronized depth, RGB, and camera info messages to generate a point cloud. It checks for input consistency,
+ * updates the camera model, resizes the RGB image if necessary, and converts the depth and RGB images to a point cloud.
+ * 
+ * Key steps include:
+ * 1. **Check Input Consistency**: Ensure the depth and RGB images have matching frame IDs.
+ * 2. **Update Camera Model**: Update the camera model using the camera info message.
+ * 3. **Resize RGB Image (if needed)**: Resize the RGB image to match the depth image dimensions if necessary.
+ * 4. **Set Color Encoding Offsets**: Determine the offsets for the color channels based on the RGB image encoding.
+ * 5. **Initialize Point Cloud Message**: Create and initialize the point cloud message.
+ * 6. **Convert Depth Image to Point Cloud**: Convert the depth image to a point cloud.
+ * 7. **Convert RGB Image to Point Cloud**: Convert the RGB image to a point cloud.
+ * 8. **Publish Point Cloud**: Publish the point cloud if the centralized architecture is not used.
+ * 
+ * @param depth_msg The depth image message.
+ * @param rgb_msg_in The RGB image message.
+ * @param info_msg The camera info message.
+ * @return A shared pointer to the generated point cloud message.
+ */
 std::shared_ptr<sensor_msgs::msg::PointCloud2> FullPointcloud::imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg_in,

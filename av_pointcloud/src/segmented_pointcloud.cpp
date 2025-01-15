@@ -34,6 +34,15 @@
 
 namespace segmented_pointcloud{
 
+
+/**
+ * @brief Constructor for the SegmentedPointcloud class.
+ * 
+ * This constructor initializes the SegmentedPointcloud class, setting up various parameters and configurations required for the segmented point cloud processing.
+ * It initializes the ROS 2 node, declares parameters, and sets up initial values for member variables.
+ * 
+ * @param options Node options for ROS 2 node initialization.
+ */
 SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options):
     rclcpp::Node("SegmentedPointcloud", options),
     centralizedArchitecture(false)
@@ -44,6 +53,15 @@ SegmentedPointcloud::SegmentedPointcloud(const rclcpp::NodeOptions &options):
 
 }
 
+
+/**
+ * @brief Creates publishers and subscribers for the SegmentedPointcloud class.
+ * 
+ * This function sets up the necessary publishers and subscribers for the SegmentedPointcloud class. It reads parameters, initializes
+ * synchronization policies, and sets up the subscribers for depth, RGB, and camera info topics. It also creates the publisher for
+ * the segmented point cloud data.
+ * 
+ */
 void SegmentedPointcloud::createPubSub()
 {
 
@@ -142,6 +160,27 @@ void SegmentedPointcloud::createPubSub()
 
 }
 
+
+
+/**
+ * @brief Callback function for processing synchronized depth, RGB, and camera info messages.
+ * 
+ * This function processes synchronized depth, RGB, and camera info messages to generate a segmented point cloud. It checks for input consistency,
+ * updates the camera model, resizes the RGB image if necessary, and converts the depth and RGB images to a segmented point cloud.
+ * 
+ * Key steps include:
+ * 1. **Check Input Consistency**: Ensure the depth and RGB images have matching frame IDs.
+ * 2. **Update Camera Model**: Update the camera model using the camera info message.
+ * 3. **Resize RGB Image (if needed)**: Resize the RGB image to match the depth image dimensions if necessary.
+ * 4. **Initialize Point Cloud Message**: Create and initialize the point cloud message.
+ * 5. **Convert Depth Image to Point Cloud**: Convert the depth image to a segmented point cloud.
+ * 6. **Publish Point Cloud**: Publish the point cloud if the centralized architecture is not used.
+ * 
+ * @param depth_msg The depth image message.
+ * @param rgb_msg_in The RGB image message.
+ * @param info_msg The camera info message.
+ * @return A shared pointer to the generated point cloud message.
+ */
 std::shared_ptr<sensor_msgs::msg::PointCloud2> SegmentedPointcloud::imageCb(
     const Image::ConstSharedPtr & depth_msg,
     const Image::ConstSharedPtr & rgb_msg_in,
@@ -241,6 +280,32 @@ std::shared_ptr<sensor_msgs::msg::PointCloud2> SegmentedPointcloud::imageCb(
 
 }
 
+
+
+
+/**
+ * @brief Callback function for processing synchronized depth, RGB array, camera info, and confidence messages.
+ * 
+ * This function processes synchronized depth, RGB array composed of masks, camera info, and confidence messages to generate a segmented point cloud array for each mask.
+ * It checks for input consistency, updates the camera model, resizes the RGB images if necessary, and converts the depth and RGB images
+ * to segmented point clouds.
+ * 
+ * Key steps include:
+ * 1. **Check Input Consistency**: Ensure the depth and RGB images have matching frame IDs.
+ * 2. **Update Camera Model**: Update the camera model using the camera info message.
+ * 3. **Initialize Point Cloud Array Message**: Create and initialize the point cloud array message.
+ * 4. **Loop Through RGB Images**: For each RGB image:
+ *    - Resize the RGB image to match the depth image dimensions if necessary.
+ *    - Convert the depth image to a segmented point cloud.
+ *    - Add the segmented point cloud to the point cloud array message.
+ * 5. **Publish Point Cloud Array**: Publish the point cloud array if the centralized architecture is not used.
+ * 
+ * @param depth_msg The depth image message.
+ * @param rgb_array_in The RGB image array message.of segmented masks
+ * @param info_msg The camera info message.
+ * @param conf_msg The confidence message.
+ * @return A shared pointer to the generated point cloud array message.
+ */
 std::shared_ptr<av_interfaces::msg::PointcloudArray> SegmentedPointcloud::imageArrayCb(
     const Image::ConstSharedPtr & depth_msg,
     const ImageArray::ConstSharedPtr & rgb_array_in,

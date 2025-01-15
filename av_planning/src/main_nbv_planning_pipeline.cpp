@@ -47,7 +47,7 @@ int main(int argc, char * argv[])
 	MoveIt2APICreator->initRvizVisualTools();
 
 
-    // start the main thread for the grasp pose estimator node to estimate the grasp pose from object coordinates
+    // start the main thread for the pipeline
 	std::thread pipeline_thread = std::thread(
 		&active_vision_nbv_planning_pipeline::ActiveVisionNbvPlanningPipeline::ActiveVisionNbvPlanningPipelineThread, Pipeline);
 	pipeline_thread.detach();

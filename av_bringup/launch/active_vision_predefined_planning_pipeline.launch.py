@@ -1,6 +1,15 @@
 # Based on the visualize_franka script licensed under the Apache license which can be found here:
 # https://github.com/frankaemika/franka_ros2/blob/develop/franka_description/launch/visualize_franka.launch.py
 
+# This launch file is responsible for launching the active vision pipeline with the predefined planning 
+# for the Igus ReBeL robot. This launch file includes various arguments and configurations to customize the launch process, 
+# such as enabling or disabling specific components, setting the robot's initial position, and selecting the camera and 
+# end effector.
+# The launch file is structured such that it is possible to run 3 elements in different windows:
+# - The Moveit configuration for the Igus ReBeL robot
+# - The YOLO World server for segmentation
+# - The Active Vision pipeline with the predefined planning
+
 from launch import LaunchDescription
 from launch.substitutions import (
     LaunchConfiguration,

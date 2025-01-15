@@ -56,6 +56,7 @@ This work focuses on the following contributions:
      - Regarding the sourcing, instead of always running the command `source /opt/ros/humble/setup.bash`, a good practice is to add this line in the end of the *bashrc* file that can be modified with the command `gedit ~/.bashrc`. After the modification, the file needs to be saved and the terminal restarted.
    - Install RQt tools: `sudo apt install ros-humble-rqt*`.
    - Install dev tools: `sudo apt update && sudo apt install -y python3-vcstool`.
+   - Initialize rosdep: `sudo rosdep init` and then `rosdep update`
    - Install Gazebo Ignition Fortress:
      - A full guide is at [Gazebo Ignition Fortress](https://gazebosim.org/docs/fortress/install_ubuntu).
      - After the installation run the command: `export IGNITION_VERSION=fortress`.

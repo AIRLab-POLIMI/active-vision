@@ -253,7 +253,7 @@ This work focuses on the following contributions:
    - Install the ROS 2 wrapper of the Realsense D435 used in the project:
      - Guide at [this repository](https://github.com/IntelRealSense/realsense-ros)
      - First, install the latest Intel® RealSense™ SDK 2.0. Use the Option 2, consisting of installing librealsense2:
-       - `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list`
+       - `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'`
        - `sudo apt install curl # if you haven't already installed curl`
        - `curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -`
        - `sudo apt install ros-humble-librealsense2*`

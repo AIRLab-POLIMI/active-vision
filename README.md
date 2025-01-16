@@ -100,17 +100,18 @@ This work focuses on the following contributions:
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
      - In `movit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
-     - In the same folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
+     - cd `movit2_ws`, then `git fetch --all`, and `git checkout ccf7e5c461e3be0b9c805ce593b18cd11871c435` (a commit of 15 sept 2024 on branch humble)
+     - In `movit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
      - Install STOMP planner and, since it is not supported for the humble version of ROS 2, some manual modifications are needed:
-       - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2) in the same folder)
+       - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` main branch copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2) in the same folder)
        - Inside `moveit2_ws/src/moveit2/moveit_planners/moveit_planners/package.xml` insert: `<exec_depend>moveit_planners_stomp</exec_depend>`
-       - Download the *Stomp* folder of the [MoveIt2’s github page](https://github.com/moveit/moveit2) (inside moveit2/moveit_planners) and place it in the same local folder (or follow the [instruction](https://github.com/moveit/stomp_moveit) to build it from source)
+       - Download the *Stomp* folder of the [MoveIt2’s github page](https://github.com/moveit/moveit2) (inside moveit2/moveit_planners) of commit 489d99617932a453057c03134e04e68092b8a189 of main branch (around 15 sept 2024) and place it in the same local folder (or follow the [instruction](https://github.com/moveit/stomp_moveit) to build it from source)
        - Go in folder `moveit2_ws/src/moveit2/moveit_planners` and run: `rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
        - If an error raises with respect to the `#include <moveit/utils/logger.hpp>` not found:
-         - go in the repository `moveit2/moveit_core/utils` and from the include and the src folder copy in the local repo the files regarding it: `logger.hpp` and `logger.cpp`
+         - go in the repository `moveit2/moveit_core/utils` of commit 489d99617932a453057c03134e04e68092b8a189 of main branch (around 15 sept 2024) and from the include and the src folder copy in the local repo the files regarding it: `logger.hpp` and `logger.cpp`
          - in folder `moveit2_ws`: `colcon build --packages-select moveit_core`
        - To solve other errors when the stomp package is compiled:
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/include/stomp_moveit/stomp_moveit_planning_context.hpp` replace the void type of the two solve functions (line 59 and 61) in bool, as well as in the corresponding source file (lines 280 and 215). Moreover, in the src file change the returns of these modified 2 function from empty to false (line 286 and 233) and return true at the end of the function at line 279.

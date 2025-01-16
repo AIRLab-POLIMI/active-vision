@@ -126,7 +126,7 @@ This work focuses on the following contributions:
          </summary>
           
        - Download from the active-vision-branch the specific package folder `moveit2_api` and put it into the `moveit_ws/src` folder
-       - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api`
+       - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api` (if can not compile, compile after the compilation of workspace ros2_igus_rebel)
          
        </details>
        <details>
@@ -291,12 +291,11 @@ This work focuses on the following contributions:
    - Create a workspace (for example called `ros2_igus_rebel`) and create a folder `src` inside
    - Add in the *bashrc* file: `source ../ros2_igus_rebel/install/setup.bash`
    - In `ros2_igus_rebel/src` folder run: `git clone --single-branch --branch active-vision-config https://github.com/AIRLab-POLIMI/ros2-igus-rebel.git`
-   - `sudo rosdep init`
-   - `rosdep update`
-   - `rosdep install -i --from-path src --rosdistro humble -y` to install the dependencies
+   - `rosdep install -i --from-path src --rosdistro humble -y` to install the dependencies (maybe it is not needed)
    - `pip install xacro`
    - In the workspace folder run: `colcon build`
    - `source ~/.bashrc` to make effective the changes (or restart the terminal)
+   - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api`
        
 </details>
 

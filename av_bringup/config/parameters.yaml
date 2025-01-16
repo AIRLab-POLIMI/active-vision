@@ -270,7 +270,7 @@ launch:
       publish_original_depth_image: "True"
       publish_original_depth_image_camera_info: "True"
       publish_original_tf: "True"
-      model_path: "/home/michelelagreca/Documents/robotics"
+      model_path: "/home/michelelagreca/Documents/Robotics"
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
       segmentation_prompt: "tomato" 
@@ -415,7 +415,7 @@ launch:
       outlier_threshold: "0.2"
       weighted_confidence: "True"
       reconstruction_metric: "True" # false for real robot
-      ground_truth_path: "/home/michelelagreca/Documents/robotics/active_vision/src/av_bringup/data/octree_tomato_2.bt"
+      ground_truth_path: "/home/michelelagreca/Documents/Robotics/active_vision/src/av_bringup/data/octree_tomato_2.bt"
       step_reconstruction_metric_vis: "False"
       # Rviz
       rviz:
@@ -498,7 +498,7 @@ launch:
       outlier_threshold: "0.15"
       weighted_confidence: "True"
       reconstruction_metric: "True" # false for real robot
-      ground_truth_path: "/home/michelelagreca/Documents/robotics/active_vision/src/av_bringup/data/octree_tomato_2.bt"
+      ground_truth_path: "/home/michelelagreca/Documents/Robotics/active_vision/src/av_bringup/data/octree_tomato_2.bt"
       step_reconstruction_metric_vis: "False"
       # Rviz
       rviz:

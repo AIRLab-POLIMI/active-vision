@@ -109,6 +109,12 @@ namespace active_vision_predefined_planning_pipeline{
 
             octree_truth_ = extended_octomap_node_->loadOctree(octree_truth_filename);
 
+            if (octree_truth_ == nullptr) {
+                RCLCPP_ERROR(this->get_logger(), "Failed to load ground truth octree from file: %s", octree_truth_filename.c_str());
+                // Terminate or return to stop further execution
+                rclcpp::shutdown();
+            }
+
             RCLCPP_INFO(this->get_logger(), "Octree truth saved.");
         }
 

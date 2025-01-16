@@ -385,9 +385,9 @@ This work focuses on the following contributions:
      - Source: `source ../octomap_server2_ws/install/setup.bash`
 
    - Install *Lang SAM*:
+     - `pip install torch torchvision` 
      - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
      - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` at the commit `134a48a` made on Nov 1st 2023, and copy the folder `lang_sam` into the `site-packages` folder
-     - `pip install torch torchvision`
      - <details>
          <summary>
            Install dependencies:

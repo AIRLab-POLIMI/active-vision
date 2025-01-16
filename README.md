@@ -240,7 +240,7 @@ This work focuses on the following contributions:
 
        
    - Install MoveIt Visual Tools:
-     - Go in `moveit2_ws` folder and clone the repository: `git clone -b ros2 https://github.com/ros-planning/moveit_visual_tools`
+     - Go in `moveit2_ws/src` folder and clone the repository: `git clone -b ros2 https://github.com/ros-planning/moveit_visual_tools`
      - In the same folder: `vcs import < moveit_visual_tools/moveit_visual_tools.repos`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In the folder `movit2_ws`:

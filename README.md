@@ -113,7 +113,7 @@ This work focuses on the following contributions:
          - go in the repository `moveit2/moveit_core/utils` and from the include and the src folder copy in the local repo the files regarding it: `logger.hpp` and `logger.cpp`
          - in folder `moveit2_ws`: `colcon build --packages-select moveit_core`
        - To solve other errors when the stomp package is compiled:
-         - In `moveit2_ws/src/moveit2/moveit_planners/stomp/include/stomp_moveit/stomp_moveit_planning_context.hpp` replace the void type of the two solve functions (line 59 and 61) in bool, as well as in the corresponding source file (lines 280 and 215). Moreover, in the src file change the returns of these modified 2 function from empty to false and return true at the end of the function at line 279.
+         - In `moveit2_ws/src/moveit2/moveit_planners/stomp/include/stomp_moveit/stomp_moveit_planning_context.hpp` replace the void type of the two solve functions (line 59 and 61) in bool, as well as in the corresponding source file (lines 280 and 215). Moreover, in the src file change the returns of these modified 2 function from empty to false (line 286 and 233) and return true at the end of the function at line 279.
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/src/stomp_moveit_planning_context.cpp` comment line 220 removing *planning_id*, change all `res.error_code` in `res.error_code_`, all `res.planning_time` in `res.planning_time_`, and all `res.trajectory` in `res.trajectory_`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
      - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):

@@ -1962,8 +1962,13 @@ namespace active_vision_nbv_planning_pipeline{
             std::tie(newLeftMost_, newRightMost_) = adjustBound(leftMostPoint_.y(), rightMostPoint_.y(), centralAttentionWidthDistanceRatio_);
         }
 
+        // Save sum of calculation time for each candidate viewpoint
+        double elapsed_times = 0;
+        auto total_start = std::chrono::high_resolution_clock::now();
+
         // Start a loop for each valid candidate viewpoint
         for (auto& pose : poses){
+            auto start = std::chrono::high_resolution_clock::now();
 
             if (rayCastingVis_){
                 // Visualize frustum
@@ -2063,7 +2068,19 @@ namespace active_vision_nbv_planning_pipeline{
                 semanticFound_ = true;
             }
 
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed = end - start;
+            elapsed_times = elapsed_times + elapsed.count();
+            RCLCPP_DEBUG(this->get_logger(), "Time taken for the valid candidate viewpoint: %.6f seconds", elapsed.count());
+
         }
+        auto total_end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> total_elapsed = total_end - total_start;
+
+        // Print mean duration of candidate viewpoint operation and total
+        RCLCPP_INFO(this->get_logger(), "Mean time taken for the valid candidate viewpoint: %.6f seconds", elapsed_times / poses.size());
+        RCLCPP_INFO(this->get_logger(), "Total duration of ray casting for all valid candidate viewpoints (%zu): %.6f seconds", poses.size(), total_elapsed.count());
+
 
         // Check if maxUtility was updated
         if (!isMaxUtilityUpdated) {

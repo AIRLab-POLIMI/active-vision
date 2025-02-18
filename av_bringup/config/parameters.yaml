@@ -350,7 +350,7 @@ launch:
       yolo_world_model_type: "yolo_world/l"
       efficient_SAM_model_type: "l0"
       confidence_normalization: "True"
-      model_path: "/home/michelelagreca/Documents/robotics"
+      model_path: "/home/michelelagreca/Documents/Robotics"
 
     predefined_planning_pipeline_launch:
       # Planning

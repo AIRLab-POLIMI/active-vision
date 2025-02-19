@@ -105,9 +105,9 @@ This work focuses on the following contributions:
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
      - Install STOMP planner and, since it is not supported for the humble version of ROS 2, some manual modifications are needed:
-       - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` main branch copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2) in the same folder)
+       - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2/tree/489d99617932a453057c03134e04e68092b8a189), commit 489d99617932a453057c03134e04e68092b8a189, in the same folder)
        - Inside `moveit2_ws/src/moveit2/moveit_planners/moveit_planners/package.xml` insert: `<exec_depend>moveit_planners_stomp</exec_depend>`
-       - Download the *Stomp* folder of the [MoveIt2’s github page](https://github.com/moveit/moveit2) (inside moveit2/moveit_planners) of commit 489d99617932a453057c03134e04e68092b8a189 of main branch (around 15 sept 2024) and place it in the same local folder (or follow the [instruction](https://github.com/moveit/stomp_moveit) to build it from source)
+       - Download the *Stomp* folder of the [MoveIt2’s github page](https://github.com/moveit/moveit2/tree/489d99617932a453057c03134e04e68092b8a189) (inside moveit2/moveit_planners) of commit 489d99617932a453057c03134e04e68092b8a189 of main branch (around 15 sept 2024) and place it in the same local folder (or follow the [instruction](https://github.com/moveit/stomp_moveit) to build it from source)
        - Go in folder `moveit2_ws/src/moveit2/moveit_planners` and run: `rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
        - If an error raises with respect to the `#include <moveit/utils/logger.hpp>` not found:

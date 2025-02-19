@@ -314,7 +314,7 @@ This work focuses on the following contributions:
       sudo apt-get install ros-humble-pcl-ros
       ```
    - Install *Octomap* library:
-     - From [this repostory](https://github.com/octomap/octomap/releases) download the latest version as source file (.zip)
+     - From [this repostory](https://github.com/octomap/octomap/releases) download the v1.10.0 version as source file (.zip)
      - Create a workspace `octomap_ws/src` where the content of the .zip file is extracted
      - In folder `octomap_ws`: `colcon build`
      - Source: `source ../octomap_ws/install/setup.bash`
@@ -385,7 +385,18 @@ This work focuses on the following contributions:
      - Source: `source ../octomap_server2_ws/install/setup.bash`
 
    - Install *Lang SAM*:
-     - `pip install torch torchvision` 
+     - `pip install torch torchvision`
+     - Add `/home/.../.local/bin` to the PATH
+       - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:
+         ```bash
+         gedit ~/.bashrc
+       - Add the following line at the end of the file:
+         ```bash
+         export PATH="$PATH:/home/michelelagreca/.local/bin"
+         ```
+       - ```bash
+         source ~/.bashrc
+         ```
      - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
      - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` at the commit `134a48a` made on Nov 1st 2023, and copy the folder `lang_sam` into the `site-packages` folder
      - <details>
@@ -434,17 +445,6 @@ This work focuses on the following contributions:
 
      - At the first run of this model, sometime is required to download the models.
        
-     - Add `/home/.../.local/bin` to the PATH
-       - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:
-         ```bash
-         gedit ~/.bashrc
-       - Add the following line at the end of the file:
-         ```bash
-         export PATH="$PATH:/home/michelelagreca/.local/bin"
-         ```
-       - ```bash
-         source ~/.bashrc
-         ```
     
    - Install *YOLO World + EfficentViT SAM*:
      - Move inside the `../.local/lib/pythonX.XX/site-packages` folder

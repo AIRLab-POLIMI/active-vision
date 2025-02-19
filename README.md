@@ -100,7 +100,7 @@ This work focuses on the following contributions:
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
      - In `movit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
-     - cd `movit2_ws`, then `git fetch --all`, and `git checkout ccf7e5c461e3be0b9c805ce593b18cd11871c435` (a commit of 15 sept 2024 on branch humble)
+     - cd `moveit2`, then `git fetch --all`, and `git checkout ccf7e5c461e3be0b9c805ce593b18cd11871c435` (a commit of 15 sept 2024 on branch humble)
      - In `movit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`

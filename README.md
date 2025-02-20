@@ -97,6 +97,24 @@ This work focuses on the following contributions:
   </summary>
 
    - Install MoveIt2:
+      <details>
+         <summary>
+           OPTION 1 (Recommended): clone MoveIt2 customized version:
+         </summary>
+          
+     - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
+     - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
+     - In `moveit2_ws/src` folder clone the repository: `git clone https://github.com/michelelagreca/moveit2.git -b active_vision_config`
+     - In `moveit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
+     - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
+     - In `moveit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
+         
+      </details>
+      <details>
+         <summary>
+           OPTION 2: clone MoveIt2 original version and make manual adjustments:
+         </summary>
+         
      - Complete Guide at [MoveIt2](https://moveit.ros.org/install-moveit2/source/)
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
@@ -118,12 +136,14 @@ This work focuses on the following contributions:
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/include/stomp_moveit/stomp_moveit_planning_context.hpp` replace the void type of the two solve functions (line 59 and 61) in bool, as well as in the corresponding source file (lines 280 and 215). Moreover, in the src file change the returns of these modified 2 function from empty to false (line 286 and 233) and return true at the end of the function at line 279.
          - In `moveit2_ws/src/moveit2/moveit_planners/stomp/src/stomp_moveit_planning_context.cpp` comment line 220 removing *planning_id*, change all `res.error_code` in `res.error_code_`, all `res.planning_time` in `res.planning_time_`, and all `res.trajectory` in `res.trajectory_`
        - In `moveit2_ws` folder: `colcon build --packages-select moveit_planners_stomp`
-     - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
+      </details>
+      
+   - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
        - Download and put the package into the `moveit_ws/src`, then build only this: `colcon build --packages-select mobile_manipulation_interfaces`
-     - Install `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
+   - Install `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
        <details>
          <summary>
-           OPTION 1: Use the active-vision-config branch:
+           OPTION 1 (Recommended): Use the active-vision-config branch:
          </summary>
           
        - Download from the active-vision-branch the specific package folder `moveit2_api` and put it into the `moveit_ws/src` folder

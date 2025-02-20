@@ -60,7 +60,7 @@ This work focuses on the following contributions:
    - Install pip: `sudo apt install python3-pip`
    - Install Gazebo Ignition Fortress:
      - A full guide is at [Gazebo Ignition Fortress](https://gazebosim.org/docs/fortress/install_ubuntu).
-     - After the installation run the command: `export IGNITION_VERSION=fortress`.
+     - After the above installation run the command: `export IGNITION_VERSION=fortress`.
      - Install ROS 2 - Gazebo Ignition integration tools from [this repository](https://github.com/gazebosim/ros_gz/tree/humble):
        - ```bash
          sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'

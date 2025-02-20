@@ -49,7 +49,7 @@ This work focuses on the following contributions:
   
 <details>
   <summary>
-    Step 1: Install the ROS 2 Humble distribution for Ubuntu 22.04 and other useful elements. 
+    Step 1: Install the ROS 2 Humble distribution for Ubuntu 22.04.5 and other useful elements. 
   </summary>
 
    - Guide at [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
@@ -57,6 +57,7 @@ This work focuses on the following contributions:
    - Install RQt tools: `sudo apt install ros-humble-rqt*`.
    - Install dev tools: `sudo apt update && sudo apt install -y python3-vcstool`.
    - Initialize rosdep: `sudo rosdep init` and then `rosdep update`
+   - Install pip: `sudo apt install python3-pip`
    - Install Gazebo Ignition Fortress:
      - A full guide is at [Gazebo Ignition Fortress](https://gazebosim.org/docs/fortress/install_ubuntu).
      - After the installation run the command: `export IGNITION_VERSION=fortress`.
@@ -85,7 +86,7 @@ This work focuses on the following contributions:
     Step 2: Setup Real Robot configuration (for Igus ReBeL and Standalone Realsense 435). 
   </summary>
 
-   - For what concerns the real robot... TODO
+   - Documentation is in progress...
        
 </details>
 
@@ -96,14 +97,14 @@ This work focuses on the following contributions:
   </summary>
 
    - Install MoveIt2:
-     - Guide at [MoveIt2](https://moveit.ros.org/install-moveit2/source/)
+     - Complete Guide at [MoveIt2](https://moveit.ros.org/install-moveit2/source/)
      - Create a workspace (for example called `moveit2_ws`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../moveit2_ws/install/setup.bash`
-     - In `movit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
-     - cd `moveit2`, then `git fetch --all`, and `git checkout ccf7e5c461e3be0b9c805ce593b18cd11871c435` (a commit of 15 sept 2024 on branch humble)
-     - In `movit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
+     - In `moveit2_ws/src` folder clone the repository: `git clone https://github.com/ros-planning/moveit2.git -b $ROS_DISTRO`
+     - `cd moveit2`, then `git fetch --all`, and `git checkout ccf7e5c461e3be0b9c805ce593b18cd11871c435` (a commit of 15 sept 2024 on branch humble)
+     - In `moveit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
-     - In `movit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
+     - In `moveit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
      - Install STOMP planner and, since it is not supported for the humble version of ROS 2, some manual modifications are needed:
        - Inside `moveit2_ws/src/moveit2/moveit_configs_utils/deafult_configs` copy the file *stomp_planning.yaml* (available on the [MoveIt2’s github page](https://github.com/moveit/moveit2/tree/489d99617932a453057c03134e04e68092b8a189), commit 489d99617932a453057c03134e04e68092b8a189, in the same folder)
        - Inside `moveit2_ws/src/moveit2/moveit_planners/moveit_planners/package.xml` insert: `<exec_depend>moveit_planners_stomp</exec_depend>`

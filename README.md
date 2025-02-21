@@ -140,11 +140,9 @@ This work focuses on the following contributions:
       
    - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
        - `cd moveit2_ws/src`
-       - `git clone --depth 1 --filter=blob:none --sparse https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel.git`
+       - `git clone --depth 1 --filter=blob:none --sparse --branch active-vision-config https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel.git`
        - `cd mobile-manipulation-scout-rebel`
        - `git sparse-checkout set mobile_manipulation_interfaces`
-       - `git fetch origin 899dbf17d250aa1834c20601808f83def6f56b1a`
-       - `git checkout 899dbf17d250aa1834c20601808f83def6f56b1a`
        - `cd moveit2_ws`
        - `colcon build --packages-select mobile_manipulation_interfaces`
    - Clone the `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
@@ -153,10 +151,8 @@ This work focuses on the following contributions:
            OPTION 1 (Recommended): Use the active-vision-config branch:
          </summary>
 
-       - `cd moveit2_ws/src`
-       - `git clone --depth 1 --filter=blob:none --sparse --branch active-vision-config https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel.git`
-       - `cd mobile-manipulation-scout-rebel`
-       - `git sparse-checkout set moveit2_api`
+       - `cd moveit2_ws/src/mobile-manipulation-scout-rebel`
+       - `git sparse-checkout add moveit2_api`
        - Compile this package after the compilation of workspace ros2_igus_rebel
          
        </details>

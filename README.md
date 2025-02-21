@@ -347,12 +347,11 @@ This work focuses on the following contributions:
       sudo apt-get install ros-humble-pcl-ros
       ```
    - Install *Octomap* library:
-     - From [this repostory](https://github.com/octomap/octomap/releases) download the v1.10.0 version as source file (.zip)
-     - Create a workspace `octomap_ws/src` where the content of the .zip file is extracted
-     - In folder `octomap_ws`: `colcon build`
+     - Create a workspace `octomap_ws/src`
      - Source: `source ../octomap_ws/install/setup.bash`
+     - In src folder: `git clone --depth 1 --branch v1.10.0 https://github.com/OctoMap/octomap.git`
+     - In folder `octomap_ws`: `colcon build --cmake-arg -DCMAKE_BUILD_TYPE=Release`
      - Ignore the warnings of the deprecated functions used in the package
-     - Re-build with `colcon build --cmake-arg -DCMAKE_BUILD_TYPE=Release` if it is needed to have the flag release (suggested)
        <details>
          <summary>
            a warning may raise:
@@ -408,17 +407,21 @@ This work focuses on the following contributions:
    
    - Install `Octomap_Server2`:
      - Create a workspace `octomap_server2_ws/src`
-     - In the folder `octomap_server2_ws/src`: `git clone https://github.com/iKrishneel/octomap_server2.git`
-     - In the folder `octomap_server2_ws/src`: `git clone --single-branch --branch ros2 https://github.com/OctoMap/octomap_msgs.git`
-     - Install dependencies: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
+     - Source: `source ../octomap_server2_ws/install/setup.bash`
+     - In the folder `octomap_server2_ws/src`: `git clone --no-checkout https://github.com/iKrishneel/octomap_server2.git`
+     - `cd octomap_server2`
+     - `git checkout 47c80ad46dd19976f4932247c8830eb35beeb540`
+     - In the folder `octomap_server2_ws/src`: `git clone --no-checkout https://github.com/OctoMap/octomap_msgs.git`
+     - `cd octomap_msgs`
+     - `git checkout 50eece2bfc2f3163b2fb70b9157356e12d375dff`
+     - From src folder, install dependencies: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In folder `octomap_server2_ws`: `sudo apt-get purge --auto-remove ros-humble-octomap-msgs`
      - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_msgs`
+     - `source ~/.bashrc`
      - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_server2`
      - Ignore warnings
-     - Source: `source ../octomap_server2_ws/install/setup.bash`
 
    - Install *Lang SAM*:
-     - `pip install torch torchvision`
      - Add `/home/.../.local/bin` to the PATH
        - Open a terminal and edit your shell configuration file (e.g., .bashrc for Bash users or .zshrc for Zsh users) with a text editor:
          ```bash
@@ -430,8 +433,13 @@ This work focuses on the following contributions:
        - ```bash
          source ~/.bashrc
          ```
-     - Move to `/home/.../.local/lib/pythonX.XX/site-packages`
-     - Download the repository `https://github.com/luca-medeiros/lang-segment-anything` at the commit `134a48a` made on Nov 1st 2023, and copy the folder `lang_sam` into the `site-packages` folder
+     - `pip install torch torchvision`
+     - Move to `/home/michelelagreca/.local/lib/pythonX.XX/site-packages`
+     - `git clone --depth 1 --filter=blob:none --sparse https://github.com/luca-medeiros/lang-segment-anything`
+     - `cd lang-segment-anything`
+     - `git sparse-checkout set lang_sam`
+     - `git fetch origin`
+     - `git checkout 134a48a81ebd691686187ecce2d016fb327a8852`
      - <details>
          <summary>
            Install dependencies:
@@ -472,7 +480,7 @@ This work focuses on the following contributions:
             torchvision==0.15.2 tqdm==4.65.0 transformers==4.29.0 triton==2.0.0 \
             tzdata==2023.3 uc-micro-py==1.0.2 urllib3==2.0.3 uvicorn==0.22.0 \
             websocket-client==1.6.1 websockets==11.0.3 yapf==0.40.1 yarl==1.9.2 \
-            zipp==3.16.1 lang-sam==0.1.0
+            zipp==3.16.1
             ```
         </details>
 
@@ -482,10 +490,12 @@ This work focuses on the following contributions:
    - Install *YOLO World + EfficentViT SAM*:
      - Move inside the `../.local/lib/pythonX.XX/site-packages` folder
      - Into this folder: `git clone https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git`
-     - Move to the folder: `yolo_world_with_efficient_sam` where the file `Requirements.txt` is located
+     - `cd yolo-world-with-efficientvit-sam`
+     - `git checkout 511cd0de5c8856f574ebb399f4f6f4e32410677c`
      - `pip install -r requirements.txt`
-     - Copy the `efficientvit` folder of the repository `https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git` into the site-packages folder
-     - From `https://github.com/CVHub520/efficientvit` download the *EfficientViT-L0* model checkpoint and rename it `efficient_SAM_l0.pt` 
+     - Move inside the `../.local/lib/pythonX.XX/site-packages` folder
+     - If needed: copy the `efficientvit` folder of the repository `https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git` into the site-packages folder
+     - From `https://github.com/CVHub520/efficientvit` or [link](https://www.dropbox.com/scl/fi/jvemt62abv6tfpn33luy2/l0.pt?rlkey=ijo7i64n6kpnhnrwd3uux8vhf&e=1&dl=0) download the *EfficientViT-L0* model checkpoint and rename it `efficient_SAM_l0.pt` 
      - Place the model in a *models* folder. This folder should be in the folder containing all the other workspaces used in the project
      - If there are problems related to the package `pydantic`: `pip install --upgrade pydantic`
      - If there are problems related to the package `supervision`: `pip install --upgrade supervision`
@@ -502,9 +512,11 @@ This work focuses on the following contributions:
    - Create a workspace (for example called `active_vision`) and create a folder `src` inside
    - Add in the *bashrc* file: `source ../active_vision/install/setup.bash`
    - In `active_vision/src` folder run: `git clone https://github.com/AIRLab-POLIMI/active-vision.git`
-   - Copy the content of the cloned `active_vision` folder (also *.git* and *.gitignore* files) into `src` folder, adn remove the folder `images`
+   - `cd active_vision/src/active_vision`
+   - Remove the folder `images`: `rm -r images`
    - Downgrade *setuptools* (from 70.0.0 to a lower version): `python3 -m pip install setuptools==69.5.1`
    - In the workspace folder run: `colcon build --packages-select av_interfaces`
+   - `source ~/.bashrc`
    - In the workspace folder run: `colcon build`
    - Ignore warnings
    - `source ~/.bashrc` to make effective the changes (or restart the terminal)

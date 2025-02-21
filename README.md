@@ -139,15 +139,25 @@ This work focuses on the following contributions:
       </details>
       
    - Install `mobile_manipulation_interfaces` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel):
-       - Download and put the package into the `moveit_ws/src`, then build only this: `colcon build --packages-select mobile_manipulation_interfaces`
-   - Install `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
+       - `cd moveit2_ws/src`
+       - `git clone --depth 1 --filter=blob:none --sparse https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel.git`
+       - `cd mobile-manipulation-scout-rebel`
+       - `git sparse-checkout set mobile_manipulation_interfaces`
+       - `git fetch origin 899dbf17d250aa1834c20601808f83def6f56b1a`
+       - `git checkout 899dbf17d250aa1834c20601808f83def6f56b1a`
+       - `cd moveit2_ws`
+       - `colcon build --packages-select mobile_manipulation_interfaces`
+   - Clone the `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
        <details>
          <summary>
            OPTION 1 (Recommended): Use the active-vision-config branch:
          </summary>
-          
-       - Download from the active-vision-branch the specific package folder `moveit2_api` and put it into the `moveit_ws/src` folder
-       - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api` (if can not compile, compile after the compilation of workspace ros2_igus_rebel)
+
+       - `cd moveit2_ws/src`
+       - `git clone --depth 1 --filter=blob:none --sparse --branch active-vision-config https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel.git`
+       - `cd mobile-manipulation-scout-rebel`
+       - `git sparse-checkout set moveit2_api`
+       - Compile this package after the compilation of workspace ros2_igus_rebel
          
        </details>
        <details>

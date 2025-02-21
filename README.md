@@ -294,7 +294,10 @@ This work focuses on the following contributions:
    - Install the hardware interface for controlling the Gazebo Ignition robot through MoveIt2:
      - Create a workspace (for example called `gz_ros2_control`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../gz_ros2_control/install/setup.bash`
-     - In `gz_ros2_control/src` folder clone the humble branch of the repository containing the hardware interface for Gazebo Ignition: `git clone --single-branch --branch humble https://github.com/ros-controls/gz_ros2_control`
+     - In `gz_ros2_control/src` folder clone the humble branch of the repository containing the hardware interface for Gazebo Ignition at a specific commit
+     - `git clone --no-checkout https://github.com/ros-controls/gz_ros2_control`
+     - `cd gz_ros2_control`
+     - `git checkout a6ef1d6d0064a75d2df6b245820e7b1844b261af`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In `gz_ros2_control` folder: `colcon build`
 
@@ -303,10 +306,10 @@ This work focuses on the following contributions:
    - Install tf_transformations: `sudo apt install ros-$ROS_DISTRO-tf-transformations`
   
    - Install AgileX Scout description package:
-     - Download the main branch of [repo](https://github.com/AIRLab-POLIMI/scout_nav2) and place only the folder `agilex_scout` into a new workspace `agilex_scout/src`
-     - In the file `agilex_scout/src/agilex_scout/urdf/mobile_robot/scout_v2.urdf.xacro` comment or remove the 82-94 lines, so that wheels are not loaded (to solve an error).
-     - In the workspace folder `agilex_scout`: `colcon build`
+     - Create a workspace (for example called `agilex_scout`) and create a folder `src` inside
      - Add in the *bashrc* file: `source ../agilex_scout/install/setup.bash`
+     - In `agilex_scout/src` folder: `git clone https://github.com/michelelagreca/scout_nav2.git`
+     - In the workspace folder `agilex_scout`: `colcon build`
   
   
 </details>

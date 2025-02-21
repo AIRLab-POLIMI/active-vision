@@ -267,9 +267,13 @@ This work focuses on the following contributions:
 
        
    - Install MoveIt Visual Tools:
-     - Go in `moveit2_ws/src` folder and clone the repository: `git clone -b ros2 https://github.com/ros-planning/moveit_visual_tools`
-     - In the same folder: `vcs import < moveit_visual_tools/moveit_visual_tools.repos`
-     - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
+     - Go in `moveit2_ws/src` folder and clone the repository: `git clone --no-checkout https://github.com/ros-planning/moveit_visual_tools`
+     - `cd moveit_visual_tools`
+     - `git checkout 7c467e62cc723593a7fa557960746846b043095c`
+     - `cd moveit2_ws/src`
+     - `vcs import < moveit_visual_tools/moveit_visual_tools.repos`
+     - `cd moveit_visual_tools`
+     - `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In the folder `movit2_ws`:
        - `colcon build --packages-select rviz_visual_tools`
        - `colcon build --packages-select graph_msgs`

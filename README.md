@@ -483,7 +483,7 @@ This work focuses on the following contributions:
             zipp==3.16.1
             ```
         </details>
-
+     - Move *lang_sam* folder up one level: `mv ~/.local/lib/python3.10/site-packages/lang-segment-anything/lang_sam/ ..`
      - At the first run of this model, sometime is required to download the models.
        
     
@@ -493,10 +493,7 @@ This work focuses on the following contributions:
      - `cd yolo-world-with-efficientvit-sam`
      - `git checkout 511cd0de5c8856f574ebb399f4f6f4e32410677c`
      - `pip install -r requirements.txt`
-     - Move inside the `../.local/lib/pythonX.XX/site-packages` folder
-     - If needed: copy the `efficientvit` folder of the repository `https://github.com/Curt-Park/yolo-world-with-efficientvit-sam.git` into the site-packages folder
-     - From `https://github.com/CVHub520/efficientvit` or [link](https://www.dropbox.com/scl/fi/jvemt62abv6tfpn33luy2/l0.pt?rlkey=ijo7i64n6kpnhnrwd3uux8vhf&e=1&dl=0) download the *EfficientViT-L0* model checkpoint and rename it `efficient_SAM_l0.pt` 
-     - Place the model in a *models* folder. This folder should be in the folder containing all the other workspaces used in the project
+     - Move *efficientvit* folder up one level: `mv ~/.local/lib/python3.10/site-packages/yolo-world-with-efficientvit-sam/efficientvit/ ..`
      - If there are problems related to the package `pydantic`: `pip install --upgrade pydantic`
      - If there are problems related to the package `supervision`: `pip install --upgrade supervision`
 

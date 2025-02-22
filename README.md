@@ -53,7 +53,7 @@ This work focuses on the following contributions:
   </summary>
 
    - Guide at [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
-     - Regarding the sourcing, instead of always running the command `source /opt/ros/humble/setup.bash`, a good practice is to add this line in the end of the *bashrc* file that can be modified with the command `gedit ~/.bashrc`. After the modification, the file needs to be saved and the terminal restarted.
+     - Regarding the sourcing, instead of always running the command `source /opt/ros/humble/setup.bash`, a good practice is to add this line in the end of the *bashrc* file that can be modified with the command `gedit ~/.bashrc`. After the modification, the file needs to be saved and the terminal restarted (or `source ~/.bashrc`) 
    - Install RQt tools: `sudo apt install ros-humble-rqt*`.
    - Install dev tools: `sudo apt update && sudo apt install -y python3-vcstool`.
    - Initialize rosdep: `sudo rosdep init` and then `rosdep update`
@@ -108,6 +108,7 @@ This work focuses on the following contributions:
      - In `moveit2_ws/src` folder: `for repo in moveit2/moveit2.repos $(f="moveit2/moveit2_$ROS_DISTRO.repos"; test -r $f && echo $f); do vcs import < "$repo"; done`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y`
      - In `moveit2_ws` folder: `MAKEFLAGS="-j4" colcon build --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=Release`
+     - `source ~/.bashrc`
          
       </details>
       <details>

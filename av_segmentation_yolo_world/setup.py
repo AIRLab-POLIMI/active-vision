@@ -20,6 +20,10 @@ setup(
             os.path.join("share", package_name, "data"),
             glob.glob("data/*.png") + glob.glob("data/*.jpeg") + glob.glob("data/*.jpg"),
         ),
+        (
+            os.path.join("share", package_name, "models"),
+            glob.glob("models/*.pt"),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

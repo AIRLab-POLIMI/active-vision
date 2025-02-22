@@ -229,6 +229,7 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={
                 **use_sim_time_dict,
                 **{
+                    "model_path": FindPackageShare("av_segmentation_yolo_world"),
                     "frame_id": frame_id,
                 },
                 **config_yaml['launch']['active_vision_pipeline_launch']['yolo_world_server']
@@ -253,7 +254,9 @@ def launch_setup(context, *args, **kwargs):
                     "frame_id": frame_id,
                     "base_frame_id": base_frame_id,
                     "camera_frame": camera_frame_id,
-                    "centralized_architecture": config_yaml['launch']['active_vision_pipeline_launch']['centralized_architecture']
+                    "centralized_architecture": config_yaml['launch']['active_vision_pipeline_launch']['centralized_architecture'],
+                    "ground_truth_path": os.path.join(get_package_share_directory("av_bringup"), "data/", config_yaml['launch']['active_vision_pipeline_launch']['predefined_planning_pipeline_launch']["ground_truth_name"]),
+
                 },
                 **config_yaml['launch']['active_vision_pipeline_launch']['nbv_planning_pipeline_launch'],
 

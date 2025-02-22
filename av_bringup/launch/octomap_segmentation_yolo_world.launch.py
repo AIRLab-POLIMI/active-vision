@@ -340,6 +340,7 @@ def launch_setup(context, *args, **kwargs):
                 "yolo_world_depth_image_camera_info_topic": yolo_world_depth_image_camera_info_topic,
                 "confidences_topic": confidences_topic,
                 "yolo_world_tf_topic": yolo_world_tf_topic,
+                "model_path": FindPackageShare("av_segmentation_yolo_world"),
                 "frame_id": frame_id,
             },
             **config_yaml['launch']['octomap_segmentation_yolo_world_launch']['yolo_world_segmentation_launch']

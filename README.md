@@ -146,6 +146,7 @@ This work focuses on the following contributions:
        - `git sparse-checkout set mobile_manipulation_interfaces`
        - `cd moveit2_ws`
        - `colcon build --packages-select mobile_manipulation_interfaces`
+       - `source ~/.bashrc`
    - Clone the `moveit2_api` package created by Simone Giampà in his [work](https://github.com/AIRLab-POLIMI/mobile-manipulation-scout-rebel): 
        <details>
          <summary>
@@ -278,8 +279,9 @@ This work focuses on the following contributions:
      - In the folder `movit2_ws`:
        - `colcon build --packages-select rviz_visual_tools`
        - `colcon build --packages-select graph_msgs`
-       - `colcon build --packages-select moveit_visual_tools`
+       - `colcon build --packages-select moveit_visual_tools` (ignore release option)
          -  If an error raises with respect to *trajectory* variable, change it manually in the source code.
+     - `source ~/.bashrc`
    
    
    - Install the ROS 2 wrapper of the Realsense D435 used in the project:
@@ -301,6 +303,7 @@ This work focuses on the following contributions:
      - `git checkout a6ef1d6d0064a75d2df6b245820e7b1844b261af`
      - In the same folder: `rosdep install -r --from-paths . --ignore-src --rosdistro humble -y`
      - In `gz_ros2_control` folder: `colcon build`
+     - `source ~/.bashrc`
 
    - Install ros2_control: `sudo apt install ros-$ROS_DISTRO-ros2-control`
    - Install ros2_controllers: `sudo apt install ros-$ROS_DISTRO-ros2-controllers`
@@ -311,6 +314,7 @@ This work focuses on the following contributions:
      - Add in the *bashrc* file: `source ../agilex_scout/install/setup.bash`
      - In `agilex_scout/src` folder: `git clone https://github.com/michelelagreca/scout_nav2.git`
      - In the workspace folder `agilex_scout`: `colcon build`
+     - `source ~/.bashrc`
   
   
 </details>

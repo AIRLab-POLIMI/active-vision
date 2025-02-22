@@ -511,6 +511,9 @@ This work focuses on the following contributions:
    - In `active_vision/src` folder run: `git clone https://github.com/AIRLab-POLIMI/active-vision.git`
    - `cd active_vision/src/active_vision`
    - Remove the folder `images`: `rm -r images`
+   - `cd active_vision/src/active_vision/av_segmentation_yolo_world/models`
+   - `cat efficient_SAM_part_* > efficient_SAM_l0.pt`
+   - `rm efficient_SAM_part_aa efficient_SAM_part_ab`
    - Downgrade *setuptools* (from 70.0.0 to a lower version): `python3 -m pip install setuptools==69.5.1`
    - In the workspace folder run: `colcon build --packages-select av_interfaces`
    - `source ~/.bashrc`

@@ -2128,6 +2128,10 @@ namespace active_vision_nbv_planning_pipeline{
      */
     double ActiveVisionNbvPlanningPipeline::reconstructionMetric(bool visualization){
         
+        MoveIt2API_node_->visual_tools->deleteAllMarkers();
+        MoveIt2API_node_->visual_tools->setBaseFrame(this->base_frame_id_);
+        MoveIt2API_node_->visual_tools->trigger();
+
         // Save set of point referring to the truth and to the reconstruction
         std::vector<Eigen::Vector3d> truth_points;
         std::vector<Eigen::Vector3d> reconstruction_points;

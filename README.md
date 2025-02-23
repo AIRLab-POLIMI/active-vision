@@ -793,13 +793,13 @@ used to allow multiple nodes to run in separate threads: *MoveIt2APICreator*, *S
 
 - To perform 3D reconstruction using the predefined planning:
    - Run the segmentation server: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_y:=3.0 spawn_yaw:=0.0 load_base:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_y:=3.0 spawn_yaw:=0.0 load_base:=true`;
    - Run the active vision pipeline with predefined planning: `ros2 launch av_bringup active_vision_predefined_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
 <br>
 
 - To perform 3D reconstruction using the NBV planning:
    - Run the segmentation server: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_yolo_world:=true`;
-   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.7 spawn_y:=3.0 spawn_yaw:=0.0 load_base:=true`;
+   - Run the Igus ReBeL robot block: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_robot_moveit:=true spawn_x:=-0.95 spawn_y:=3.0 spawn_yaw:=0.0 load_base:=true`;
    - Run the active vision pipeline with NBV planning: `ros2 launch av_bringup active_vision_nbv_planning_pipeline.launch.py run_active_vision_pipeline:=true load_base:=true`.
 
 

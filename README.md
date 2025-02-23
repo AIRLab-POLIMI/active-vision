@@ -334,6 +334,8 @@ This work focuses on the following contributions:
    - In the workspace folder run: `colcon build`
    - `source ~/.bashrc` to make effective the changes (or restart the terminal)
    - In the folder `moveit2_ws`: `colcon build --packages-select moveit2_api`
+   - `source ~/.bashrc` to make effective the changes (or restart the terminal)
+
        
 </details>
 
@@ -409,6 +411,7 @@ This work focuses on the following contributions:
             Some of these libraries may not be found correctly. 
             ```
         </details>
+     - `source ~/.bashrc` 
    
    - Install `Octomap_Server2`:
      - Create a workspace `octomap_server2_ws/src`
@@ -425,6 +428,7 @@ This work focuses on the following contributions:
      - `source ~/.bashrc`
      - In folder `octomap_server2_ws`: `colcon build --symlink-install --packages-select octomap_server2`
      - Ignore warnings
+     - `source ~/.bashrc`
 
    - Install *Lang SAM*:
      - Add `/home/.../.local/bin` to the PATH
@@ -501,6 +505,8 @@ This work focuses on the following contributions:
      - Move *efficientvit* folder up one level: `mv ~/.local/lib/python3.10/site-packages/yolo-world-with-efficientvit-sam/efficientvit/ ..`
      - If there are problems related to the package `pydantic`: `pip install --upgrade pydantic`
      - If there are problems related to the package `supervision`: `pip install --upgrade supervision`
+     - Ignore warnings.
+     - `source ~/.bashrc`
 
   
 </details>

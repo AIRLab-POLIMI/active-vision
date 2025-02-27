@@ -86,8 +86,51 @@ This work focuses on the following contributions:
     Step 2: Setup Real Robot configuration (for Igus ReBeL and Standalone Realsense 435). 
   </summary>
 
-   - Documentation is in progress...
-       
+   - ## Equipment
+
+      - Igus Rebel cobot
+      - Batteries
+      - Ethernet cable
+      - Ethernet - USB Type C adapter (optional)
+      - Igus Rebel Power supply
+      - Emergency button for Igus Rebel
+
+   - ## Batteries
+
+      There are 2 pair of batteries available, one that have more capacity. Plug one of it to the battery cable of the Rebel. From the same battery cable it is possible to connect the batteries to the charger.
+      
+   - ## Robot setting
+      
+      Every time the Rebel need to be connected some operation need to be done.
+      
+      - Make sure the mobility of the Rebel is totally permitted for what concerns the whole surrounding scene.
+      - Place the emergency button close and ready to be pushed.
+      - Power up the Rebel.
+      - Push the power button. A red light should appear.
+      - Connect the ethernet cable and connect it to the PC.
+
+   - ## Linux settings
+      
+      When the connection is done for the first time some operations need to be done.
+      
+      - First, be sure that the instructions on the robot setting section have been done.
+      - Using `ip a` or `ifconfig` commands be sure that the network interface recognize the Rebel.
+      - Open Linux.
+      - A new ethernet network configuration need to be setted.
+          - In Ubuntu, go in the network setting and add a new wired network.
+          - Select a name for the connection.
+          - Select the MAC address of the Rebel, that should be present in the related menù.
+          - Select IPv4.
+          - Select manual IPv4.
+          - Select as Address 192.168.1.101.
+          - Select as Netmask 255.255.255.0.
+          - Add and close.
+      - The first time, after this setting there will be an option not-selectable called Cable umplugged.
+      - In order to apply this configuration, run the command:`sudo systemctl restart NetworkManager`
+      - After this, in the wired connection the Igus Rebel connection should be on.
+      - For the next uses, once connecting the ethernet, if the connection is not setted, after doing the previous instruction there is not need to run the above command to reset the network interface.
+      - Another way to check if the Rebel is succesfully connected, run a ping to the Rebel IP address: `ping 192.168.1.102`
+             
 </details>
 
 
